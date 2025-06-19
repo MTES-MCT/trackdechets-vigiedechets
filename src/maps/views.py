@@ -12,3 +12,8 @@ class MapView(FullyLoggedMixin, TemplateView):
 class ExutMapView(FullyLoggedMixin, TemplateView):
     template_name = "maps/icpe_map.html"
     allowed_user_categories = PERMS_MAP_ICPE
+
+
+class IcpeMapView(FullyLoggedMixin, TemplateView):
+    template_name = "maps/new_icpe_map.html"
+    allowed_user_categories = PERMS_MAP_ICPE
