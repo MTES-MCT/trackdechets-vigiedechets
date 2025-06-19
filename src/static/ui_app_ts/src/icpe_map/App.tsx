@@ -22,6 +22,7 @@ function App() {
       <Sidebar mapRef={mapRef} />
 
       {/*<Suspense fallback={<div>Loading...</div>}>*/}
+
       <MapContainer lat={lat} lng={lng} mapRef={mapRef} />
       {/*</Suspense>*/}
     </div>

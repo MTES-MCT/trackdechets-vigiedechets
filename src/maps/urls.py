@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .api import ApiCompanyExport, ApiObjects, ICPEFrance, ICPEGraph, ICPEViewMany
-from .views import ExutMapView, MapView, IcpeMapView
+from .views import ExutMapView, IcpeMapView, MapView, ICPEGraphView
 
 urlpatterns = [
     path("", MapView.as_view(), name="map_view"),
@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/icpe/france/<int:year>/<str:rubrique>", ICPEFrance.as_view(), name="icpe_france"),
     path("api/icpe/<str:layer>/<int:year>/<str:rubrique>", ICPEViewMany.as_view(), name="icpe_many"),
     path("api/icpe/<str:layer>/<int:year>/<str:rubrique>/<str:code>", ICPEGraph.as_view(), name="icpe_get_graph"),
+    path("api/icpe-graph/<str:layer>/<int:year>/<str:rubrique>/<str:code>", ICPEGraphView.as_view(), name="icpe_graph_view"),
 ]

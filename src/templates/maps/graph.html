@@ -1,0 +1,34 @@
+{%  load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="graph"></div>
+ 
+    <script src="{% static "js/plotly-3.0.0.min.js" %}" charset="utf-8"></script>
+
+    <script src="{% static "js/plotly-locale-fr.js" %}"></script>
+
+<script>
+    const graph1 = {{ graph|safe }}
+
+</script>
+<script>
+
+                Plotly.newPlot(
+                    "graph",
+                    graph1.data,
+                    graph1.layout,
+                    {
+                    ...graph1.config,
+                    locale: 'fr',
+                    autosize: true
+                })
+
+
+</script>
+</body>
+</html>
