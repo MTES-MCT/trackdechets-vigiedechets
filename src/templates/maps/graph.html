@@ -1,0 +1,99 @@
+{% load static value_formatters %}
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="theme-color" content="#000091"/>
+    <title>
+        {% block title %}Trackdéchets - Vigiedéchets{% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static "css/dsfr.main.min.css" %}"/>
+{#    <link href="{% static "css/utility/utility.min.css" %}" rel="stylesheet">#}
+    <link rel="stylesheet" href="{% static "css/style.css" %}"/>
+    {% block extra_head %}{% endblock %}
+
+    <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+
+
+<div id="region-title"><h5>{{ result.nom_region }}</h5></div>
+
+
+{% if result.nombre_installations %}
+    <div class="grouped-info">
+
+        <p>Nombre d'installations : {{ result.nombre_installations }}</p>
+
+    </div>
+{% endif %}
+
+
+<div class="grouped-info">
+    <p>
+        Quantité autorisée :
+        <span>
+              {% if result.quantite_autorisee %}
+                  {{ result.quantite_autorisee|format_int }} t/an
+              {% else %}
+                  N/A
+              {% endif %}
+          </span>
+    </p>
+    <p>
+        Quantité traitée en cumulé :
+        <span>
+
+               {% if result.cumul_quantite_traitee %}
+                   {{ result.cumul_quantite_traitee|format_float }} t/an
+               {% else %}
+                   N/A
+               {% endif %}
+
+          </span>
+    </p>
+    <p>
+        Quantité consommée sur l'année :
+
+        <span>
+
+               {% if result.taux_consommation %}
+                   {{ result.taux_consommation|format_percentage }}
+               {% else %}
+                   N/A
+               {% endif %}
+
+          </span>
+
+    </p>
+</div>
+
+
+<div id="graph"></div>
+
+<script src="{% static "js/plotly-3.0.0.min.js" %}" charset="utf-8"></script>
+
+<script src="{% static "js/plotly-locale-fr.js" %}"></script>
+
+<script>
+    const graph1 = {{ result.graph|safe }}
+
+</script>
+<script>
+
+    Plotly.newPlot(
+        "graph",
+        graph1.data,
+        graph1.layout,
+        {
+            ...graph1.config,
+            locale: 'fr',
+            autosize: true
+        })
+
+
+</script>
+</body>
+</html>

@@ -15,13 +15,16 @@ INTERNAL_IPS = [
 ]
 
 MIDDLEWARE = (
-    MIDDLEWARE[:1]  # noqa
-    + [
-        "debug_toolbar.middleware.DebugToolbarMiddleware",
-    ]
-    + MIDDLEWARE[1:]  # noqa
+        MIDDLEWARE[:1]  # noqa
+        + [
+            "debug_toolbar.middleware.DebugToolbarMiddleware",
+        ]
+        + MIDDLEWARE[1:]  # noqa
 )
 
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK" :'common.toolbar.do_show_toolbar'
+}
 # Celery config
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_RESULT_BACKEND = "redis"
@@ -44,6 +47,5 @@ LOGGING = {
         "mozilla_django_oidc": {"handlers": ["console"], "level": "DEBUG"},
     },
 }
-
 
 DJANGO_VITE = {"default": {"dev_mode": True}}
