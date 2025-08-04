@@ -1083,7 +1083,9 @@ class ICPEItemsProcessor:
         if df is None:
             return
 
-        df = df.with_columns(pl.col("quantite").map_elements(lambda x: format_number_str(x, precision=3)))
+        df = df.with_columns(
+            pl.col("quantite").map_elements(lambda x: format_number_str(x, precision=3), return_dtype=pl.String)
+        )
 
         df = df.sort("rubrique")
 
