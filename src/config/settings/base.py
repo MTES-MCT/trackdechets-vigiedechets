@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "maps",
     "data_exports",
     "registry",
+    "naf",
 ]
 
 MIDDLEWARE = [

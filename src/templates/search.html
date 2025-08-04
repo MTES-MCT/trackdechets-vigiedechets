@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Recherche naf - Vigiedéchets{% endblock %}
+
+{% block main %}
+    <div class="fr-container fr-mt-1v">
+        <div class="fr-container--fluid">
+            <div class="fr-grid-row fr-grid-row--gutters fr-mt-4w">
+                <div class="fr-col-4">
+                    <h4 class="fr-mb-1w">Rechercher un NAF</h4>
+                    <form  method="post" action="">
+
+                        {% csrf_token %}
+                        {% include "forms/_form_snippet.html" with form=form %}
+                        <button class="fr-btn">Search naf</button>
+                    </form>
+                </div>
+
+            </div>
+
+            {%  if results %}
+
+            {% for result in results %}
+                <p>{{ result.code }} {{ result.content }}</p>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock main %}

@@ -44,6 +44,8 @@ django-admin-rangefilter = "*"
 polars = "*"
 django-solo = "*"
 pyarrow = "*"
+pgvector = "*"
+sentence-transformers = "*"
 
 [dev-packages]
 isort = "*"

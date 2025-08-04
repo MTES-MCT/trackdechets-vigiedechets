@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.urls import path
 
+from naf.views import SearchView
+
 from .views import (
     ComputingView,
     FragmentResultView,
@@ -32,6 +34,7 @@ urlpatterns = [
     path("sheet/<uuid:pk>", Sheet.as_view(), name="sheet"),
     path("prepare-pdf/<uuid:pk>", PrepareSheetPdf.as_view(), name="prepare_pdf"),
     path("pdf/<uuid:pk>", SheetPdf.as_view(), name="sheet_pdf"),
+    path("search/", SearchView.as_view(), name="search"),
 ]
 
 if settings.DEBUG:
