@@ -73,7 +73,7 @@ SELECT
 
     coords
 FROM
-    refined_zone_analytics.cartographie_des_etablissements_geocoded
+    refined_zone_vigiedechets.cartographie_des_etablissements_geocoded
 ORDER BY siret
 """
 BATCH_SIZE = 10000
@@ -118,7 +118,7 @@ class Command(BaseCommand):
         self.stdout.write("Deleting existing CartoCompany objects...")
         CartoCompany.objects.all().delete()
 
-        count_query = "SELECT COUNT() FROM refined_zone_analytics.cartographie_des_etablissements_geocoded"
+        count_query = "SELECT COUNT() FROM refined_zone_vigiedechets.cartographie_des_etablissements_geocoded"
 
         count_df = build_query(count_query)
         total_count = count_df.iloc[0, 0]
