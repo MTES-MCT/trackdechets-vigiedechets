@@ -13,33 +13,33 @@ select
     code_postal,
     commune
 from 
-    refined_zone_stats_publiques.installations_icpe_2024
+    refined_zone_vigiedechets.installations_icpe_2024
 """
 
 icpe_installations_waste_processed_sql = """
 select
     *
 from
-    refined_zone_stats_publiques.icpe_installations_daily_processed_waste
+    refined_zone_vigiedechets.icpe_installations_daily_processed_waste
 """
 
 icpe_departements_waste_processed_sql = """
 select
     *
 from
-    refined_zone_stats_publiques.icpe_departements_daily_processed_waste
+    refined_zone_vigiedechets.icpe_departements_daily_processed_waste
 """
 
 icpe_regions_waste_processed_sql = """
 select
     *
 from
-    refined_zone_stats_publiques.icpe_regions_daily_processed_waste
+    refined_zone_vigiedechets.icpe_regions_daily_processed_waste
 """
 
 icpe_france_waste_processed_sql = """
 select
     *
 from
-    refined_zone_stats_publiques.icpe_france_daily_processed_waste
+    refined_zone_vigiedechets.icpe_france_daily_processed_waste
 """

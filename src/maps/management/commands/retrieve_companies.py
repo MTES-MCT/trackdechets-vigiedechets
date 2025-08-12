@@ -73,7 +73,7 @@ SELECT
 
     coords
 FROM
-    refined_zone_analytics.cartographie_des_etablissements_geocoded
+    refined_zone_vigiedechets.cartographie_des_etablissements_geocoded
 ORDER BY siret
 """
 BATCH_SIZE = 10000
@@ -118,10 +118,10 @@ class Command(BaseCommand):
         self.stdout.write("Deleting existing CartoCompany objects...")
         CartoCompany.objects.all().delete()
 
-        count_query = "SELECT COUNT() FROM refined_zone_analytics.cartographie_des_etablissements_geocoded"
+        count_query = "SELECT COUNT() FROM refined_zone_vigiedechets.cartographie_des_etablissements_geocoded"
 
         count_df = build_query(count_query)
-        total_count = count_df.iloc[0, 0]
+        total_count = count_df.item()
 
         self.stdout.write(f"Found {total_count} records to import")
 
@@ -135,7 +135,7 @@ class Command(BaseCommand):
 
             companies_df = build_query(paginated_query)
 
-            companies_dicts = companies_df.to_dict(orient="records")
+            companies_dicts = companies_df.to_dicts()
             dedup_companies_dicts = cleanup_duplicate_sirets(companies_dicts)
 
             already_existing_sirets = CartoCompany.objects.all().values_list("siret", flat=True)
