@@ -73,7 +73,7 @@ SELECT
 
     coords
 FROM
-    refined_zone_vigiedechets.cartographie_des_etablissements_geocoded
+    refined_zone_vigiedechets.cartographie_etablissements_geocoded
 ORDER BY siret
 """
 BATCH_SIZE = 10000
