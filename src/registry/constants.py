@@ -48,7 +48,7 @@ class RegistryV2ExportType(models.TextChoices):
     # de début de gestion du déchet n'apparaissant pas sur les bordereaux de suivi de déchet,
     # il n'est pas possible de trier le registre suivant cette date).
     # https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000043884599
-    MANAGED = "MANAGED", "Registre de gestion"
+    MANAGED = "MANAGED", "Registre des courtiers/négociants"
 
     # Registre sortant.
     # Registre réglementaire, les déchets apparaissent à partir du moment où l'enlèvement
@@ -63,7 +63,7 @@ class RegistryV2ExportType(models.TextChoices):
     # Registre réglementaire, les déchets apparaissent à partir du moment où l'enlèvement
     # a été signé et sont triés par date d'enlèvement du déchet.
     # https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000043884592
-    TRANSPORTED = "TRANSPORTED", "Registre de transport"
+    TRANSPORTED = "TRANSPORTED", "Registre des transporteurs"
 
 
 class RegistryV2DeclarationType(models.TextChoices):
