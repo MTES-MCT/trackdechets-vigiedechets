@@ -77,6 +77,13 @@ PERMS_DATA_EXPORT = [
     UserCategoryChoice.ADMINISTRATION_CENTRALE,
     UserCategoryChoice.OBSERVATOIRE,
 ]
+PERMS_SENTINEL = [
+    UserCategoryChoice.STAFF_TD,
+    UserCategoryChoice.ADMINISTRATION_CENTRALE,
+    UserCategoryChoice.INSPECTEUR_ICPE,
+    UserCategoryChoice.GENDARMERIE,
+    UserCategoryChoice.DOUANE,
+]
 
 
 class UserTypeChoice(models.TextChoices):

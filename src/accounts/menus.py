@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import reverse
 from simple_menu import Menu, MenuItem
 
@@ -19,11 +20,19 @@ class StaffMenuItem(MenuItem):
 
 
 class PermsItem(MenuItem):
-    """User is staff and not an observatoire"""
+    """User is staff or belongs to the allowed categories"""
 
     def check(self, request):
         allowed_categories = getattr(self, "allowed_categories", [])
         self.visible = request.user.is_staff or request.user.user_category in allowed_categories
+
+
+class UserEmailItem(MenuItem):
+    """User is staff or belongs to the allowed emails"""
+
+    def check(self, request):
+        allowed_emails = getattr(self, "allowed_emails", [])
+        self.visible = request.user.is_staff or request.user.email.lower() in allowed_emails
 
 
 submenu = (
@@ -60,6 +69,10 @@ Menu.add_item(
 Menu.add_item(
     "main",
     PermsItem("Observatoires", reverse("data_export_list"), allowed_categories=PERMS_DATA_EXPORT),
+)
+Menu.add_item(
+    "main",
+    UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
 )
 
 Menu.add_item(

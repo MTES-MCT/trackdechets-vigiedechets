@@ -1,1 +1,2 @@
 python /app/src/manage.py migrate --settings=config.settings.production
+python /app/src/manage.py load_nafs --settings=config.settings.production

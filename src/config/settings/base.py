@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "mozilla_django_oidc",
     "rangefilter",
+    "mptt",
     "oidc",
     "accounts",
     "common",
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     "maps",
     "data_exports",
     "registry",
+    "sentinel",
 ]
 
 MIDDLEWARE = [
@@ -103,7 +105,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": env.db(),
 }
-
+REDIS_URL = env.str("REDIS_URL", "redis://localhost:6379/0")
 DWH_USERNAME = env.str("DWH_USERNAME")
 DWH_PASSWORD = env.str("DWH_PASSWORD")
 DWH_PORT = env.str("DWH_PORT")
@@ -112,6 +114,9 @@ DWH_SSH_PORT = env.str("DWH_SSH_PORT")
 DWH_SSH_USERNAME = env.str("DWH_SSH_USERNAME")
 DWH_SSH_LOCAL_BIND_HOST = env.str("DWH_SSH_LOCAL_BIND_HOST")
 DWH_SSH_KEY = env.str("DWH_SSH_KEY", multiline=True)
+
+
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -195,7 +200,6 @@ REST_FRAMEWORK = {
 }
 
 # defender
-REDIS_URL = env.str("REDIS_URL", "redis://localhost:6379/0")
 DEFENDER_REDIS_URL = REDIS_URL
 DEFENDER_LOGIN_FAILURE_LIMIT_USERNAME = 3
 DEFENDER_LOGIN_FAILURE_LIMIT_IP = 3
@@ -319,3 +323,6 @@ SKIP_ROAD_CONTROL_SIRET_CHECK = False
 GUN_DATA_UPDATE_DATE_STRING = env("GUN_DATA_UPDATE_DATE_STRING")
 GISTRID_DATA_UPDATE_DATE_STRING = env("GISTRID_DATA_UPDATE_DATE_STRING")
 RNDTS_DATA_UPDATE_DATE_STRING = env("RNDTS_DATA_UPDATE_DATE_STRING")
+
+
+ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]

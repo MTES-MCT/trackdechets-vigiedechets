@@ -43,6 +43,7 @@ urlpatterns = [
     path("roadcontrol/", include("roadcontrol.urls")),
     path("map/", include("maps.urls")),
     path("data-exports/", include("data_exports.urls")),
+    path("sentinelle/", include("sentinel.urls")),
 ]
 
 if settings.DEBUG:

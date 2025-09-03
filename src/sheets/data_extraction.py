@@ -37,9 +37,6 @@ from .queries import (
     sql_revised_bsdd_query_str,
 )
 
-# TODO: Delete
-# bsd_date_params = ["created_at", "updated_at", "sent_at", "received_at", "processed_at", "worker_work_signature_date"]
-
 query_types = {
     "id": pl.String,
     "readable_id": pl.String,

@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 numpy = "==1.26.4"
+paramiko = "<4"
 django = "*"
 django-registration = "*"
 psycopg2-binary = "*"
@@ -44,12 +45,14 @@ django-admin-rangefilter = "*"
 polars = "*"
 django-solo = "*"
 pyarrow = "*"
+django-mptt = "*"
+xlsxwriter = "*"
 
 [dev-packages]
 isort = "*"
 djade = "*"
 pywatchman = "*"
-django-debug-toolbar = "*"
+django-debug-toolbar = "<6"
 django-extensions = "*"
 ipykernel = "*"
 bandit = "*"

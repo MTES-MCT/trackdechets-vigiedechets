@@ -49,17 +49,20 @@ jours tout en conservant l'historique.
 
 ## Permissions
 
-| Profil                      | Fiche + registre | Contrôle routier | Bordereau | Cartographie | Observatoires | 🆕 Cartographie des exutoires | Accès admin |
-|-----------------------------|------------------|------------------|-----------|--------------|--------------|-------------------------------|-------------|
-| **Staff Track déchets**     | ✅                | ✅                | ✅         | ✅            | ✅            | ✅                             | ✅           |
-| **Administration centrale** | ✅                | ✅                | ✅         | ✅            | ✅            | ✅                             | ❌           |
-| **Inspecteur ICPE**         | ✅                | ✅                | ✅         | ✅            | ❌            | ✅                             | ❌           |
-| **CTT**                     | ✅                | ✅                | ✅         | ✅            | ❌            | ❌                             | ❌           |
-| **Inspection du travail**   | ✅                | ❌                | ✅         | ✅            | ❌            | ❌                             | ❌           |
-| **Gendarmerie**             | ✅                | ✅                | ✅         | ✅            | ✅            | ✅                             | ❌           |
-| **ARS**                     | ✅                | ❌                | ✅         | ✅            | ❌            | ❌                             | ❌           |
-| **Douanes**                 | ✅                | ✅                | ✅         | ✅            | ❌            | ❌                             | ❌           |
-| **Observatoires**           | ❌                | ❌                | ❌         | ✅            | ✅            | ❌                             | ❌           |
+
+| Profil                      | Fiche + registre | Contrôle routier | Bordereau | Cartographie | Situation anormale | Observatoires | Cartographie des exutoires | Vigiedéchets* | Accès admin |
+|-----------------------------|------------------|------------------|-----------|--------------|-------------------|-------------|-------------------------------|---------------|-------------|
+| **Staff Track déchets**     | ✅                | ✅                | ✅         | ✅            | ✅                 | ✅           | ✅                             | ❌             | ✅           |
+| **Administration centrale** | ✅                | ✅                | ✅         | ✅            | ✅                 | ✅           | ✅                             | ❌             | ❌           |
+| **Inspecteur ICPE**         | ✅                | ✅                | ✅         | ✅            | ✅                 | ❌           | ✅                             | ❌             | ❌           |
+| **CTT**                     | ✅                | ✅                | ✅         | ✅            | ❌                 | ❌           | ❌                             | ❌             | ❌           |
+| **Inspection du travail**   | ✅                | ❌                | ✅         | ✅            | ❌                 | ❌           | ❌                             | ❌             | ❌           |
+| **Gendarmerie**             | ✅                | ✅                | ✅         | ✅            | ✅                 | ✅           | ✅                             | ❌             | ❌           |
+| **ARS**                     | ✅                | ❌                | ✅         | ✅            | ❌                 | ❌           | ❌                             | ❌             | ❌           |
+| **Douanes**                 | ✅                | ✅                | ✅         | ✅            | ✅                 | ❌           | ✅                             | ❌             | ❌           |
+| **Observatoires**           | ❌                | ❌                | ❌         | ✅            | ❌                 | ✅           | ❌                             | ❌             | ❌           |
+
+* En beta, accès par ajout des comptes dans `ALLOWED_USER_FOR_SENTINEL`
 
 ## Bannière configurable
 
