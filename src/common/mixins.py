@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 class FullyLoggedMixin(AccessMixin):
     """
     This mixin extends AccessMixin to handle multi-factor authentication (MFA) and OIDC plus
-    user category-based permissions. It ensures users are fully authenticated
+    user category-based permissions or user email permissions. It ensures users are fully authenticated
     (two-factor verification or coming from OIDC) and belong to allowed user categories.
 
     Forbid access to :
@@ -25,6 +25,7 @@ class FullyLoggedMixin(AccessMixin):
     allowed_user_categories (list): Categories of users allowed to access views
         using this mixin. Must be explicitly set in subclasses. Use ["*"]
         for unlimited access.
+    allowed_user_emails (list): List of user email to be allowed
 
     Example:
     class SecureView(FullyLoggedMixin, View):
@@ -35,12 +36,24 @@ class FullyLoggedMixin(AccessMixin):
 
     Note:
     - Place this mixin before other view classes in inheritance
-    - Staff users automatically bypass category restrictions
+    - Staff users automatically bypass category and email restrictions
     - Setting allowed_user_categories = ["*"] allows access to all authenticated users
 
     """
 
     allowed_user_categories = []
+    allowed_user_emails = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.allowed_user_categories and self.allowed_user_emails:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} do not allow `allowed_user_categories` and `allowed_user_emails` attribute to be set"
+            )
+        if not self.allowed_user_categories and not self.allowed_user_emails:
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} requires the `allowed_user_categories` or `allowed_user_emails` attribute to be set"
+            )
 
     def no_permissions_fail(self, request=None):
         """Handle failed permission checks by redirecting users appropriately."""
@@ -60,16 +73,7 @@ class FullyLoggedMixin(AccessMixin):
         is_authenticated_from_oidc = user.is_authenticated_from_oidc()
         return is_verified_with_otp or is_authenticated_from_oidc
 
-    def get_allowed_user_categories(self):
-        """Retrieve the list of allowed user categories.Raises an error if not set in the view"""
-        if not self.allowed_user_categories:
-            raise ImproperlyConfigured(
-                f"{self.__class__.__name__} requires the `allowed_user_categories` attribute to be set"
-            )
-
-        return self.allowed_user_categories
-
-    def check_has_right_categories(self, categories):
+    def check_has_right_categories(self):
         """Verify if the user belongs to allowed categories."""
         if self.request.user.is_staff:
             return True
@@ -78,8 +82,15 @@ class FullyLoggedMixin(AccessMixin):
             return True
 
         user_category = self.request.user.user_category
-        # breakpoint()
-        return user_category in categories
+
+        return user_category in self.allowed_user_categories
+
+    def check_email_is_allowed(self):
+        """Verify if the user belongs to allowed categories."""
+        if self.request.user.is_staff:
+            return True
+
+        return self.request.user.email.lower() in self.allowed_user_emails
 
     def dispatch(self, request, *args, **kwargs):
         """Check if user is fully logged, then if has appropriate categories"""
@@ -87,8 +98,15 @@ class FullyLoggedMixin(AccessMixin):
 
         if not user_test_result:
             return self.handle_no_permission(request)
-        # breakpoint()
-        in_category = self.check_has_right_categories(self.get_allowed_user_categories())
-        if not in_category:
-            raise PermissionDenied()
+
+        if self.allowed_user_categories:
+            in_category = self.check_has_right_categories()
+            if not in_category:
+                raise PermissionDenied()
+
+        if self.allowed_user_emails:
+            email_is_allowed = self.check_email_is_allowed()
+            if not email_is_allowed:
+                raise PermissionDenied()
+
         return super().dispatch(request, *args, **kwargs)

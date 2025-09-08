@@ -54,3 +54,8 @@ def get_quantity_variable_names(bs_type):
     if bs_type == BSFF:
         quantity_variables = ["acceptation_weight"]
     return quantity_variables
+
+
+def slugify_waste_code(waste_code):
+    """Create proper python var name from waste code"""
+    return f"waste_{waste_code.replace(' ', '_').replace('*', '_star')}"

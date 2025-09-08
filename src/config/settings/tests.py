@@ -53,3 +53,6 @@ PROCONNECT_ALLOWED_IDP_IDS = [
 
 DJANGO_VITE = {"default": {"dev_mode": True}}
 SKIP_SIRET_CHECK = True
+
+
+ALLOWED_USER_FOR_SENTINEL = ["allowed_for_sentinel@mail.test"]

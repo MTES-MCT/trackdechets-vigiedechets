@@ -5,6 +5,10 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## 03/09/2025
+
+- Mise en place de l'onglet Sentinelle en béta
+
 ## 14/07/2025
 
 - Migration des processors de la Fiche Etablissement de pandas vers polars.

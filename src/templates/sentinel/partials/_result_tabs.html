@@ -1,0 +1,296 @@
+{% load sentinel utils %}
+
+
+<div class="fr-tabs" id="id_result_tabs" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+     hx-indicator="#id_spinner__wrapper_3" hx-trigger="click" hx-target="#id_result_tabs">
+    <ul class="fr-tabs__list" role="tablist" aria-label="[A modifier | nom du système d'onglet]">
+        <li role="presentation">
+            <button type="button" id="tab-1" class="fr-tabs__tab" tabindex="0" role="tab"
+                    {% if tab_category == NON_REGISTERED %}aria-selected="true"{% endif %}
+                    aria-controls="tab-1-panel"
+                    hx-post="{% url "sentinel_result_tabs" category=NON_REGISTERED %}"
+                    hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page": 1
+    }'
+            >Non inscrits ({{ totals.not_registered }})
+            </button>
+        </li>
+        <li role="presentation">
+            <button type="button" id="tab-2" class="fr-tabs__tab" tabindex="-1" role="tab"
+                    aria-controls="tab-2-panel" {% if tab_category == NO_ACTIVITY %}aria-selected="true"{% endif %}
+                    hx-post="{% url "sentinel_result_tabs" category=NO_ACTIVITY %}"
+                    hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page": 1
+    }'
+
+            >Inscrits sans activité ({{ totals.no_activity }})
+            </button>
+        </li>
+        <li role="presentation">
+            <button type="button" id="tab-3" class="fr-tabs__tab" tabindex="-1" role="tab"
+                    {% if tab_category == ABNORMAL %}aria-selected="true"{% endif %}
+                    aria-controls="tab-3-panel" {% if tab_category == ABNORMAL %}aria-selected="true"{% endif %}
+                    hx-post="{% url "sentinel_result_tabs" category=ABNORMAL %}"
+                    hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page": 1
+    }'
+            >Inscrits activité hors norme ({{ totals.abnormal }})
+            </button>
+        </li>
+    </ul>
+    <div id="tab-1-panel" class="fr-tabs__panel fr-tabs__panel--selected" role="tabpanel" aria-labelledby="tab-1"
+         tabindex="0">
+
+        {% if tab_category == NON_REGISTERED or tab_category == NO_ACTIVITY %}
+
+            <div class="fr-table fr-table--sm">
+                <table style="display: table">
+                    <thead>
+                    <tr>
+                        <th>Siret</th>
+                        <th>Nom</th>
+                        <th>Adresse</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for company in companies %}
+                        <tr>
+                            <td>
+                                {% if tab_category == NO_ACTIVITY %}
+                                    <a href="{% url "sheet_prepare" %}?siret={{ company.siret }}"
+                                       target="_blank">
+                                        {{ company.siret }}
+                                    </a>
+                                {% else %}
+                                    {{ company.siret }}
+                                {% endif %}
+                            </td>
+                            <td>{{ company.name|default:"N/A" }}</td>
+                            <td>{{ company.full_address }} </td>
+
+                        </tr>
+
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        {% endif %}
+
+
+
+        {% if tab_category == ABNORMAL %}
+            <p>
+                Pour chaque établissement, nous calculons la proportion de déchets qu'il produit par code déchet.
+                Ensuite nous calculons la différence de ces proportions à la moyenne nationale des établissements de la
+                même catégorie NAF. Le score final est calculé comme la moyenne en absolu des écarts par rapport à la
+                référence nationale.
+                Exemple : Si en moyenne en France, les garages produisent à 38% du 16 01 06 (sur l'ensemble des déchets
+                qu'ils produisent) et qu'un établissement en produit 10%, l'écart est alors 28%.
+            </p>
+
+            <div class="fr-table fr-table--sm">
+                <table style="display: table">
+                    <thead>
+                    <tr>
+                        <th>Siret</th>
+                        <th>Nom</th>
+                        <th>Adresse</th>
+                        {% for code in top_waste_codes %}
+                            <th class="nowrap"> {{ code }}</th>
+                        {% endfor %}
+                        <th>Score</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for company in companies %}
+                        <tr>
+                            <td>
+
+
+                                    <a href="{% url "sheet_prepare" %}?siret={{ company.siret }}"
+                                       target="_blank">
+                                        {{ company.siret }}
+                                    </a>
+
+                            </td>
+                            <td>{{ company.name|default:"N/A" }}</td>
+                            <td>{{ company.full_address }} </td>
+                            {% for code in top_waste_codes %}
+                                <td>
+
+                                    {% sentinel_score company code %}
+                                </td>
+                            {% endfor %}
+                            <td class="nowrap">  {% sentinel_score company "score_percent" %}</td>
+
+                        </tr>
+
+
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+
+        {# pagination #}
+
+            <div class="flex justify-content-space-between">
+                <div></div>
+                <nav role="navigation" class="fr-pagination" aria-label="pagination"
+
+                >
+                      {% if page_obj.has_other_pages %}
+                    <ul class="fr-pagination__list">
+
+
+                        {% if page_obj.has_previous %}
+                            <li>
+                                <a class="fr-pagination__link fr-pagination__link--prev"
+                                   href="#"
+                                   hx-post="{% url "sentinel_result_tabs" category=tab_category %}"
+                                   hx-target="#id_result_tabs"
+                                   hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page":"{{ page|add:"-1" }}"}'
+                                   aria-label="Previous">
+
+
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                <span class="fr-pagination__link fr-pagination__link--prev" aria-label="Previous">
+
+
+                </span>
+                            </li>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num == page_obj.number %}
+                                <!-- Current Page -->
+                                <li>
+                                    <a class="fr-pagination__link" href="#" aria-current="page">
+                                        {{ page_num }}
+
+                                    </a>
+                                </li>
+                            {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                                <!-- Pages within range -->
+                                <li>
+                                    <a class="fr-pagination__link"
+                                       href="#"
+                                       hx-post="{% url "sentinel_result_tabs" category=tab_category %}"
+                                       hx-target="#id_result_tabs"
+                                       hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page":"{{ page_num }}" }'
+                                    >{{ page_num }}  </a>
+
+                                </li>
+                            {% elif page_num == 1 %}
+                                <!-- Always show first page -->
+                                <li>
+                                    <a class="fr-pagination__link" href="#"
+                                       hx-post="{% url "sentinel_result_tabs" category=tab_category %}"
+                                       hx-target="#id_result_tabs"
+                                       hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page":"1"}'
+                                    >1</a>
+                                </li>
+                                {% if page_obj.number > 4 %}
+                                    <li class="page-item disabled">
+                                        <span class="fr-pagination__link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% elif page_num == page_obj.paginator.num_pages %}
+                                <!-- Always show last page -->
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                                    <li class="page-item disabled">
+                                        <span class="fr-pagination__link">...</span>
+                                    </li>
+                                {% endif %}
+                                <li>
+                                    <a class="fr-pagination__link"
+                                       href="#"
+                                       hx-post="{% url "sentinel_result_tabs" category=tab_category %}"
+                                       hx-target="#id_result_tabs"
+                                       hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page":"{{ page_obj.paginator.num_pages }}"}'
+                                    >{{ page_obj.paginator.num_pages }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Next Page Link -->
+                        {% if page_obj.has_next %}
+                            <li>
+                                <a class="fr-pagination__link fr-pagination__link--next"
+                                   href="#"
+                                   hx-post="{% url "sentinel_result_tabs" category=tab_category %}"
+                                   hx-target="#id_result_tabs"
+                                   hx-vals='{
+        "selected_naf_code":  "{{ naf_code }}",
+        "department":"{{ department }}",
+        "page":"{{ page|add:"+1" }}"}'
+                                   aria-label="Next">
+
+
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                <span class="fr-pagination__link fr-pagination__link--next" aria-label="Next">
+
+
+                </span>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+                    {% endif %}
+                </nav>
+                <div>
+                    <form method="post" action="{% url "sentinel_xls" category=tab_category %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="selected_naf_code" value="{{ naf_code }}">
+                        <input type="hidden" name="department" value="{{ department }}">
+
+
+                        <button type="submit" class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-download-line">
+                            Télécharger la liste en .xls
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+
+
+        {# end pagination #}
+
+    </div>
+
+    <div>
+
+    </div>
+
+
+</div>

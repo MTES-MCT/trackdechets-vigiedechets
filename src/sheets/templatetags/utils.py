@@ -1,5 +1,7 @@
 from django import template
 
+from sheets.utils import slugify_waste_code
+
 register = template.Library()
 
 
@@ -9,3 +11,8 @@ def number(nb):
     if (nb is None) or (nb == ""):
         return ""
     return str(nb).replace(" ", "&nbsp;")
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(slugify_waste_code(key))

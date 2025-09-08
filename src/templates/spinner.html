@@ -1,3 +1,6 @@
+{% if backdrop %}
+    <div class="backdrop">
+{% endif %}
 <div class="spinner">
     <div class="rect1"></div>
     <div class="rect2"></div>
@@ -7,3 +10,6 @@
     {% if custom_message %}<p>{{ custom_message }}</p>{% endif %}
     {% if message %}<p class="percent">Calcul & rendu en cours</p>{% endif %}
 </div>
+{% if backdrop %}
+    </div>
+{% endif %}

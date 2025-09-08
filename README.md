@@ -131,7 +131,7 @@ sudo py-spy record -o profile.svg --pid $PID_CELERY --rate 100
 le paramètre `-o` permet de donner le répertoire de sortie de l'image de profiling. Le paramètre `--rate` permet quant à lui de régler la fréquence d'échantillonage (ici à 100ms) pour affiner la mesure.
 
 `py-spy` ouvre automatiquement un navigateur permettant d'inspecter de manière interractive le _flame graph_ créé.
-
+loremipsum!!1
 ### Linting (python + templates)
 
 Utiliser :

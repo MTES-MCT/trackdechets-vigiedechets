@@ -1,0 +1,29 @@
+<p>
+    Les entreprises enregistrées sous le code NAF “{{ naf_code_label }}” les cinq principaux types de déchets sont représentés sur le graphique suivant&nbsp;:
+</p>
+
+<div id="national_graph" style="height: auto"></div>
+
+<script>
+    {% autoescape off %}
+          national_graph = {{ national_graph }}
+
+
+    {% endautoescape %}
+
+</script>
+<script>
+
+    (function () {
+        if (national_graph.data) {
+            Plotly.newPlot(
+                "national_graph",
+                national_graph.data,
+                national_graph.layout,
+            )
+        }
+
+
+
+    })();
+</script>

@@ -10,6 +10,24 @@
     font-weight: 700;
 }
 
+
+.td-text-alert {
+    color: var(--text-default-error);
+}
+
+.td-text-warning {
+    color: var(--warning-425-625);
+}
+
+.td-text-valid {
+    color: var(--text-default-info);
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+
 /* cells */
 .row {
     display: flex;
@@ -109,6 +127,19 @@ table .td--right {
 }
 
 /*Spinner*/
+
+.backdrop {
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
 .spinner {
     margin: 100px auto;
     width: 80px;
@@ -599,6 +630,10 @@ table .td--right {
     align-items: center;
 }
 
+.justify-content-space-between {
+    justify-content: space-between;
+}
+
 .text-center {
     text-align: center;
 }
@@ -632,10 +667,15 @@ table .td--right {
 /* Choice js custom styles*/
 
 
-.choices__inner .choices__item[aria-selected=true] {
+.choices__list--multiple  .choices__item[aria-selected=true] {
     background-color: rgb(0, 0, 145) !important;
 }
 
 .choices__button:hover {
     background-color: rgb(0, 0, 145) !important;
+}
+
+table {
+    width: 100% !important;
+    background-color: red; /* Temporary - to see the actual table width */
 }

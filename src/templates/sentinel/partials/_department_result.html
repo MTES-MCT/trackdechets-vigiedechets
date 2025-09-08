@@ -1,0 +1,72 @@
+<div class="fr-grid-row fr-grid-row--gutters">
+    <div class="fr-col-2 ">
+        <div class="fr-tile">
+            <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                    <h3 class="fr-tile__title">
+                        {{ no_account_company_count }}
+                    </h3>
+                    <p class="fr-tile__desc">Établissements non inscrits</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fr-col-2">
+        <div class="fr-tile">
+            <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                    <h3 class="fr-tile__title">
+                        {{ with_account_company_count }}
+                    </h3>
+                    <p class="fr-tile__desc">Établissements inscrits sur Trackdéchets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fr-col-2">
+        <div class="fr-tile">
+            <div class="fr-tile__body">
+                <div class="fr-tile__content">
+                    <h3 class="fr-tile__title">
+                        {{ with_activity_count }}
+                    </h3>
+                    <p class="fr-tile__desc">Ayant une activité sur Trackdéchets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="fr-grid-row fr-grid-row--gutters">
+    <div class="fr-col-12">
+
+
+        <div id="dept_graph" style="height: auto"></div>
+
+    </div>
+</div>
+
+
+    <script>
+        {% autoescape off %}
+              dept_graph = {{ dept_graph }}
+        {% endautoescape %}
+
+    </script>
+    <script>
+
+        (function () {
+
+            if (dept_graph.data) {
+                Plotly.newPlot(
+                    "dept_graph",
+                    dept_graph.data,
+                    dept_graph.layout,
+                )
+            }
+
+
+        })();
+    </script>

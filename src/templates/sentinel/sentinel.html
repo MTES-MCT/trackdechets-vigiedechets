@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sentinelle - Situations anormales - Vigiedéchets{% endblock %}
+
+{% block extra_head %}
+
+    <link rel="stylesheet" href="{% static 'js/choicejs-11.1.0/styles/choices.min.css' %}"/>
+
+{% endblock extra_head %}
+
+{% block main %}
+
+    <style>
+
+
+        .choices__inner {
+
+            max-height: 40px;
+        }
+    </style>
+
+    <div class="fr-container fr-mt-1v">
+
+        <div class="fr-callout">
+            <h3 class="fr-callout__title">Fonctionnalité en cours de développement</h3>
+            <p class="fr-callout__text">Le module Sentinelle est en bêta test et n'est pas encore prêt pour une
+                utilisation en production</p>
+        </div>
+    </div>
+    <div class="fr-container">
+        <form hx-post="{% url "sentinel_result_wrapper" %}" hx-target="#id_results">
+            {% csrf_token %}
+            <div class="fr-grid-row fr-grid-row--gutters ">
+                <div class="fr-col-7">
+                    <div id="form-group-naf" class="fr-input-group">
+                        <naf-search-component
+                                label="Activité ou code NAF"
+                                api-base-url="{% url "api_naf_search" %}"
+                                placeholder="Saisissez un terme de recherche ou un code…">
+                        </naf-search-component>
+                        <input type="hidden" name="selected_naf_code" id="selected_naf_code" value="">
+
+                    </div>
+
+                </div>
+                <div class="fr-col-3">
+
+
+                    {{ form.department.as_field_group }}
+
+                </div>
+                <div class="fr-col-2 " style="display: flex; align-items: center">
+                    <button class="fr-btn" style="max-height: 40px">Rechercher</button>
+                </div>
+            </div>
+        </form>
+
+
+        <div>
+
+            <div class="htmx-indicator" id="id_spinner__wrapper">{% include "spinner.html" %}</div>
+            {# <div id="id_results" hx-post="{% url "sentinel_result_wrapper" %}" #}
+            {# hx-vals='{ #}
+            {# "selected_naf_code":  "33.11Z", #}
+            {# "department": "13" #}
+            {# }' #}
+            {# hx-trigger="load" #}
+            {# hx-indicator="#id_spinner__wrapper" #}
+            {# hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' #}
+            {# ></div> #}
+            <div id="id_results"></div>
+        </div>
+
+
+    </div>
+{% endblock main %}
+
+{% block scripts %}
+    <script src="{% static "js/plotly-2.18.1.min.js" %}" charset="utf-8"></script>
+
+    <script type="module" src="{% static 'js/wc/naf-search-component.js' %}"></script>
+    <script>
+
+
+        (function () {
+
+            function updateHiddenInput(code) {
+
+
+                const hiddenInput = document.getElementById('selected_naf_code');
+
+                hiddenInput.value = code;
+
+            }
+
+            document.addEventListener("selection-changed", (e) => {
+
+
+                updateHiddenInput(e.detail.code);
+
+
+            });
+
+
+        })();
+
+    </script>
+
+
+    <script src="{% static 'js/choicejs-11.1.0/scripts/choices.min.js' %}"></script>
+
+    <script>
+        const element = document.querySelector('#id_department');
+        const choices = new Choices(element, {
+            removeItems: true,
+            removeItemButton: true,
+            searchEnabled: true,
+            searchChoices: true,
+            noResultsText: 'Pas de résultat',
+            noChoicesText: 'Pas de résultat',
+            itemSelectText: null
+        });
+        let national_graph = {};
+        let dept_graph = {};
+    </script>
+{% endblock scripts %}
