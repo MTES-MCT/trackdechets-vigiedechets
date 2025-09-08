@@ -13,10 +13,10 @@
     <style>
 
 
-.choices__inner {
+        .choices__inner {
 
-    max-height: 40px;
-}
+            max-height: 40px;
+        }
     </style>
 
     <div class="fr-container fr-mt-1v">
@@ -26,35 +26,34 @@
             <p class="fr-callout__text">Le module Sentinelle est en bêta test et n'est pas encore prêt pour une
                 utilisation en production</p>
         </div>
-        </div>
-        <div class="fr-container">
-            <form hx-post="{% url "sentinel_result_wrapper" %}" hx-target="#id_results"   >
-                {% csrf_token %}
-                <div class="fr-grid-row fr-grid-row--gutters ">
-                    <div class="fr-col-7">
-                        <div id="form-group-naf" class="fr-input-group">
-                            <naf-search-component
-                                    label="Activité ou code NAF"
-                                    api-base-url="{% url "api_naf_search" %}"
-                                    placeholder="Saisissez un terme de recherche ou un code…">
-                            </naf-search-component>
-                            <input type="hidden" name="selected_naf_code" id="selected_naf_code" value="">
-
-                        </div>
+    </div>
+    <div class="fr-container">
+        <form hx-post="{% url "sentinel_result_wrapper" %}" hx-target="#id_results">
+            {% csrf_token %}
+            <div class="fr-grid-row fr-grid-row--gutters ">
+                <div class="fr-col-7">
+                    <div id="form-group-naf" class="fr-input-group">
+                        <naf-search-component
+                                label="Activité ou code NAF"
+                                api-base-url="{% url "api_naf_search" %}"
+                                placeholder="Saisissez un terme de recherche ou un code…">
+                        </naf-search-component>
+                        <input type="hidden" name="selected_naf_code" id="selected_naf_code" value="">
 
                     </div>
-                    <div class="fr-col-3">
 
-
-                        {{ form.department.as_field_group }}
-
-                    </div>
-                    <div class="fr-col-2 " style="display: flex; align-items: center">
-                        <button class="fr-btn" style="max-height: 40px">Rechercher</button>
-                    </div>
                 </div>
-            </form>
+                <div class="fr-col-3">
 
+
+                    {{ form.department.as_field_group }}
+
+                </div>
+                <div class="fr-col-2 " style="display: flex; align-items: center">
+                    <button class="fr-btn" style="max-height: 40px">Rechercher</button>
+                </div>
+            </div>
+        </form>
 
 
         <div>
@@ -120,6 +119,8 @@
             noResultsText: 'Pas de résultat',
             noChoicesText: 'Pas de résultat',
             itemSelectText: null
-        })
+        });
+        let national_graph = {};
+        let dept_graph = {};
     </script>
 {% endblock scripts %}

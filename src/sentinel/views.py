@@ -103,17 +103,18 @@ class DepartmentResult(SentinelEmailAccessMixin, FullyLoggedMixin, FormView):
     def get_context_data(self, **kwargs):
         dept_graph = {}
 
-        if self.naf_code:
-            dept_graph = build_department_graph(self.naf_code, self.department)
-
         no_account_company_count = get_no_account_company_count(self.naf_code, self.department)
 
         with_account_company_count = get_with_account_company_count(self.naf_code, self.department)
 
         no_activity_company_count = get_no_activity_company_count(self.naf_code, self.department)
 
-        with_activity_count = with_account_company_count - no_activity_company_count
+        with_activity_count = max(with_account_company_count - no_activity_company_count, 0)
         national_top_five = get_top_five_waste_code_by_naf(self.naf_code)
+
+        if self.naf_code and with_activity_count:
+            dept_graph = build_department_graph(self.naf_code, self.department)
+
         return super().get_context_data(
             **kwargs,
             dept_graph=dept_graph,
