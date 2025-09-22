@@ -1,6 +1,6 @@
-{% extends "base_pdf.html" %}
-{% load static %}
-{% block main %}
+{% extends "roadcontrol/pdf/base_road_control_pdf.html" %}
+
+{% block style %}
     <style>
         {# disable numerotation #}
         @page {
@@ -14,40 +14,9 @@
             }
         }
     </style>
-    <div class="header">
-        <img src="{% static "img/mtes.png" %}" style="height: 2.5cm;" />
-        <img src="{% static "img/trackdechets.png" %}" style="height: 2cm;" />
-        <div class="header__text">
-            <h1 class="header__title">Contrôle transport</h1>
-            <p>Édité le {% now "d F Y  h:i" %}</p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="vehicle-info">
-            <h3 class="vehicle-info__title">Véhicule contrôlé</h3>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">N° SIRET:</span> <span class="vehicle-info__value">{{ bundle.company_siret }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Nom Société:</span> <span class="vehicle-info__value">{{ bundle.company_name }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Adresse postale:</span> <span class="vehicle-info__value">{{ bundle.company_address }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Personne à contacter:</span> <span class="vehicle-info__value">{{ bundle.company_contact }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Adresse email:</span> <span class="vehicle-info__value">{{ bundle.company_email }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Téléphone:</span> <span class="vehicle-info__value">{{ bundle.company_phone }}</span>
-            </p>
-            <p class="vehicle-info__row">
-                <span class="vehicle-info__label">Immatriculation:</span> <span class="vehicle-info__value">{{ bundle.transporter_plate }}</span>
-            </p>
-        </div>
-    </div>
+{% endblock style %}
+
+{% block content %}
     <h3>0 Bordereaux des déchets collectés</h3>
     <div style="display: flex; align-items: center ">
         {% include "svg/warning.html" %}
@@ -60,5 +29,5 @@
             </p>
         </div>
     </div>
-</div>
-{% endblock main %}
+
+{% endblock content %}

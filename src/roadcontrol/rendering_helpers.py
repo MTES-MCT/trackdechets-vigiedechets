@@ -25,6 +25,6 @@ def render_pdf(content):
 
 def render_pdf_road_control_fn(bundle: PdfBundle):
     ctx = {"bundle": bundle}
-    content = render_to_string("roadcontrol/pdf/bundle_digest.html", ctx)
+    content = render_to_string("roadcontrol/pdf/road_control_bundle_digest.html", ctx)
 
     return render_pdf(content)

@@ -115,7 +115,6 @@ DWH_SSH_USERNAME = env.str("DWH_SSH_USERNAME")
 DWH_SSH_LOCAL_BIND_HOST = env.str("DWH_SSH_LOCAL_BIND_HOST")
 DWH_SSH_KEY = env.str("DWH_SSH_KEY", multiline=True)
 
-
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}}
 
 # Password validation
@@ -145,6 +144,8 @@ TIME_ZONE = "Europe/Paris"
 USE_I18N = True
 
 USE_TZ = True
+
+TIME_FORMAT = ""
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -306,6 +307,7 @@ AWS_BUCKET_NAME = env("AWS_BUCKET_NAME")
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
+AWS_QUERYSTRING_EXPIRE = 5 * 60  # mn
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -323,6 +325,5 @@ SKIP_ROAD_CONTROL_SIRET_CHECK = False
 GUN_DATA_UPDATE_DATE_STRING = env("GUN_DATA_UPDATE_DATE_STRING")
 GISTRID_DATA_UPDATE_DATE_STRING = env("GISTRID_DATA_UPDATE_DATE_STRING")
 RNDTS_DATA_UPDATE_DATE_STRING = env("RNDTS_DATA_UPDATE_DATE_STRING")
-
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]

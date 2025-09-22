@@ -123,7 +123,14 @@ class NoResultRoadControlPdf(FullyLoggedMixin, BsdRetrievingMixin, FormView):
         if siret:
             company_data = get_company_data(siret)
 
-        ctx = {"bundle": {**company_data, "company_siret": siret, "transporter_plate": plate}}
+        ctx = {
+            "bundle": {
+                **company_data,
+                "company_siret": siret,
+                "transporter_plate": plate,
+                "created_at": timezone.now(),
+            }
+        }
         content = render_to_string(self.template_name, ctx)
 
         pdf = render_pdf(content)
