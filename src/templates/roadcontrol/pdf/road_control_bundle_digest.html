@@ -1,0 +1,32 @@
+{% extends "roadcontrol/pdf/base_road_control_pdf.html" %}
+
+{% block content %}
+    <div>
+        <h3>{{ bundle.pdfs.count }} Bordereaux des déchets collectés</h3>
+        <div>
+            <table class="pdf-table">
+                <thead>
+                <tr>
+                    <th>N° de bordereau</th>
+                    <th>Conditionnement</th>
+                    <th>Déchet</th>
+                    <th>Poids</th>
+                    <th>Code ADR</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for bsd in bundle.pdfs.all %}
+                    <tr>
+                        <td>{{ bsd.bsd_id }}</td>
+                        <td>{{ bsd.packagings }}</td>
+                        <td>{{ bsd.waste_code }}</td>
+                        <td>{{ bsd.weight }} kg</td>
+                        <td>{{ bsd.adr_code }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock content %}
