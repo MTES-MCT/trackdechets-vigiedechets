@@ -101,10 +101,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-
 DATABASES = {
     "default": env.db(),
 }
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+
 REDIS_URL = env.str("REDIS_URL", "redis://localhost:6379/0")
 DWH_USERNAME = env.str("DWH_USERNAME")
 DWH_PASSWORD = env.str("DWH_PASSWORD")
