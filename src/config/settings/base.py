@@ -224,7 +224,11 @@ MESSAGE_RECIPIENTS = env.list("MESSAGE_RECIPIENTS", [])
 OTP_EMAIL_SUBJECT = "Votre code de sécurité pour l'accès à Vigiedéchets de Trackdéchets"
 OTP_EMAIL_BODY_TEMPLATE_PATH = "emails/second_factor/second_factor.txt"
 OTP_EMAIL_BODY_HTML_TEMPLATE_PATH = "emails/second_factor/second_factor.html"
+# The sequence of 1, 2, 4, 8… seconds is multiplied by OTP_EMAIL_THROTTLE_FACTOR to define the delay imposed after 1, 2, 3, 4… successive failures
+OTP_EMAIL_THROTTLE_FACTOR = 30
+# Delay before requesting another otp
 OTP_EMAIL_THROTTLE_DELAY = 300  # s
+
 
 if gdal_path := env.str("GDAL_LIBRARY_PATH", ""):
     GDAL_LIBRARY_PATH = gdal_path
