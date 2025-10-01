@@ -57,6 +57,7 @@ class BsdStatsProcessor:
             "archived",
             "processed_in_more_than_one_month_count",
             "processed_in_more_than_one_month_avg_processing_time",
+            "avg_processing_time",
         ]
         if self.packagings_data is not None:
             keys.extend(
@@ -64,6 +65,7 @@ class BsdStatsProcessor:
                     "total_packagings",
                     "processed_in_more_than_one_month_packagings_count",
                     "processed_in_more_than_one_month_packagings_avg_processing_time",
+                    "avg_processing_time",
                 ]
             )
 
@@ -119,11 +121,14 @@ class BsdStatsProcessor:
         # about the 'bordereaux'.
         # `target` is the destination in each result dictionary
         # where to store the computed value.
-        for target, to_process, to_process_packagings in [
-            (self.emitted_bs_stats, bs_emitted_data, self.packagings_data),
-            (self.received_bs_stats, bs_received_data, self.packagings_data),
+        for target, to_process, to_process_packagings, debug_type in [
+            (self.emitted_bs_stats, bs_emitted_data, self.packagings_data, "emitted"),
+            (self.received_bs_stats, bs_received_data, self.packagings_data, "received"),
         ]:
+            debug_type = debug_type
+            # Understand why each debug_type is called several times
             df = to_process
+
             if self.bs_type == BSFF:
                 if to_process_packagings is None:
                     # Case when there is BSFFs but no packagings info
@@ -167,6 +172,14 @@ class BsdStatsProcessor:
                         ]
                     )
                 )
+            )
+
+            avg_processing_time = df.select(
+                (pl.col("processed_at") - pl.col("received_at")).dt.total_seconds().mean()
+            ).item()
+
+            target["avg_processing_time"] = (
+                f"{(avg_processing_time / (24 * 3600)):.1f}j" if avg_processing_time else "N/A"
             )
 
             # LazyFrame holding all the 'bordereaux' that have been
@@ -221,12 +234,16 @@ class BsdStatsProcessor:
                     )
 
                     # Average processing times for the packagings processed in more than one month
+                    avg_processing_time_more_than_one_month = (
+                        bs_data_with_packagings_processed_in_more_than_one_month.select(
+                            (pl.col("operation_date") - pl.col("received_at")).mean().dt.total_seconds()
+                        ).item()
+                        / (24 * 3600)
+                    )  # Time in seconds is converted in days
 
-                    res = bs_data_with_packagings_processed_in_more_than_one_month.select(
-                        (pl.col("operation_date") - pl.col("received_at")).mean().dt.total_seconds()
-                    ).item() / (24 * 3600)  # Time in seconds is converted in days
-
-                    target["processed_in_more_than_one_month_packagings_avg_processing_time"] = f"{res:.1f}j"
+                    target["processed_in_more_than_one_month_packagings_avg_processing_time"] = (
+                        f"{avg_processing_time_more_than_one_month:.1f}j"
+                    )
 
         # In case there is any 'bordereaux' revision data, we compute
         # the number of 'bordereaux' that have been revised.

@@ -80,12 +80,14 @@ def data_date_interval():
                 "emitted_bs_stats": {
                     "total": "3",
                     "archived": "1",
+                    "avg_processing_time": "20.7j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
                 "received_bs_stats": {
                     "total": "2",
                     "archived": "2",
+                    "avg_processing_time": "30.5j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
@@ -108,12 +110,14 @@ def data_date_interval():
                 "emitted_bs_stats": {
                     "total": "2",
                     "archived": "2",
+                    "avg_processing_time": "30.5j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
                 "received_bs_stats": {
                     "total": "3",
                     "archived": "1",
+                    "avg_processing_time": "20.7j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
@@ -162,6 +166,7 @@ def test_bsd_stats_processor(siret, sample_bs_data, data_date_interval, expected
                 "emitted_bs_stats": {
                     "total": "3",
                     "archived": "1",
+                    "avg_processing_time": "20.7j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
@@ -170,6 +175,7 @@ def test_bsd_stats_processor(siret, sample_bs_data, data_date_interval, expected
                 "received_bs_stats": {
                     "total": "2",
                     "archived": "2",
+                    "avg_processing_time": "30.5j",
                     "processed_in_more_than_one_month_count": "1",
                     "processed_in_more_than_one_month_avg_processing_time": "60j",
                 },
