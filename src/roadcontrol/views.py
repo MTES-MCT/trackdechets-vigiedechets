@@ -43,9 +43,8 @@ class RoadControlSearchResult(FullyLoggedMixin, FormView):
 
         form_end_cursor = form.cleaned_data.get("end_cursor", None)
 
-        query_fn = query_td_control_bsds
         query_name = "controlBsds"
-        resp = query_fn(siret=siret, plate=plate, end_cursor=form_end_cursor)
+        resp = query_td_control_bsds(siret=siret, plate=plate, end_cursor=form_end_cursor)
 
         nodes = []
         total_count = 0
@@ -340,9 +339,8 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
     def form_valid(self, form):
         bsd_id = form.cleaned_data["bsd_id"]
 
-        query_fn = query_td_control_bsds
         query_name = "controlBsds"
-        resp = query_fn(bsd_id=bsd_id)
+        resp = query_td_control_bsds(bsd_id=bsd_id)
         nodes = []
         total_count = 0
         start_cursor = None

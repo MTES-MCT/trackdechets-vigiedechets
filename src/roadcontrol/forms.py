@@ -39,12 +39,13 @@ class RoadControlSearchForm(Form):
 
         prepared_query = text(sql_company_query_exists_str)
 
-        wh_engine = get_wh_sqlachemy_engine()
-        with wh_engine.connect() as con:
-            companies = con.execute(prepared_query, siret=siret).all()
+        if not settings.SKIP_ROAD_CONTROL_SIRET_CHECK:
+            wh_engine = get_wh_sqlachemy_engine()
+            with wh_engine.connect() as con:
+                companies = con.execute(prepared_query, siret=siret).all()
 
-        if not companies and not settings.SKIP_ROAD_CONTROL_SIRET_CHECK:
-            raise ValidationError("Établissement non inscrit sur Trackdéchets.")
+            if not companies:
+                raise ValidationError("Établissement non inscrit sur Trackdéchets.")
         return siret
 
     def clean(self):

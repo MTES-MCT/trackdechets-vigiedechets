@@ -22,9 +22,7 @@ MESSAGE_RECIPIENTS = ["lorem@ipsum.lol"]
 
 OTP_EMAIL_TOKEN_VALIDITY = 600
 
-
 CSRF_TRUSTED_ORIGINS = ["http://url.test"]
-
 
 # circumnvent defender when testing
 DEFENDER_DISABLE_IP_LOCKOUT = True
@@ -54,5 +52,6 @@ PROCONNECT_ALLOWED_IDP_IDS = [
 DJANGO_VITE = {"default": {"dev_mode": True}}
 SKIP_SIRET_CHECK = True
 
-
 ALLOWED_USER_FOR_SENTINEL = ["allowed_for_sentinel@mail.test"]
+
+SKIP_ROAD_CONTROL_SIRET_CHECK = True
