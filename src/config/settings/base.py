@@ -186,6 +186,8 @@ CSV_FILES_DIR = SRC_DIR / "csv"
 MEDIA_ROOT = BASE_DIR / "public" / "medias"
 MEDIA_URL = "/medias/"
 
+SITE_ID = env.int("SITE_ID", 1)
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
