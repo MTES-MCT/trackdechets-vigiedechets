@@ -11,6 +11,7 @@ Transition Écologique.
 - Une instance redis
 - Python >= 3.11 avec pipenv
 - les librairies nécessaires aux fonctionalités géographiques de django (GDAL et GEOS)
+- la librairie pango
 
 ## Installation
 
@@ -40,13 +41,13 @@ Se référer au fichier env.dist
 Lancer la commande de migration:
 
 ```
-    $ manage.py migrate
+    $ ./src/manage.py migrate
 ```
 
 Créer un super utilisateur
 
 ```
-    $ manage.py createsuperuser
+    $ ./src/manage.py createsuperuser
 ```
 
 ### Lancement de l'application
@@ -146,6 +147,29 @@ Linter de scanning de sécurité
     $ bandit -c pyproject.toml -r
 ```
 
+## Mettre à jour les données des cartes
+
+### En local
+```
+    $ ./src/manage.py build_stats
+    $ ./src/manage.py retrieve_company
+```
+
+### En production
+
+Créer un conteneur one-off avec la CLI Scalingo sur l'application trackdechets-preparation-inspection
+
+
+Carto des ICPE
+```
+    $ scalingo --app trackdechets-preparation-inspection run bash -c 'pipenv install && pipenv shell && ./src/manage.py build_stats -- settings=config.settings.production'
+```
+
+Pour la carto des fiches etablissements
+```
+    $ scalingo --app trackdechets-preparation-inspection run bash -c 'pipenv install && pipenv shell && ./src/manage.py retrieve_company -- settings=config.settings.production'
+```
+
 ### Déploiement
 
 Au 10/04/2025 il a été nécessaire d'augmenter la taille du build scalingo de 1.5 à 2 gb.
@@ -153,3 +177,4 @@ Au 10/04/2025 il a été nécessaire d'augmenter la taille du build scalingo de 
 ## Licence
 
 Le code source du logiciel est publié sous licence [MIT](https://fr.wikipedia.org/wiki/Licence_MIT).
+
