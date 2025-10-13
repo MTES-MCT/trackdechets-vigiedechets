@@ -2540,7 +2540,9 @@ class RegistryTransporterStatementsStatsGraphProcessor:
             )
 
             df_by_month = (
-                df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date")).agg(pl.col("id").n_unique().alias("number_statements")).collect()
+                df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date"))
+                .agg(pl.col("id").n_unique().alias("number_statements"))
+                .collect()
             )
             if len(df_by_month) > 0:
                 self.transported_statements_stats[key] = df_by_month
