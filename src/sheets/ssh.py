@@ -61,6 +61,7 @@ def ssh_tunnel(settings: LazySettings):
             tunnel = sshtunnel.open_tunnel(
                 (settings.DWH_SSH_HOST, int(settings.DWH_SSH_PORT)),
                 ssh_username=settings.DWH_SSH_USERNAME,
+                ssh_private_key_password=settings.DWH_SSH_KEY_PASSPHRASE,
                 ssh_pkey=temp_key_file.name,
                 remote_bind_address=("localhost", int(settings.DWH_PORT)),
             )

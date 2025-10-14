@@ -2540,7 +2540,9 @@ class RegistryTransporterStatementsStatsGraphProcessor:
             )
 
             df_by_month = (
-                df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date")).agg(pl.col("id").n_unique()).collect()
+                df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date"))
+                .agg(pl.col("id").n_unique().alias("number_statements"))
+                .collect()
             )
             if len(df_by_month) > 0:
                 self.transported_statements_stats[key] = df_by_month
@@ -2587,8 +2589,8 @@ class RegistryTransporterStatementsStatsGraphProcessor:
                 bars.append(
                     go.Bar(
                         x=data["date"],
-                        y=data["id"],
-                        text=data,
+                        y=data["number_statements"],
+                        text=data["number_statements"],
                         texttemplate="%{text:.0s}",
                         textposition="auto",
                         name=config["name"],
@@ -2603,7 +2605,7 @@ class RegistryTransporterStatementsStatsGraphProcessor:
                 if (tick0_min is None) or (min_ < tick0_min):
                     tick0_min = min_
 
-                max_ = data["id"].max()
+                max_ = data["number_statements"].max()
                 if (max_y is None) or (max_ < max_y):
                     max_y = max_
 
