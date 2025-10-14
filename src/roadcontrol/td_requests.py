@@ -467,7 +467,7 @@ def query_td_control_bsds(siret=None, plate=None, bsd_id=None, start_cursor=None
     if bsd_id:
         where += f' readableId: "{bsd_id}" '
     if end_cursor:
-        after = f"""after: "{end_cursor}" """
+        after = f'after: "{end_cursor}"'
 
     query = graphql_query_control_bsds.substitute(
         where=where,
