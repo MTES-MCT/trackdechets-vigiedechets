@@ -525,7 +525,7 @@ class SheetProcessor:
             packaging_data = None
             if bs_type == BSFF:
                 packaging_data = self.bsff_packagings_df
-            
+
             bs_stats = BsdStatsProcessor(
                 self.siret,
                 bs_type,
