@@ -110,7 +110,7 @@ class BsdStatsProcessor:
     def _check_data_empty(self) -> bool:
         # If all values after preprocessing are empty, then output data will be empty
         if all(
-            (e is None) or (e == 0) for e in chain(self.emitted_bs_stats.values(), self.received_bs_stats.values())
+            (e is None) or (e == 0) or (e == "N/A") for e in chain(self.emitted_bs_stats.values(), self.received_bs_stats.values())
         ):
             return True
 
