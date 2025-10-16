@@ -121,12 +121,10 @@ class BsdStatsProcessor:
         # about the 'bordereaux'.
         # `target` is the destination in each result dictionary
         # where to store the computed value.
-        for target, to_process, to_process_packagings, debug_type in [
-            (self.emitted_bs_stats, bs_emitted_data, self.packagings_data, "emitted"),
-            (self.received_bs_stats, bs_received_data, self.packagings_data, "received"),
+        for target, to_process, to_process_packagings in [
+            (self.emitted_bs_stats, bs_emitted_data, self.packagings_data),
+            (self.received_bs_stats, bs_received_data, self.packagings_data),
         ]:
-            debug_type = debug_type
-            # Understand why each debug_type is called several times
             df = to_process
 
             if self.bs_type == BSFF:
