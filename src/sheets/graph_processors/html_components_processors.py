@@ -795,6 +795,118 @@ class BsdCanceledTableProcessor:
         return data
 
 
+class BsdRefusedTableProcessor:
+    """Component that displays an exhaustive tables with the list of 'bordereaux' that have been refused.
+
+    Parameters
+    ----------
+
+    company_siret: str
+        SIRET number of the establishment for which the data is displayed (used for data preprocessing).
+    bs_data_dfs: dict
+        Dict with key being the 'bordereau' type and values the LazyFrame containing the bordereau data.
+    data_date_interval : tuple[datetime, datetime]
+        Represents the date range for which the data is being processed.
+        It consists of two `datetime` objects, the start date and the end date.
+    """
+
+    def __init__(
+        self,
+        company_siret: str,
+        bs_data_dfs: Dict[str, pl.LazyFrame],
+        data_date_interval: tuple[datetime, datetime],
+    ) -> None:
+        self.company_siret = company_siret
+        self.bs_data_dfs = bs_data_dfs
+        self.data_date_interval = data_date_interval
+
+        self.preprocessed_df = pl.DataFrame()
+
+    def _preprocess_data(self) -> None:
+        """
+        Preprocess the data to display the list of 'bordereaux' that have been refused.
+         [
+            'id',
+            'quantity_received',
+            'emitter_company_siret',
+            'recipient_company_siret',
+            'waste_code',
+            'quantity_refused']
+        """
+        columns_to_take = [
+            "id",
+            "sent_at",
+            "received_at",
+            "updated_at",  # TODO: Find what timestamp column is used for the refusal date
+            "quantity_received",
+            "emitter_company_siret",
+            "recipient_company_siret",
+            "waste_code",
+        ]
+
+        dfs_processed = []
+
+        for bs_type, df in self.bs_data_dfs.items():
+            # schema = df.columns
+            # Human-friendly id is stored in the readable_id column in the case of BSDDs
+            # if "readable_id" in schema:
+            #     columns_to_take.append("readable_id")
+
+            # # BSDASRI does not have waste name
+            # if "waste_name" in schema:
+            #     columns_to_take.append("waste_name")
+
+            # # Handle quantity refused
+            # if "quantity_refused" in schema:
+            #     columns_to_take.append("quantity_refused")
+
+            refused_bs_df = df.filter(
+                (pl.col("recipient_company_siret") == self.company_siret)
+                & (pl.col("status") == "REFUSED")
+                & pl.col("sent_at").is_between(*self.data_date_interval)
+            ).with_columns(
+                pl.col("sent_at").dt.strftime("%d/%m/%Y %H:%M"),
+                pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M"),
+                pl.col("updated_at").dt.strftime("%d/%m/%Y %H:%M"),
+            )
+
+            if bs_type == BSDA:
+                refused_bs_df = refused_bs_df.with_columns(pl.col("id").alias("readable_id"))
+            if bs_type == BSFF:
+                refused_bs_df = refused_bs_df.with_columns(
+                    pl.lit(0.0).alias("quantity_received")
+                )  # received quantity is set to 0 as per requirements
+
+            print(bs_type)
+            print(refused_bs_df.columns)
+            refused_bs_df = refused_bs_df.select(columns_to_take)
+
+            dfs_processed.append(refused_bs_df)
+
+        if dfs_processed:
+            self.preprocessed_df = pl.concat(dfs_processed, how="diagonal").collect()
+
+        # return refused_bs_df.to_dicts()
+
+    def _check_empty_data(self) -> bool:
+        if self.preprocessed_df.is_empty():
+            return True
+        return False
+
+    def build_context(self):
+        data = self.preprocessed_df
+        return data.to_dicts()
+
+    def build(self):
+        self._preprocess_data()
+
+        data = {}
+        if not self._check_empty_data():
+            data = self.build_context()
+
+        return data
+
+
 class SameEmitterRecipientTableProcessor:
     """Component that displays an exhaustive tables with the
     list of 'bordereaux' that have the same company
