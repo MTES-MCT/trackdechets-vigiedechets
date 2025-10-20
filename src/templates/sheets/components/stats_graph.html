@@ -165,8 +165,8 @@
                     </tr>
                     <tr>
                       <th scope="row">Temps moyen de traitement</th>
-                      <td>{{ emitted_bs_stats.avg_processing_time|number|safe }}</td>
-                      <td>{{ received_bs_stats.avg_processing_time|number|safe }}</td>      
+                      <td>{{ emitted_bs_stats.avg_processing_time|number }}</td>
+                      <td>{{ received_bs_stats.avg_processing_time|number }}</td>      
                   </tr>
                     {% if bsd_type == "bsff" %}
                         <tr>
