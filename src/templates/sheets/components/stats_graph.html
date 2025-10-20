@@ -156,13 +156,18 @@
                     <tr>
                         <th scope="row">Total</th>
                         <td>{{ emitted_bs_stats.total|number|safe }}</td>
-                        <td>{{ received_bs_stats.total|number|safe }}</td>
+                        <td>{{ received_bs_stats.total|number|safe }}</td>                  
                     </tr>
                     <tr>
                         <th scope="row">Archivés</th>
                         <td>{{ emitted_bs_stats.archived|number|safe }}</td>
                         <td>{{ received_bs_stats.archived|number|safe }}</td>
                     </tr>
+                    <tr>
+                      <th scope="row">Temps moyen de traitement</th>
+                      <td>{{ emitted_bs_stats.avg_processing_time|number }}</td>
+                      <td>{{ received_bs_stats.avg_processing_time|number }}</td>      
+                  </tr>
                     {% if bsd_type == "bsff" %}
                         <tr>
                             <th scope="row">Nombre de contenants</th>
