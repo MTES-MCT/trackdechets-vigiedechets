@@ -11,6 +11,9 @@ COMPANY_TYPES = {
     "WASTE_VEHICLES": "Centre Véhicules Hors d'Usage",
     "CREMATORIUM": "Crématorium",
     "WORKER": "Entreprise de travaux",
+    "INTERMEDIARY": "Intermédiaire",
+    "DISPOSAL_FACILITY": "Installation de valorisation de terres et sédiments",
+    "RECOVERY_FACILITY": "Installation dans laquelle les déchets perdent leur statut de déchet",
 }
 
 WASTE_PROCESSOR_TYPES = {
@@ -23,6 +26,7 @@ WASTE_PROCESSOR_TYPES = {
     "OTHER_DANGEROUS_WASTES": "Autres traitements de déchets dangereux",
     "OTHER_NON_DANGEROUS_WASTES": "Autres traitement de déchets non dangereux",
 }
+
 
 COLLECTOR_TYPES = {
     "NON_DANGEROUS_WASTES": "Déchets non Dangereux (Rubriques 2713, 2714, 2715, 2716)",
