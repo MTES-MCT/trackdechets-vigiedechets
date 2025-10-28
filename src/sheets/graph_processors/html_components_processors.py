@@ -506,6 +506,20 @@ class WasteFlowsTableProcessor:
                         "quantity_received"
                     )
                 )
+            cols_used = [
+                "id",
+                "emitter_company_siret",
+                "recipient_company_siret",
+                "transporter_company_siret",
+                "sent_at",
+                "received_at",
+                "waste_code",
+                "quantity_received",
+                "quantity_refused",
+            ]
+            cols_present = [col for col in cols_used if col in df.columns]
+            if cols_present:
+                df = df.select(cols_present)
             dfs_to_concat.append(df)
 
         if len(dfs_to_concat) == 0:
@@ -764,7 +778,6 @@ class BsdCanceledTableProcessor:
 
             temp_df = temp_df.select(columns_to_take)
             temp_df = temp_df.rename({"bs_id": "id"}, strict=False)
-
             dfs.append(temp_df)
 
         if dfs:
@@ -814,79 +827,79 @@ class BsdRefusedTableProcessor:
         self,
         company_siret: str,
         bs_data_dfs: Dict[str, pl.LazyFrame],
+        waste_codes_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
     ) -> None:
         self.company_siret = company_siret
         self.bs_data_dfs = bs_data_dfs
+        self.waste_codes_df = waste_codes_df
         self.data_date_interval = data_date_interval
 
         self.preprocessed_df = pl.DataFrame()
 
+        self.mapping_refused_at = {
+            BSDD: "received_at",
+            BSDD_NON_DANGEROUS: "received_at",
+            BSFF: "received_at",
+            BSDA: "received_at",
+            BSDASRI: "received_at",
+            BSVHU: "received_at",
+        }
+
     def _preprocess_data(self) -> None:
         """
         Preprocess the data to display the list of 'bordereaux' that have been refused.
-         [
-            'id',
-            'quantity_received',
-            'emitter_company_siret',
-            'recipient_company_siret',
-            'waste_code',
-            'quantity_refused']
         """
         columns_to_take = [
-            "id",
-            "sent_at",
-            "received_at",
-            "updated_at",  # TODO: Find what timestamp column is used for the refusal date
-            "quantity_received",
+            "readable_id",
+            "refused_at",
             "emitter_company_siret",
             "recipient_company_siret",
             "waste_code",
+            "quantity_received",
+            "quantity_refused",
+            "refusal_reason",
         ]
 
         dfs_processed = []
 
         for bs_type, df in self.bs_data_dfs.items():
-            # schema = df.columns
-            # Human-friendly id is stored in the readable_id column in the case of BSDDs
-            # if "readable_id" in schema:
-            #     columns_to_take.append("readable_id")
-
-            # # BSDASRI does not have waste name
-            # if "waste_name" in schema:
-            #     columns_to_take.append("waste_name")
-
-            # # Handle quantity refused
-            # if "quantity_refused" in schema:
-            #     columns_to_take.append("quantity_refused")
-
-            refused_bs_df = df.filter(
-                (pl.col("recipient_company_siret") == self.company_siret)
-                & (pl.col("status") == "REFUSED")
-                & pl.col("sent_at").is_between(*self.data_date_interval)
-            ).with_columns(
-                pl.col("sent_at").dt.strftime("%d/%m/%Y %H:%M"),
-                pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M"),
-                pl.col("updated_at").dt.strftime("%d/%m/%Y %H:%M"),
-            )
-
-            if bs_type == BSDA:
-                refused_bs_df = refused_bs_df.with_columns(pl.col("id").alias("readable_id"))
-            if bs_type == BSFF:
+            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI]:
+                refused_bs_df = df.filter(
+                    (pl.col("recipient_company_siret") == self.company_siret)
+                    & (pl.col("status") == "REFUSED")
+                    & pl.col("received_at").is_between(*self.data_date_interval)
+                ).with_columns(
+                    pl.col("sent_at").dt.strftime("%d/%m/%Y %H:%M"),
+                    pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M"),
+                )
                 refused_bs_df = refused_bs_df.with_columns(
-                    pl.lit(0.0).alias("quantity_received")
-                )  # received quantity is set to 0 as per requirements
+                    pl.col(self.mapping_refused_at[bs_type]).alias("refused_at")
+                )
 
-            print(bs_type)
-            print(refused_bs_df.columns)
-            refused_bs_df = refused_bs_df.select(columns_to_take)
+                if bs_type == BSDA:
+                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
+                if bs_type == BSFF:
+                    refused_bs_df = refused_bs_df.with_columns(pl.lit(None).alias("refusal_reason"))
+                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
+                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_received"))
 
-            dfs_processed.append(refused_bs_df)
+                refused_bs_df = refused_bs_df.select(columns_to_take)
+                dfs_processed.append(refused_bs_df)
+
+            else:
+                continue
 
         if dfs_processed:
-            self.preprocessed_df = pl.concat(dfs_processed, how="diagonal").collect()
-
-        # return refused_bs_df.to_dicts()
+            concat_df = pl.concat(dfs_processed, how="diagonal")
+            # Data is enriched with waste description from the waste nomenclature
+            final_df = concat_df.join(
+                self.waste_codes_df,
+                left_on="waste_code",
+                right_on="code",
+                how="left",
+            )
+            self.preprocessed_df = final_df.collect()
 
     def _check_empty_data(self) -> bool:
         if self.preprocessed_df.is_empty():

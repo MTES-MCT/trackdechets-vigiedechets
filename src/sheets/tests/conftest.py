@@ -3,14 +3,8 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 import pytest
-from polars.testing import assert_frame_equal
-
-from sheets.constants import BSDA, BSDASRI, BSDD, BSFF
 
 
-from ..graph_processors.html_components_processors import (
-    BsdCanceledTableProcessor,
-)  # Remplace "your_module" par le bon module
 
 tz = ZoneInfo("Europe/Paris")
 

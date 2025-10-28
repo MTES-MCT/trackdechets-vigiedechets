@@ -43,8 +43,9 @@ def test_bsd_refused_processor(
     )
 
 
-# TODO: Refactor queries : move them to separate files
-# - Add sample for "revised" data sets
+# TODO: 
+# - Refactor queries : move them to separate files -> Not for now. the whole repo is designe like this.
+# - Add sample for "revised" data sets : ok
 # - add missing columns to queries
 # - add missing columns to data samples
 # - run tests with BSDcanceled

@@ -33,7 +33,9 @@ select
     next_destination_company_country,
     next_destination_company_vat_number,
     next_destination_processing_operation,
-    eco_organisme_siret
+    eco_organisme_siret,
+    signed_at,
+    waste_refusal_reason as refusal_reason
  from
     trusted_zone_trackdechets.bsdd
 where
@@ -94,7 +96,8 @@ select
     next_destination_company_country,
     next_destination_company_vat_number,
     next_destination_processing_operation,
-    eco_organisme_siret
+    eco_organisme_siret,
+    waste_refusal_reason as refusal_reason
  from
     trusted_zone_trackdechets.bsdd
 where
@@ -177,7 +180,18 @@ select
         else quantity_received
     end as quantity_received,
     case 
-        when status='REFUSED' and quantity_refused is null then quantity_received -- If the BSDD is in status refused, then quantity_refused should be quantity_received
+        when status='REFUSED'
+             and (quantity_refused is null or quantity_refused = 0) 
+             and (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER')
+             then waste_details_quantity 
+             -- If the BSDD is in status refused, then quantity_refused should be quantity_received
+             -- And for appendix 1 we take the estimated quantity as received quantity    
+        when 
+            status='REFUSED' 
+            and (quantity_refused is null or quantity_refused = 0) 
+            and (emitter_type <> 'APPENDIX1_PRODUCER')
+            then quantity_received 
+            -- If the BSDD is in status refused, then quantity_refused should be quantity_received
         else quantity_refused
     end as quantity_refused,
     waste_details_code as waste_code
@@ -223,6 +237,7 @@ where c.siret = :siret
 sql_bsda_query_str = """
 select
     id,
+    id as readable_id,
     created_at,
     emitter_emission_signature_date,
     worker_work_signature_date,
@@ -235,6 +250,11 @@ select
     destination_company_siret as recipient_company_siret,
     weight_value as waste_details_quantity,
     destination_reception_weight as quantity_received,
+    case 
+        when status='REFUSED'
+        then destination_reception_weight
+        else 0
+    end as quantity_refused,
     waste_code,
     waste_material_name as waste_name,
     destination_operation_code as processing_operation_code,
@@ -244,7 +264,8 @@ select
     emitter_pickup_site_address as worksite_address,
     worker_company_siret,
     emitter_is_private_individual,
-    eco_organisme_siret
+    eco_organisme_siret,
+    destination_reception_refusal_reason as refusal_reason
 from
     trusted_zone_trackdechets.bsda
 where
@@ -301,6 +322,7 @@ where
 sql_bsdasri_query_str = """
 select
     id,
+    id as readable_id,
     created_at,
     transporter_taken_over_at as sent_at,
     destination_reception_date as received_at,
@@ -321,7 +343,8 @@ select
     status,
     transporter_transport_mode,
     transporter_company_siret,
-    eco_organisme_siret
+    eco_organisme_siret,
+    destination_reception_waste_refusal_reason as refusal_reason
 from
         trusted_zone_trackdechets.bsdasri
 where
@@ -349,6 +372,7 @@ where
 sql_bsff_query_str = """
 select
     id,
+    id as readable_id,
     created_at,
     transporter_transport_signature_date as sent_at, -- This is to handle the case when we need a "sent_at" date without using transporter data
     destination_reception_date as received_at,
@@ -441,7 +465,8 @@ select
     waste_code,
     destination_operation_code as processing_operation_code,
     status,
-    transporter_company_siret
+    transporter_company_siret,
+    destination_reception_refusal_reason as refusal_reason
 from
     trusted_zone_trackdechets.bsvhu
 where

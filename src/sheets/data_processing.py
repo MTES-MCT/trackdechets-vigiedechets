@@ -604,6 +604,7 @@ class SheetProcessor:
         bsd_refused_table = BsdRefusedTableProcessor(
             self.siret,
             self.bs_dfs,
+            WASTE_CODES_DATA,
             data_date_interval,
         )
         self.computed.bsd_refused_data = bsd_refused_table.build()

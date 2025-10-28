@@ -80,13 +80,3 @@ def test_bsd_canceled_processor(
     )
 
     assert processor.build() == expected_results
-
-
-
-# TODO: Refactor queries : move them to separate files
-# - Add sample for "revised" data sets
-# - add missing columns to queries
-# - add missing columns to data samples
-# - run tests with BSDcanceled
-# - Create a conftest for BSDcanceled data sets and BSDRefused so that they can be reused
-# - Run test for BSDRefused
