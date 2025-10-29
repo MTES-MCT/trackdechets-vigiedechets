@@ -849,6 +849,13 @@ class BsdRefusedTableProcessor:
         }
 
     def _compute_bsff_quantities(self, bsff_df: pl.LazyFrame) -> pl.LazyFrame:
+        if self.packagings_data_df is None:
+            bsff_df = bsff_df.with_columns(
+                pl.lit(0.0).alias("quantity_received"),
+                pl.lit(0.0).alias("quantity_refused"),
+            )
+            return bsff_df
+
         df = bsff_df.select(pl.selectors.exclude("quantity_received"))
         df = df.join(
             self.packagings_data_df.group_by("bsff_id").agg(
@@ -891,8 +898,6 @@ class BsdRefusedTableProcessor:
                     pl.col(self.mapping_refused_at[bs_type]).alias("refused_at")
                 )
 
-                if bs_type == BSDA:
-                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
                 if bs_type == BSFF:
                     refused_bs_df = self._compute_bsff_quantities(refused_bs_df)
                     refused_bs_df = refused_bs_df.with_columns(pl.lit("").alias("refusal_reason"))
