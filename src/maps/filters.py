@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point, Polygon
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from .constants import BASE_ROLES_TYPES, ROLES_CONFIG, ROLES_TYPES
+from .constants import BASE_ROLES_TYPES, BSD_TYPES, ROLES_CONFIG, ROLES_TYPES
 from .models import CartoCompany
 
 
@@ -25,7 +25,7 @@ def prepare_role_specific_fields():
 
 ROLE_SPECIFIC_FIELDS = prepare_role_specific_fields()
 
-BSD_TYPES = list(ROLES_TYPES.keys())
+
 # not all bsd types have a matching processing_operations_* field
 BSD_TYPES_FOR_OPERATION_CODE = [bsd_type for bsd_type, config in ROLES_CONFIG.items() if config["code_operation"]]
 

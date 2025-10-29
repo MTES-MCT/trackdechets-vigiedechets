@@ -166,6 +166,15 @@ def test_map_api_companies_filter_bsd_role(bsd_type, verified_api):
     assert res.status_code == 200
 
 
+# http://127.0.0.1:8000/map/api/companies/objects?bsds_roles=emitter&departments=23&bounds=1.7331376756776535%2C45.94378560421595%2C1.7969849039687915%2C45.96452217010278
+def test_map_api_companies_filter_bsd_rol_emitter(verified_api):
+    CartoCompanyFactory(coords=Point(x=55.50, y=-21.22))
+    url = reverse("map_api_objects")
+
+    res = verified_api.get(f"{url}?bounds=55.49,-21.23,55.5745,-21.191&bsds_roles=emitter")
+    assert res.status_code == 200
+
+
 @pytest.fixture
 def setup_export_test_data():
     company1 = CartoCompanyFactory(
