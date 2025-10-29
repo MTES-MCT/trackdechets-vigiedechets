@@ -878,7 +878,7 @@ class BsdRefusedTableProcessor:
         dfs_processed = []
 
         for bs_type, df in self.bs_data_dfs.items():
-            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI, BSFF]:
+            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI, BSFF, BSVHU]:
                 refused_bs_df = df.filter(
                     (pl.col("recipient_company_siret") == self.company_siret)
                     & (pl.col("status") == "REFUSED")
@@ -895,7 +895,7 @@ class BsdRefusedTableProcessor:
                     refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
                 if bs_type == BSFF:
                     refused_bs_df = self._compute_bsff_quantities(refused_bs_df)
-                    refused_bs_df = refused_bs_df.with_columns(pl.lit(None).alias("refusal_reason"))
+                    refused_bs_df = refused_bs_df.with_columns(pl.lit("").alias("refusal_reason"))
 
                 refused_bs_df = refused_bs_df.select(columns_to_take)
                 dfs_processed.append(refused_bs_df)
@@ -1118,10 +1118,23 @@ class StorageStatsProcessor:
                     .group_by("id")
                     .agg(*agg_exprs)
                 )
-                dfs_to_concat.append(df_to_concat)
 
             else:
-                dfs_to_concat.append(df)
+                # Keep only necessary columns for later processing
+                columns_needed = [
+                    "id",
+                    "emitter_company_siret",
+                    "recipient_company_siret",
+                    "waste_code",
+                    "quantity_received",
+                    "sent_at",
+                    "received_at",
+                    "quantity_refused",
+                ]
+                df_to_concat = df_to_concat.select(
+                    [c for c in columns_needed if c in df_to_concat.collect_schema().names()]
+                )
+                dfs_to_concat.append(df_to_concat)
 
         if len(dfs_to_concat) > 0:
             df = pl.concat(dfs_to_concat, how="diagonal")

@@ -453,6 +453,7 @@ where
 sql_bsvhu_query_str = """
 select
     id,
+    id as readable_id,
     created_at,
     transporter_transport_taken_over_at as sent_at,
     destination_reception_date as received_at,
@@ -462,6 +463,10 @@ select
     destination_company_siret as recipient_company_siret,
     weight_value as waste_detail_quantity,
     destination_reception_weight as quantity_received,
+    case 
+        when status='REFUSED' then weight_value
+        else 0
+    end as quantity_refused,
     waste_code,
     destination_operation_code as processing_operation_code,
     status,
