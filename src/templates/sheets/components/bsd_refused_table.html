@@ -57,7 +57,13 @@
                                 N/A
                             {% endif %}
                         </td>
-                        <td>{{ row.refusal_reason }}</td>
+                        <td class="td--right">
+                            {% if row.refusal_reason %}
+                                {{ row.refusal_reason }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
