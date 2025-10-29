@@ -827,11 +827,13 @@ class BsdRefusedTableProcessor:
         self,
         company_siret: str,
         bs_data_dfs: Dict[str, pl.LazyFrame],
+        packagings_data_df: pl.LazyFrame,
         waste_codes_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
     ) -> None:
         self.company_siret = company_siret
         self.bs_data_dfs = bs_data_dfs
+        self.packagings_data_df = packagings_data_df
         self.waste_codes_df = waste_codes_df
         self.data_date_interval = data_date_interval
 
@@ -845,6 +847,18 @@ class BsdRefusedTableProcessor:
             BSDASRI: "received_at",
             BSVHU: "received_at",
         }
+
+    def _compute_bsff_quantities(self, bsff_df: pl.LazyFrame) -> pl.LazyFrame:
+        df = bsff_df.select(pl.selectors.exclude("quantity_received"))
+        df = df.join(
+            self.packagings_data_df.group_by("bsff_id").agg(
+                pl.col("acceptation_weight").sum().round(3), pl.col("weight").sum().round(3)
+            ),
+            left_on="id",
+            right_on="bsff_id",
+        ).rename({"acceptation_weight": "quantity_received", "weight": "quantity_refused"})
+
+        return df
 
     def _preprocess_data(self) -> None:
         """
@@ -864,7 +878,7 @@ class BsdRefusedTableProcessor:
         dfs_processed = []
 
         for bs_type, df in self.bs_data_dfs.items():
-            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI]:
+            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI, BSFF]:
                 refused_bs_df = df.filter(
                     (pl.col("recipient_company_siret") == self.company_siret)
                     & (pl.col("status") == "REFUSED")
@@ -880,9 +894,8 @@ class BsdRefusedTableProcessor:
                 if bs_type == BSDA:
                     refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
                 if bs_type == BSFF:
+                    refused_bs_df = self._compute_bsff_quantities(refused_bs_df)
                     refused_bs_df = refused_bs_df.with_columns(pl.lit(None).alias("refusal_reason"))
-                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_refused"))
-                    refused_bs_df = refused_bs_df.with_columns(pl.lit(0.0).alias("quantity_received"))
 
                 refused_bs_df = refused_bs_df.select(columns_to_take)
                 dfs_processed.append(refused_bs_df)
@@ -1714,7 +1727,7 @@ class QuantityOutliersTableProcessor:
                         right_on="bsff_id",
                     ).rename({"acceptation_weight": "quantity_received"})
                 else:
-                    return
+                    return  # TODO: Probably should continue instead of returning here
 
             df_quantity_outliers = df_with_transport.filter(
                 (pl.col("quantity_received") > 40)
