@@ -4,8 +4,6 @@ from zoneinfo import ZoneInfo
 import polars as pl
 import pytest
 
-
-
 tz = ZoneInfo("Europe/Paris")
 
 
@@ -21,7 +19,7 @@ def sample_data_bsdd():
             datetime(2024, 3, 20, tzinfo=tz),
             datetime(2024, 4, 25, tzinfo=tz),
         ],
-        "readable_id": ["BSDD0001", "BSDD0002", "BSDD0003", "BSDD0004"],
+        "readable_id": ["bsdd-1", "bsdd-2", "bsdd-3", "bsdd-4"],
         "created_at": [
             datetime(2024, 1, 1, 8, 0, tzinfo=tz),
             datetime(2024, 2, 1, 8, 0, tzinfo=tz),
@@ -35,12 +33,6 @@ def sample_data_bsdd():
             datetime(2024, 4, 20, 9, 0, tzinfo=tz),
         ],
         "processed_at": [
-            datetime(2024, 1, 15, 10, 0, tzinfo=tz),
-            datetime(2024, 2, 20, 10, 0, tzinfo=tz),
-            datetime(2024, 3, 25, 10, 0, tzinfo=tz),
-            datetime(2024, 4, 30, 10, 0, tzinfo=tz),
-        ],
-        "signed_at": [
             datetime(2024, 1, 15, 10, 0, tzinfo=tz),
             datetime(2024, 2, 20, 10, 0, tzinfo=tz),
             datetime(2024, 3, 25, 10, 0, tzinfo=tz),
@@ -65,7 +57,13 @@ def sample_data_bsdd():
         "next_destination_company_vat_number": [None, "VATB", None, "VATD"],
         "next_destination_processing_operation": [None, "R3", None, "R1"],
         "eco_organisme_siret": [None, None, None, None],
-        "comment": [None, None, "Refusal reason 1", "Refusal reason 2"],        
+        "signed_at": [
+            datetime(2024, 1, 15, 10, 0, tzinfo=tz),
+            datetime(2024, 2, 20, 10, 0, tzinfo=tz),
+            datetime(2024, 3, 25, 10, 0, tzinfo=tz),
+            datetime(2024, 4, 30, 10, 0, tzinfo=tz),
+        ],
+        "refusal_reason": [None, None, "Refusal reason 1", "Refusal reason 2"],
     }
     return pl.DataFrame(
         data,
@@ -88,6 +86,7 @@ def sample_data_bsdd():
 def sample_data_bsda():
     data = {
         "id": ["bsda-1", "bsda-2", "bsda-3", "bsda-4"],
+        "readable_id": ["bsda-1", "bsda-2", "bsda-3", "bsda-4"],
         "created_at": [
             datetime(2024, 1, 1, 8, 0, tzinfo=tz),
             datetime(2024, 2, 1, 9, 0, tzinfo=tz),
@@ -146,7 +145,7 @@ def sample_data_bsda():
         "emitter_is_private_individual": [False, False, True, False],
         "eco_organisme_siret": [None, "44444444400044", None, None],
         "comment": [None, None, "Comment 1", None],
-        "destination_reception_waste_refusal_reason": [None, None, "Refusal reason 1", None],
+        "refusal_reason": [None, None, "Refusal reason 1", None],
     }
     return pl.DataFrame(
         data,
@@ -166,6 +165,7 @@ def sample_data_bsda():
 def sample_data_bsdasri():
     data = {
         "id": ["bsdasri-1", "bsdasri-2", "bsdasri-3"],
+        "readable_id": ["bsdasri-1", "bsdasri-2", "bsdasri-3"],
         "created_at": [
             datetime(2024, 10, 15, 8, 10, 48, tzinfo=tz),
             datetime(2024, 11, 22, 9, 12, 34, tzinfo=tz),
@@ -191,9 +191,9 @@ def sample_data_bsdasri():
         "transporter_transport_mode": ["ROAD", "RAIL", "ROAD"],
         "transporter_company_siret": ["62131276300081", "47816734500020", "51283678900091"],
         "eco_organisme_siret": [None, "71002233400010", None],
-        "comment": ["Refusal reason 1", None, "Refusal reason 2"],
+        "refusal_reason": ["Refusal reason 1", None, "Refusal reason 2"],
     }
-    
+
     return pl.DataFrame(
         data,
         schema_overrides={
@@ -284,6 +284,16 @@ def sample_revised_data():
             "comment": pl.String,
             "is_canceled": pl.Boolean,
         },
+    ).lazy()
+
+
+@pytest.fixture
+def sample_waste_codes():
+    from pathlib import Path
+
+    current_dir = Path(__file__).parent
+    return pl.read_csv(
+        Path(current_dir, "data", "waste_codes.csv"), schema_overrides={"code": pl.String, "description": pl.String}
     ).lazy()
 
 
