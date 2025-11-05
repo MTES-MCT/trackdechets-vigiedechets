@@ -1,3 +1,70 @@
+[project]
+name = "trackdechets-vigiedechets"
+version = "0.1.0"
+description = "MTE Vigiedéchets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "celery>=5.5.3",
+    "clickhouse-sqlalchemy>=0.2.3",
+    "django>=5.2.7",
+    "django-admin-rangefilter>=0.13.3",
+    "django-anymail[sendinblue]>=13.1",
+    "django-braces>=1.17.0",
+    "django-defender>=0.9.8",
+    "django-environ>=0.12.0",
+    "django-filter>=25.2",
+    "django-grappelli>=4.0.2",
+    "django-import-export[xlsx]>=4.3.13",
+    "django-mptt>=0.18.0",
+    "django-otp>=1.6.3",
+    "django-registration>=5.2.1",
+    "django-request>=1.7.1",
+    "django-simple-menu>=2.1.4",
+    "django-solo>=2.4.0",
+    "django-storages[s3]>=1.14.6",
+    "django-template-partials>=25.2",
+    "django-vite>=3.1.0",
+    "djangorestframework>=3.16.1",
+    "geopandas>=1.0.1",
+    "gunicorn>=23.0.0",
+    "httpx>=0.28.1",
+    "kaleido==0.2.1",
+    "mozilla-django-oidc>=4.0.1",
+    "numpy==1.26.4",
+    "pandas==1.5.3",
+    "paramiko<4",
+    "plotly==5.24",
+    "polars>=1.35.1",
+    "psycopg2-binary>=2.9.11",
+    "pyarrow>=22.0.0",
+    "redis==5.2.1",
+    "sentry-sdk[django]>=2.43.0",
+    "sqlalchemy==1.4",
+    "sshtunnel>=0.4.0",
+    "weasyprint==66.0",
+    "whitenoise>=6.11.0",
+    "xlsxwriter>=3.2.9",
+]
+
+[dependency-groups]
+dev = [
+    "bandit>=1.8.6",
+    "djade>=1.6.0",
+    "django-debug-toolbar<6",
+    "django-extensions>=4.1",
+    "isort>=7.0.0",
+    "mypy>=1.18.2",
+    "pywatchman",
+    "ruff>=0.14.3",
+]
+test = [
+    "pytest",
+    "pytest-django",
+    "pytest-cov",
+    "factory-boy",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 119
