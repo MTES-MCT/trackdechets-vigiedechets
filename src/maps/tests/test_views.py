@@ -77,7 +77,7 @@ def test_icpe_map_view_deny_user(verified_user, category):
         UserCategoryChoice.GENDARMERIE,
     ],
 )
-def test_icpe_map_view_(verified_user, category):
+def test_icpe_map_view(verified_user, category):
     user = verified_user.user
     user.user_category = category
     user.save()
