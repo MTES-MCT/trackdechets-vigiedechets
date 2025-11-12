@@ -678,3 +678,14 @@ table .td--right {
 table {
     width: 100% !important;
 }
+
+
+.faq-search-result mark {
+    background: #ffeb3b;
+    padding: 2px;
+}
+
+.faq-search-result-snippet {
+    color: #666;
+    margin: 10px 0;
+}

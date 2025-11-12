@@ -49,7 +49,7 @@ Menu.add_item(
         allowed_categories=PERMS_SHEET_AND_REGISTRY,
     ),
 )
-#
+
 Menu.add_item("main", PermsItem("Contrôle routier", reverse("roadcontrol"), allowed_categories=PERMS_ROAD_CONTROL))
 
 Menu.add_item(
@@ -74,7 +74,13 @@ Menu.add_item(
     "main",
     UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
 )
-
+Menu.add_item(
+    "main",
+    MenuItem(
+        "Aide",
+        reverse("faq_home"),
+    ),
+)
 Menu.add_item(
     "main",
     StaffMenuItem("Admin équipe", reverse("admin:index")),

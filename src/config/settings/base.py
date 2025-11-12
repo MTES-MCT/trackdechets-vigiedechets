@@ -23,17 +23,21 @@ DEBUG = env("DEBUG")
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    'django.contrib.postgres',
     "django.contrib.gis",
+]
+THIRD_PARTY_APPS = [
     "grappelli.dashboard",
     "grappelli",
     "django.contrib.admin",
+    "django_prose_editor",
     "template_partials",
     "solo.apps.SoloAppConfig",
     "anymail",
@@ -50,6 +54,11 @@ INSTALLED_APPS = [
     "rangefilter",
     "mptt",
     "oidc",
+    "adminsortable2",
+    'django_jsonform'
+]
+
+LOCAL_APPS = [
     "accounts",
     "common",
     "content",
@@ -60,8 +69,9 @@ INSTALLED_APPS = [
     "data_exports",
     "registry",
     "sentinel",
+    "faq",
 ]
-
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -345,7 +355,6 @@ RNDTS_DATA_UPDATE_DATE_STRING = env("RNDTS_DATA_UPDATE_DATE_STRING")
 MATOMO_SITE_ID = env("MATOMO_SITE_ID", default=None)
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]
-
 
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SEND_SENT_EVENT = True

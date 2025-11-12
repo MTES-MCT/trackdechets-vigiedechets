@@ -46,14 +46,26 @@ class FullyLoggedMixin(AccessMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.allowed_user_categories and self.allowed_user_emails:
+
+        allowed_user_categories = self.get_allowed_user_categories()
+        allowed_user_emails = self.get_allowed_user_emails()
+
+        if allowed_user_categories and allowed_user_emails:
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} do not allow `allowed_user_categories` and `allowed_user_emails` attribute to be set"
             )
-        if not self.allowed_user_categories and not self.allowed_user_emails:
+        if not allowed_user_categories and not allowed_user_emails:
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} requires the `allowed_user_categories` or `allowed_user_emails` attribute to be set"
             )
+
+    def get_allowed_user_categories(self):
+        """Allow overriding in child classes"""
+        return self.allowed_user_categories
+
+    def get_allowed_user_emails(self):
+        """Allow overriding in child classes"""
+        return self.allowed_user_emails
 
     def no_permissions_fail(self, request=None):
         """Handle failed permission checks by redirecting users appropriately."""
@@ -75,36 +87,38 @@ class FullyLoggedMixin(AccessMixin):
 
     def check_has_right_categories(self):
         """Verify if the user belongs to allowed categories."""
+
         if self.request.user.is_staff:
             return True
-
+        allowed_user_categories = self.get_allowed_user_categories()
         if self.allowed_user_categories == ["*"]:
             return True
 
         user_category = self.request.user.user_category
 
-        return user_category in self.allowed_user_categories
+        return user_category in allowed_user_categories
 
     def check_email_is_allowed(self):
         """Verify if the user belongs to allowed categories."""
         if self.request.user.is_staff:
             return True
-
-        return self.request.user.email.lower() in self.allowed_user_emails
+        allowed_user_emails = self.get_allowed_user_emails()
+        return self.request.user.email.lower() in allowed_user_emails
 
     def dispatch(self, request, *args, **kwargs):
         """Check if user is fully logged, then if has appropriate categories"""
         user_test_result = self.test_is_fully_logged(request.user)
-
+        allowed_user_categories = self.get_allowed_user_categories()
+        allowed_user_emails = self.get_allowed_user_emails()
         if not user_test_result:
             return self.handle_no_permission(request)
 
-        if self.allowed_user_categories:
+        if allowed_user_categories:
             in_category = self.check_has_right_categories()
             if not in_category:
                 raise PermissionDenied()
 
-        if self.allowed_user_emails:
+        if allowed_user_emails:
             email_is_allowed = self.check_email_is_allowed()
             if not email_is_allowed:
                 raise PermissionDenied()

@@ -1,0 +1,33 @@
+{% extends "modal.html" %}
+{% block modal_content %}
+  <div class="faq-search-result ">
+
+
+    {% if search_query %}
+      <div>
+        {{ result_count }} résultat{{ result_count|pluralize }} pour "{{ search_query }}"
+      </div>
+    {% endif %}
+    {% for page in results %}
+      <p>
+      <h3>
+        <a href="{% url "faq_page" page.pk %}">
+
+          {% if page.highlighted_title %}
+            {{ page.highlighted_title|safe }}
+          {% else %}
+            {{ page.title }}**
+          {% endif %}
+
+        </a>
+      </h3>
+
+      {% if page.snippet %}
+        <div class="faq-search-result-snippet">{{ page.snippet|safe|truncatewords:30 }}</div>
+      {% endif %}
+
+      </p>
+
+    {% endfor %}
+  </div>
+{% endblock %}
