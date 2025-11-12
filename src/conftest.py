@@ -6,12 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from accounts.constants import OIDCTypeChoice, UserCategoryChoice
-from accounts.factories import (
-    DEFAULT_PASSWORD,
-    ApiUserFactory,
-    EmailDeviceFactory,
-    UserFactory,
-)
+from accounts.factories import DEFAULT_PASSWORD, ApiUserFactory, EmailDeviceFactory, UserFactory
 
 
 @pytest.fixture()
