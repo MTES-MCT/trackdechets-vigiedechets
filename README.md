@@ -9,22 +9,29 @@ Transition Écologique.
 
 - Une instance de prosgresql récente avec l'extension postgis installée
 - Une instance redis
-- Python >= 3.11 avec pipenv
+- Le package manager UV https://docs.astral.sh/uv/
 - les librairies nécessaires aux fonctionalités géographiques de django (GDAL et GEOS)
 - la librairie pango
+- [uv](https://docs.astral.sh/uv/) (package manager)
 
 ## Installation
 
-Initialisation et activation d'un environnement
+### Initialisation d'un environnement Installation des dépendances
 
 ```
-$ pipenv shell
+$ uv sync
 ```
 
-### Installation des dépendances
+Pour installer les dépendances de dev
 
 ```
-$ pipenv install -d
+$ uv sync --group dev
+```
+
+Pour installer les dépendances de test
+
+```
+$ uv sync --group test
 ```
 
 ### Variable d'environnement
@@ -41,25 +48,25 @@ Se référer au fichier env.dist
 Lancer la commande de migration:
 
 ```
-    $ ./src/manage.py migrate
+    $ uv run python src/manage.py migrate
 ```
 
 Créer un super utilisateur
 
 ```
-    $ ./src/manage.py createsuperuser
+    $ uv run python src/manage.py createsuperuser
 ```
 
 ### Lancement de l'application
 
 ```
-    $ manage.py runserver
+    $ uv run python src/manage.py runserver
 ```
 
 Pour les tâches asynchrones, dans une autre fenêtre de terminal:
 
 ```
-    $ DJANGO_SETTINGS_MODULE='config.settings.dev' celery -A config worker -l info
+    $ DJANGO_SETTINGS_MODULE='config.settings.dev' uv run celery -A config worker -l info
 ```
 
 ### Installation des dépendances front
@@ -83,13 +90,13 @@ Dans un second terminal,
 Pour lancer un rendu de manière synchrone (et glisser plus facilement des breakspoints):
 
 ```
-    $ manage.py prepare_sheet <sheet_pk>
+    $ uv run python src/manage.py prepare_sheet <sheet_pk>
 ```
 
 Pour récupérer les établissements depuis le data warehouse:
 
 ```
-    $ manage.py retrieve_companies
+    $ uv run python src/manage.py retrieve_companies
 ```
 
 ### Tests
@@ -104,7 +111,7 @@ Créer :
 Lancer les tests avec :
 
 ```
-    $ pytest
+    $ uv run pytest src
 ```
 
 ### Création en masse d'utilisateurs
@@ -151,7 +158,7 @@ Linter de scanning de sécurité
 
 ### En local
 ```
-    $ ./src/manage.py build_stats
+    $ uv run python srcsrc/manage.py build_stats
     $ ./src/manage.py retrieve_company
 ```
 

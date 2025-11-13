@@ -117,7 +117,12 @@ DWH_SSH_LOCAL_BIND_HOST = env.str("DWH_SSH_LOCAL_BIND_HOST")
 DWH_SSH_KEY = env.str("DWH_SSH_KEY", multiline=True)
 DWH_SSH_KEY_PASSPHRASE = env.str("DWH_SSH_KEY_PASSPHRASE", None)
 
-CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}}
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -173,7 +178,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MONAIOT_BACKEND = "oidc.backends.MonAiotOidcBackend"
 PROCONNECT_BACKEND = "oidc.backends.ProconnectOidcBackend"
 
-AUTHENTICATION_BACKENDS = ["accounts.backends.RestrictedLoginBackend", MONAIOT_BACKEND, PROCONNECT_BACKEND]
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.RestrictedLoginBackend",
+    MONAIOT_BACKEND,
+    PROCONNECT_BACKEND,
+]
 
 ADMIN_SLUG = env("ADMIN_SLUG")
 API_SLUG = env("API_SLUG")

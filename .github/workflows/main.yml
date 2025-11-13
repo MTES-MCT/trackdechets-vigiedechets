@@ -28,47 +28,37 @@ jobs:
       - name: Set locales
         run: sudo apt-get install -y tzdata locales && sudo locale-gen fr_FR && sudo dpkg-reconfigure --frontend=noninteractive locales
 
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install binutils libproj-dev gdal-bin
-          python -m pip install --upgrade pip
+          sudo apt-get install binutils libproj-dev gdal-bin libgdal-dev
 
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pipenv wheel
-
-      - id: cache-pipenv
-        uses: actions/cache@v4
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Pin Python version for uv
+        run: uv python pin 3.11
 
       - name: Install python dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
-        run: |
-          pipenv install --deploy --dev
+        run: uv sync --frozen --group test
 
       - name: Ruff Linting
-        run: pipenv run ruff check .
+        run: uv run --frozen ruff check .
 
       - name: Ruff Formatting
-        run: pipenv run ruff format --check .
+        run: uv run --frozen ruff format --check .
 
       - name: Bandit security checks
-        run: pipenv run bandit --exit-zero -c pyproject.toml  -r src
+        run: uv run --frozen bandit --exit-zero -c pyproject.toml  -r src
 
       - name: Run Tests
         working-directory: src
-        run: |
-          pipenv run pytest
+        run: uv run --frozen pytest
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
           DATABASE_URL: postgresql://admin:postgres@localhost/inspection_test
