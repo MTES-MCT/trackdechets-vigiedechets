@@ -19,19 +19,19 @@ Transition Écologique.
 ### Initialisation d'un environnement Installation des dépendances
 
 ```
-$ uv sync
+$ uv sync --frozen
 ```
 
 Pour installer les dépendances de dev
 
 ```
-$ uv sync --group dev
+$ uv sync --frozen --group dev
 ```
 
 Pour installer les dépendances de test
 
 ```
-$ uv sync --group test
+$ uv sync --frozen --group test
 ```
 
 ### Variable d'environnement
