@@ -134,6 +134,7 @@ def sample_data_bsda():
         "recipient_company_siret": ["12345678900011", "12345678900011", "12345678900011", "12345678900011"],
         "waste_details_quantity": [100.0, 50.0, 200.0, 120.0],
         "quantity_received": [98.0, None, 197.0, 119.0],
+        "quantity_refused": [0.0, 0.0, 197.0, 0.0],
         "waste_code": ["18 01 03*", "18 01 02", "18 01 06*", "18 01 08*"],
         "waste_name": ["Déchets chimiques", "Déchets ménagers", "Déchets infectieux", "Déchets pharmaceutiques"],
         "processing_operation_code": ["D15", "R12", "D10", "R13"],
@@ -217,6 +218,7 @@ def sample_data_bsff():
 
     data = {
         "id": ["bsff-1", "bsff-2", "bsff-3"],
+        "readable_id": ["bsff-1", "bsff-2", "bsff-3"],
         "created_at": [
             datetime(2024, 1, 10, 8, 0, tzinfo=tz),
             datetime(2024, 2, 10, 9, 0, tzinfo=tz),
@@ -236,7 +238,7 @@ def sample_data_bsff():
         "status": [
             "PROCESSED",
             "REFUSED",
-            "PROCESSED",
+            "REFUSED",
         ],
     }
     return pl.DataFrame(
@@ -295,6 +297,25 @@ def sample_waste_codes():
     return pl.read_csv(
         Path(current_dir, "data", "waste_codes.csv"), schema_overrides={"code": pl.String, "description": pl.String}
     ).lazy()
+
+
+@pytest.fixture
+def sample_packagings_data():
+    data = {
+        "id": ["packaging-1-1", "packaging-2-1", "packaging-2-2", "packaging-3-1", "packaging-3-2"],
+        "bsff_id": ["bsff-1", "bsff-2", "bsff-2", "bsff-3", "bsff-3"],
+        "acceptation_weight": [10.0, 20.0, 30.0, 40.0, 50.0],
+        "acceptation_status": ["ACCEPTED", "REFUSED", "REFUSED", "REFUSED", "ACCEPTED"],
+        "refusal_reason": [None, "Refusal reason 1", "Refusal reason 2", "Refusal reason 3", None],
+        "acceptation_date": [
+            datetime(2024, 1, 12, tzinfo=tz),
+            datetime(2024, 2, 18, tzinfo=tz),
+            datetime(2024, 3, 22, tzinfo=tz),
+            datetime(2024, 4, 28, tzinfo=tz),
+            datetime(2024, 4, 30, tzinfo=tz),
+        ],
+    }
+    return pl.DataFrame(data).lazy()
 
 
 @pytest.fixture

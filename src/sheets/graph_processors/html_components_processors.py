@@ -839,15 +839,6 @@ class BsdRefusedTableProcessor:
 
         self.preprocessed_df = pl.DataFrame()
 
-        self.mapping_refused_at = {
-            BSDD: "received_at",
-            BSDD_NON_DANGEROUS: "received_at",
-            BSFF: "received_at",
-            BSDA: "received_at",
-            BSDASRI: "received_at",
-            BSVHU: "received_at",
-        }
-
     def _compute_bsff_quantities(self, bsff_df: pl.LazyFrame) -> pl.LazyFrame:
         if self.packagings_data_df is None:
             bsff_df = bsff_df.with_columns(
@@ -877,7 +868,7 @@ class BsdRefusedTableProcessor:
             "emitter_company_siret",
             "recipient_company_siret",
             "waste_code",
-            "quantity_received",
+            "quantity_emitted",
             "quantity_refused",
             "refusal_reason",
         ]
@@ -885,28 +876,42 @@ class BsdRefusedTableProcessor:
         dfs_processed = []
 
         for bs_type, df in self.bs_data_dfs.items():
-            if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSDASRI, BSFF, BSVHU]:
-                refused_bs_df = df.filter(
-                    (pl.col("recipient_company_siret") == self.company_siret)
-                    & (pl.col("status") == "REFUSED")
-                    & pl.col("received_at").is_between(*self.data_date_interval)
-                ).with_columns(
-                    pl.col("sent_at").dt.strftime("%d/%m/%Y %H:%M"),
-                    pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M"),
+            refused_bs_df = df.filter(
+                (pl.col("recipient_company_siret") == self.company_siret)
+                & (pl.col("status") == "REFUSED")
+                & pl.col("received_at").is_between(*self.data_date_interval)
+            ).with_columns(
+                pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M").alias("refused_at"),
+                pl.col("waste_details_quantity").alias("quantity_emitted"),
+            )
+
+            if bs_type == BSFF:
+                if self.packagings_data_df is None:
+                    refused_bs_df = refused_bs_df.with_columns(
+                        pl.lit(0.0).alias("quantity_emitted"),
+                        pl.lit(0.0).alias("quantity_refused"),
+                    )
+
+                # We keep only BSFF "refused" for which all packagings are also refused.
+                # If at least one packaging has a different refusal reason, we consider it partially refused and we don't show it in this appendix.
+                refused_bs_df = (
+                    refused_bs_df.join(
+                        self.packagings_data_df.group_by("bsff_id").agg(
+                            (pl.col("acceptation_status") == "REFUSED").alias("is_packaged_refused"),
+                            (pl.col("refusal_reason")).alias("refusal_reasons"),
+                        ),
+                        left_on="id",
+                        right_on="bsff_id",
+                    )
+                    .filter(pl.col("is_packaged_refused").list.all())
+                    .with_columns(
+                        pl.col("refusal_reasons").list.join(" | ").alias("refusal_reason"),
+                        pl.lit(0.0).alias("quantity_refused"),
+                    )
                 )
-                refused_bs_df = refused_bs_df.with_columns(
-                    pl.col(self.mapping_refused_at[bs_type]).alias("refused_at")
-                )
 
-                if bs_type == BSFF:
-                    refused_bs_df = self._compute_bsff_quantities(refused_bs_df)
-                    refused_bs_df = refused_bs_df.with_columns(pl.lit("").alias("refusal_reason"))
-
-                refused_bs_df = refused_bs_df.select(columns_to_take)
-                dfs_processed.append(refused_bs_df)
-
-            else:
-                continue
+            refused_bs_df = refused_bs_df.select(columns_to_take)
+            dfs_processed.append(refused_bs_df)
 
         if dfs_processed:
             concat_df = pl.concat(dfs_processed, how="diagonal")

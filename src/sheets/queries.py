@@ -13,7 +13,7 @@ select
     multiIf(
         waste_details_quantity_type = 'ESTIMATED', True,
 		waste_details_quantity_type = 'REAL', False,
-		Null) AS is_estimated_quantity,
+		Null) AS emitter_waste_weight_is_estimate,
     case 
         when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
         then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
@@ -64,18 +64,18 @@ where
 	)
 """
 
-sql_bsdd_query_str = fr"""
+sql_bsdd_query_str = rf"""
     {sql_all_bsdd_query_str}
     and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
 """
 
-sql_bsdd_non_dangerous_query_str = fr"""
+sql_bsdd_non_dangerous_query_str = rf"""
     {sql_all_bsdd_query_str}
     and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
 """
 
 
-sql_all_bsdd_transporter_query_str = r"""
+sql_all_bsdd_transporter_query_str = """
 select
     id,
     form_id as bs_id,
@@ -113,13 +113,13 @@ where
 """
 
 
-sql_bsdd_transporter_query_str = fr"""
+sql_bsdd_transporter_query_str = rf"""
     {sql_all_bsdd_transporter_query_str}
     and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
 """
 
 
-sql_bsdd_non_dangerous_transporter_query_str = fr"""
+sql_bsdd_non_dangerous_transporter_query_str = rf"""
     {sql_all_bsdd_transporter_query_str}
     and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
 """
@@ -159,12 +159,9 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     weight_value as waste_details_quantity,
+    weight_is_estimate as emitter_waste_weight_is_estimate,
     destination_reception_weight as quantity_received,
-    case 
-        when status='REFUSED'
-        then destination_reception_weight
-        else 0
-    end as quantity_refused,
+    COALESCE(destination_reception_refused_weight, 0) as quantity_refused,
     waste_code,
     waste_material_name as waste_name,
     destination_operation_code as processing_operation_code,
@@ -241,6 +238,7 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     emitter_waste_weight_value as waste_details_quantity,
+    emitter_waste_weight_is_estimate,
     destination_reception_waste_weight_value as quantity_received,
     case 
         when status='REFUSED' and destination_reception_waste_refused_weight_value is null 
@@ -289,7 +287,8 @@ select
     emitter_company_siret,
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
-    weight_value as waste_detail_quantity,
+    weight_value as waste_details_quantity,
+    weight_is_estimate,
     waste_code,
     status
 from
@@ -317,7 +316,8 @@ select
     operation_code,
     volume,
     acceptation_weight,
-    weight
+    weight,
+    acceptation_refusal_reason as refusal_reason
 from
     trusted_zone_trackdechets.bsff_packaging bp
 where
