@@ -1,4 +1,4 @@
-sql_bsdd_query_str = r"""
+sql_all_bsdd_query_str = """
 select
     id,
     readable_id,
@@ -10,6 +10,10 @@ select
     emitter_company_address,
     recipient_company_siret,
     waste_details_quantity,
+    multiIf(
+        waste_details_quantity_type = 'ESTIMATED', True,
+		waste_details_quantity_type = 'REAL', False,
+		Null) AS is_estimated_quantity,
     case 
         when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
         then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
@@ -45,84 +49,33 @@ where
     )
     and not is_deleted
     and status::text not in ('DRAFT', 'INITIAL')
+    -- to avoid pandas datetime overflow
+    and (
+		sent_at between '1677-09-22' and '2262-04-11'
+		or sent_at is null
+	)
+	and (
+		received_at between '1677-09-22' and '2262-04-11'
+		or received_at is null
+	)
+    and (
+		processed_at between '1677-09-22' and '2262-04-11'
+		or processed_at is null
+	)
+"""
+
+sql_bsdd_query_str = fr"""
+    {sql_all_bsdd_query_str}
     and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
-    -- to avoid pandas datetime overflow
-    and (
-		sent_at between '1677-09-22' and '2262-04-11'
-		or sent_at is null
-	)
-	and (
-		received_at between '1677-09-22' and '2262-04-11'
-		or received_at is null
-	)
-    and (
-		processed_at between '1677-09-22' and '2262-04-11'
-		or processed_at is null
-	)
 """
 
-sql_bsdd_non_dangerous_query_str = r"""
-select
-    id,
-    readable_id,
-    created_at,
-    sent_at,
-    received_at,
-    processed_at,
-    emitter_company_siret,
-    emitter_company_address,
-    recipient_company_siret,
-    waste_details_quantity,
-    case 
-        when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
-        then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
-        else quantity_received
-    end as quantity_received,
-    case 
-        when status='REFUSED' and quantity_refused is null then quantity_received -- If the BSDD is in status refused, then quantity_refused should be quantity_received
-        else quantity_refused
-    end as quantity_refused,
-    waste_details_code as waste_code,
-    waste_details_name as waste_name,
-    processing_operation_done as processing_operation_code,
-    status,
-    no_traceability,
-    waste_details_pop as waste_pop,
-    waste_details_is_dangerous as is_dangerous,
-    emitter_work_site_name as worksite_name,
-    emitter_work_site_address as worksite_address,
-    next_destination_company_siret,
-    next_destination_company_name,
-    next_destination_company_country,
-    next_destination_company_vat_number,
-    next_destination_processing_operation,
-    eco_organisme_siret,
-    waste_refusal_reason as refusal_reason
- from
-    trusted_zone_trackdechets.bsdd
-where
-    (emitter_company_siret = :siret
-    or recipient_company_siret = :siret
-    or eco_organisme_siret = :siret)
-    and not is_deleted
-    and status::text not in ('DRAFT', 'INITIAL')
+sql_bsdd_non_dangerous_query_str = fr"""
+    {sql_all_bsdd_query_str}
     and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
-    -- to avoid pandas datetime overflow
-    and (
-		sent_at between '1677-09-22' and '2262-04-11'
-		or sent_at is null
-	)
-	and (
-		received_at between '1677-09-22' and '2262-04-11'
-		or received_at is null
-	)
-    and (
-		processed_at between '1677-09-22' and '2262-04-11'
-		or processed_at is null
-	)
 """
 
-sql_bsdd_transporter_query_str = r"""
+
+sql_all_bsdd_transporter_query_str = r"""
 select
     id,
     form_id as bs_id,
@@ -152,9 +105,6 @@ where
         or transporter_company_siret = :siret
         or eco_organisme_siret = :siret
     )
-    and (waste_details_code like '%*'
-        or waste_details_pop
-        or waste_details_is_dangerous)
     -- to avoid pandas datetime overflow
     and (
 		taken_over_at between '1677-09-22' and '2262-04-11'
@@ -163,55 +113,15 @@ where
 """
 
 
-sql_bsdd_non_dangerous_transporter_query_str = r"""
-select
-    id,
-    form_id as bs_id,
-    taken_over_at as sent_at,
-    transporter_company_siret,
-    emitter_company_siret,
-    recipient_company_siret,
-    eco_organisme_siret,
-    transporter_number_plate,
-    transporter_transport_mode,
-    case 
-        when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
-        then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
-        else quantity_received
-    end as quantity_received,
-    case 
-        when status='REFUSED'
-             and (quantity_refused is null or quantity_refused = 0) 
-             and (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER')
-             then waste_details_quantity 
-             -- If the BSDD is in status refused, then quantity_refused should be quantity_received
-             -- And for appendix 1 we take the estimated quantity as received quantity    
-        when 
-            status='REFUSED' 
-            and (quantity_refused is null or quantity_refused = 0) 
-            and (emitter_type <> 'APPENDIX1_PRODUCER')
-            then quantity_received 
-            -- If the BSDD is in status refused, then quantity_refused should be quantity_received
-        else quantity_refused
-    end as quantity_refused,
-    waste_details_code as waste_code
-from
-    refined_zone_enriched.bsdd_transporter_enriched
-where
-    (
-        emitter_company_siret = :siret
-        or recipient_company_siret = :siret
-        or transporter_company_siret = :siret
-        or eco_organisme_siret = :siret
-    )
-    and not (waste_details_code like '%*'
-        or waste_details_pop
-        or waste_details_is_dangerous)
-    -- to avoid pandas datetime overflow
-    and (
-		taken_over_at between '1677-09-22' and '2262-04-11'
-		or taken_over_at is null
-	)
+sql_bsdd_transporter_query_str = fr"""
+    {sql_all_bsdd_transporter_query_str}
+    and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
+"""
+
+
+sql_bsdd_non_dangerous_transporter_query_str = fr"""
+    {sql_all_bsdd_transporter_query_str}
+    and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
 """
 
 sql_company_query_str = """
@@ -289,7 +199,7 @@ where
 	)
 """
 
-sql_bsda_transporter_query_str = r"""
+sql_bsda_transporter_query_str = """
 select
     id,
     bsda_id as bs_id,
