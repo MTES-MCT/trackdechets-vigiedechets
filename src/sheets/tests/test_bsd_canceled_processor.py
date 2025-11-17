@@ -58,7 +58,7 @@ def test_bsd_canceled_processor(
             "comment": "C1",
             "readable_id": "bsda-2",
             "waste_name": "Déchets ménagers",
-            "quantity_refused": None,
+            "quantity_refused": 0.0,
         },
         {
             "id": "bsdasri-3",
