@@ -890,25 +890,29 @@ class BsdRefusedTableProcessor:
                     refused_bs_df = refused_bs_df.with_columns(
                         pl.lit(0.0).alias("quantity_emitted"),
                         pl.lit(0.0).alias("quantity_refused"),
+                        pl.lit("").alias("refusal_reason"),
                     )
-
-                # We keep only BSFF "refused" for which all packagings are also refused.
-                # If at least one packaging has a different refusal reason, we consider it partially refused and we don't show it in this appendix.
-                refused_bs_df = (
-                    refused_bs_df.join(
-                        self.packagings_data_df.group_by("bsff_id").agg(
-                            (pl.col("acceptation_status") == "REFUSED").alias("is_packaged_refused"),
-                            (pl.col("refusal_reason")).alias("refusal_reasons"),
-                        ),
-                        left_on="id",
-                        right_on="bsff_id",
+                else:
+                    # We keep only BSFF "refused" for which all packagings are also refused.
+                    # If at least one packaging has a different refusal reason, we consider it partially refused and we don't show it in this appendix.
+                    refused_bs_df = (
+                        refused_bs_df.join(
+                            self.packagings_data_df.group_by("bsff_id").agg(
+                                (pl.col("acceptation_status") == "REFUSED").alias("is_packaged_refused"),
+                                (pl.col("refusal_reason")).alias("refusal_reasons"),
+                            ),
+                            left_on="id",
+                            right_on="bsff_id",
+                        )
+                        .filter(pl.col("is_packaged_refused").list.all())
+                        .with_columns(
+                            pl.when(pl.col("refusal_reasons").is_null())
+                            .then(pl.lit(""))
+                            .otherwise(pl.col("refusal_reasons").list.join(" | "))
+                            .alias("refusal_reason"),
+                            pl.lit(0.0).alias("quantity_refused"),
+                        )
                     )
-                    .filter(pl.col("is_packaged_refused").list.all())
-                    .with_columns(
-                        pl.col("refusal_reasons").list.join(" | ").alias("refusal_reason"),
-                        pl.lit(0.0).alias("quantity_refused"),
-                    )
-                )
 
             refused_bs_df = refused_bs_df.select(columns_to_take)
             dfs_processed.append(refused_bs_df)
