@@ -371,7 +371,7 @@ select
     emitter_company_siret,
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
-    weight_value as waste_detail_quantity,
+    weight_value as waste_details_quantity,
     destination_reception_weight as quantity_received,
     case 
         when status='REFUSED' then weight_value
