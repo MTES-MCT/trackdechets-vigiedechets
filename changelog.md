@@ -7,7 +7,7 @@ et le projet suit un schéma de versioning inspiré de [Calendar Versioning](htt
 
 ## 11/11/2025
 
-Utilisation de UV comme package manager
+- Utilisation de UV comme package manager
 
 ## 03/09/2025
 
