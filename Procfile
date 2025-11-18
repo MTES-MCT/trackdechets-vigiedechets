@@ -5,4 +5,4 @@ postdeploy: bash bin/post_deploy
 web: gunicorn --chdir src config.wsgi:application --log-file - --timeout 120
 
 # Run celery worker
-workerweb: celery --workdir src -A config worker -l info --pool threads
+workerweb: celery --workdir src -A config worker -l info -Q celery --pool threads

@@ -1,3 +1,4 @@
+import datetime as dt
 import logging
 
 from config.celery_app import app
@@ -26,3 +27,12 @@ def prepare_sheet(computed_pk):
 @app.task()
 def render_pdf(computed_pk: str):
     return render_pdf_fn(computed_pk, render_indiv_graph)
+
+
+@app.task
+def create_dummy_file():
+    fn = f"celerytest_{dt.datetime.now()}.txt"
+
+    with open(fn, "w") as f:
+        print(f"Create file: {fn}")
+        f.write("test")
