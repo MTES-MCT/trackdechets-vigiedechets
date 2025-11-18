@@ -66,8 +66,12 @@ Créer un super utilisateur
 Pour les tâches asynchrones, dans une autre fenêtre de terminal:
 
 ```
-    $ DJANGO_SETTINGS_MODULE='config.settings.dev' uv run celery -A config worker -l info
+ 
+    $ DJANGO_SETTINGS_MODULE='config.settings.dev' uv run celery -A config worker -l info --pool threads
+ 
 ```
+
+**NB: l'oubli de `--pool threads` peut conduire à un blocage des tâches asynchrones.**
 
 ### Installation des dépendances front
 
@@ -121,7 +125,9 @@ Un fois rempli le fichier est importable par la section users de l'interface d'a
 
 ### Profiling des workers celery
 
-`py-spy` peut être utilisé pour faire un profiling des tâches celery et créer un _flame graph_. Pour cela il faut dans un premier temps lancer un _worker celery_ comme expliqué dans la partie [Lancement de l'application](#lancement-de-lapplication).
+`py-spy` peut être utilisé pour faire un profiling des tâches celery et créer un _flame graph_. Pour cela il faut dans
+un premier temps lancer un _worker celery_ comme expliqué dans la
+partie [Lancement de l'application](#lancement-de-lapplication).
 Ensuite il faut récupérer le PID du _worker_ :
 
 ```sh
@@ -136,7 +142,8 @@ Ensuite il suffit de lancer `py-spy` en lui passant en paramètre le PID précé
 sudo py-spy record -o profile.svg --pid $PID_CELERY --rate 100
 ```
 
-le paramètre `-o` permet de donner le répertoire de sortie de l'image de profiling. Le paramètre `--rate` permet quant à lui de régler la fréquence d'échantillonage (ici à 100ms) pour affiner la mesure.
+le paramètre `-o` permet de donner le répertoire de sortie de l'image de profiling. Le paramètre `--rate` permet quant à
+lui de régler la fréquence d'échantillonage (ici à 100ms) pour affiner la mesure.
 
 `py-spy` ouvre automatiquement un navigateur permettant d'inspecter de manière interractive le _flame graph_ créé.
 
@@ -157,6 +164,7 @@ Linter de scanning de sécurité
 ## Mettre à jour les données des cartes
 
 ### En local
+
 ```
     $ uv run python srcsrc/manage.py build_stats
     $ ./src/manage.py retrieve_company
@@ -166,16 +174,39 @@ Linter de scanning de sécurité
 
 Créer un conteneur one-off avec la CLI Scalingo sur l'application trackdechets-preparation-inspection
 
-
 Carto des ICPE
+
 ```
     $ scalingo --app trackdechets-preparation-inspection run bash -c 'pipenv install && pipenv shell && ./src/manage.py build_stats -- settings=config.settings.production'
 ```
 
 Pour la carto des fiches etablissements
+
 ```
     $ scalingo --app trackdechets-preparation-inspection run bash -c 'pipenv install && pipenv shell && ./src/manage.py retrieve_company -- settings=config.settings.production'
 ```
+
+## Démarrage avec Docker
+
+```bash
+
+cp .env.docker.dist .env.docker
+
+# Lancer tous les services
+docker-compose up
+
+```
+
+### Accès aux applications
+
+- Frontend (Vite) : http://localhost:5173
+- Backend (Django) : http://localhost:8000
+
+Pour arrêter : `docker-compose down`
+
+### Credentials
+
+admin@test.fr / pass
 
 ### Déploiement
 

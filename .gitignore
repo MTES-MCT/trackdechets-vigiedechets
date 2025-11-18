@@ -92,12 +92,14 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+
 # Ignore all .env files
 .env*
 
 # But keep .env files with "dist" in the name
 !.env*.dist
 !.env*dist*
+
 .venv
 env/
 venv/

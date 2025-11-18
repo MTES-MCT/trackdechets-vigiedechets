@@ -14,7 +14,15 @@ from sheets.utils import format_number_str
 from ..constants import BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
 
 # classes returning a serialized (json) plotly visualization to be consumed by a plotly script
-locale.setlocale(locale.LC_ALL, "fr_FR")
+try:
+    locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
+except locale.Error:
+    # Fallback for systems where French locale isn't available
+    try:
+        locale.setlocale(locale.LC_ALL, "fr_FR")
+    except locale.Error:
+        print("Warning: French locale not available, using default")
+        locale.setlocale(locale.LC_ALL, "")
 
 
 class BsdQuantitiesGraph:
