@@ -293,9 +293,9 @@ def sample_revised_data():
 def sample_waste_codes():
     from pathlib import Path
 
-    current_dir = Path(__file__).parent
+    current_dir = Path(__file__).parent.parent.parent
     return pl.read_csv(
-        Path(current_dir, "data", "waste_codes.csv"), schema_overrides={"code": pl.String, "description": pl.String}
+        Path(current_dir, "csv", "code_dechets.csv"), schema_overrides={"code": pl.String, "description": pl.String}
     ).lazy()
 
 
