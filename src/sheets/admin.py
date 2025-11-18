@@ -74,7 +74,7 @@ class ComputedInspectionDataAdmin(admin.ModelAdmin):
         "data_extraction_duration",
         "pdf_rendering_duration",
     ]
-    list_filter = (("created", CustomDateRangeFilterBuilder()), "creation_mode")
+    list_filter = (("created", CustomDateRangeFilterBuilder()), "creation_mode", "state")
     search_fields = ["id", "org_id"]
 
     def get_queryset(self, request):

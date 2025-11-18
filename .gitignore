@@ -148,3 +148,4 @@ dist
 dist-ssr
 *.local
 temp_data
+celerytest_*
