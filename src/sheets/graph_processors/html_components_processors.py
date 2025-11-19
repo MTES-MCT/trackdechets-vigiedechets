@@ -1147,9 +1147,7 @@ class StorageStatsProcessor:
                     "received_at",
                     "quantity_refused",
                 ]
-                df_to_concat = df_to_concat.select(
-                    [c for c in columns_needed if c in df_to_concat.collect_schema().names()]
-                )
+                df_to_concat = df.select([c for c in columns_needed if c in df.collect_schema().names()])
                 dfs_to_concat.append(df_to_concat)
 
         if len(dfs_to_concat) > 0:

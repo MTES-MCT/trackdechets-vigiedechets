@@ -13,7 +13,7 @@ select
     multiIf(
         waste_details_quantity_type = 'ESTIMATED', True,
 		waste_details_quantity_type = 'REAL', False,
-		Null) AS emitter_waste_weight_is_estimate,
+		False) as emitter_waste_weight_is_estimate,
     case 
         when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
         then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
@@ -159,7 +159,7 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     weight_value as waste_details_quantity,
-    weight_is_estimate as emitter_waste_weight_is_estimate,
+    COALESCE(weight_is_estimate, False) as emitter_waste_weight_is_estimate,
     destination_reception_weight as quantity_received,
     COALESCE(destination_reception_refused_weight, 0) as quantity_refused,
     waste_code,
@@ -238,7 +238,7 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     emitter_waste_weight_value as waste_details_quantity,
-    emitter_waste_weight_is_estimate,
+    COALESCE(emitter_waste_weight_is_estimate, False) as emitter_waste_weight_is_estimate,
     destination_reception_waste_weight_value as quantity_received,
     case 
         when status='REFUSED' and destination_reception_waste_refused_weight_value is null 
@@ -288,7 +288,7 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     weight_value as waste_details_quantity,
-    weight_is_estimate,
+    COALESCE(weight_is_estimate, False) as weight_is_estimate,
     waste_code,
     status
 from
