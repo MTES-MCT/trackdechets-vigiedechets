@@ -42,7 +42,6 @@ from .data_extraction import (
 from .graph_processors.html_components_processors import (
     BsdaWorkerStatsProcessor,
     BsdCanceledTableProcessor,
-    BsdRefusedTableProcessor,
     BsdStatsProcessor,
     FollowedWithPNTTDTableProcessor,
     GistridStatsProcessor,
@@ -600,15 +599,6 @@ class SheetProcessor:
             data_date_interval,
         )
         self.computed.bsd_canceled_data = bsd_canceled_table.build()
-
-        bsd_refused_table = BsdRefusedTableProcessor(
-            self.siret,
-            self.bs_dfs,
-            self.bsff_packagings_df,
-            WASTE_CODES_DATA,
-            data_date_interval,
-        )
-        self.computed.bsd_refused_data = bsd_refused_table.build()
 
         same_emitter_recipient_table = SameEmitterRecipientTableProcessor(
             self.bs_dfs,

@@ -1,4 +1,4 @@
-sql_all_bsdd_query_str = """
+sql_bsdd_query_str = r"""
 select
     id,
     readable_id,
@@ -10,10 +10,6 @@ select
     emitter_company_address,
     recipient_company_siret,
     waste_details_quantity,
-    multiIf(
-        waste_details_quantity_type = 'ESTIMATED', True,
-		waste_details_quantity_type = 'REAL', False,
-		Null) AS emitter_waste_weight_is_estimate,
     case 
         when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
         then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
@@ -37,9 +33,7 @@ select
     next_destination_company_country,
     next_destination_company_vat_number,
     next_destination_processing_operation,
-    eco_organisme_siret,
-    signed_at,
-    waste_refusal_reason as refusal_reason
+    eco_organisme_siret
  from
     trusted_zone_trackdechets.bsdd
 where
@@ -49,6 +43,7 @@ where
     )
     and not is_deleted
     and status::text not in ('DRAFT', 'INITIAL')
+    and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
     -- to avoid pandas datetime overflow
     and (
 		sent_at between '1677-09-22' and '2262-04-11'
@@ -64,18 +59,67 @@ where
 	)
 """
 
-sql_bsdd_query_str = rf"""
-    {sql_all_bsdd_query_str}
-    and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
-"""
-
-sql_bsdd_non_dangerous_query_str = rf"""
-    {sql_all_bsdd_query_str}
+sql_bsdd_non_dangerous_query_str = r"""
+select
+    id,
+    readable_id,
+    created_at,
+    sent_at,
+    received_at,
+    processed_at,
+    emitter_company_siret,
+    emitter_company_address,
+    recipient_company_siret,
+    waste_details_quantity,
+    case 
+        when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
+        then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
+        else quantity_received
+    end as quantity_received,
+    case 
+        when status='REFUSED' and quantity_refused is null then quantity_received -- If the BSDD is in status refused, then quantity_refused should be quantity_received
+        else quantity_refused
+    end as quantity_refused,
+    waste_details_code as waste_code,
+    waste_details_name as waste_name,
+    processing_operation_done as processing_operation_code,
+    status,
+    no_traceability,
+    waste_details_pop as waste_pop,
+    waste_details_is_dangerous as is_dangerous,
+    emitter_work_site_name as worksite_name,
+    emitter_work_site_address as worksite_address,
+    next_destination_company_siret,
+    next_destination_company_name,
+    next_destination_company_country,
+    next_destination_company_vat_number,
+    next_destination_processing_operation,
+    eco_organisme_siret
+ from
+    trusted_zone_trackdechets.bsdd
+where
+    (emitter_company_siret = :siret
+    or recipient_company_siret = :siret
+    or eco_organisme_siret = :siret)
+    and not is_deleted
+    and status::text not in ('DRAFT', 'INITIAL')
     and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
+    -- to avoid pandas datetime overflow
+    and (
+		sent_at between '1677-09-22' and '2262-04-11'
+		or sent_at is null
+	)
+	and (
+		received_at between '1677-09-22' and '2262-04-11'
+		or received_at is null
+	)
+    and (
+		processed_at between '1677-09-22' and '2262-04-11'
+		or processed_at is null
+	)
 """
 
-
-sql_all_bsdd_transporter_query_str = """
+sql_bsdd_transporter_query_str = r"""
 select
     id,
     form_id as bs_id,
@@ -105,6 +149,9 @@ where
         or transporter_company_siret = :siret
         or eco_organisme_siret = :siret
     )
+    and (waste_details_code like '%*'
+        or waste_details_pop
+        or waste_details_is_dangerous)
     -- to avoid pandas datetime overflow
     and (
 		taken_over_at between '1677-09-22' and '2262-04-11'
@@ -113,15 +160,44 @@ where
 """
 
 
-sql_bsdd_transporter_query_str = rf"""
-    {sql_all_bsdd_transporter_query_str}
-    and (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
-"""
-
-
-sql_bsdd_non_dangerous_transporter_query_str = rf"""
-    {sql_all_bsdd_transporter_query_str}
-    and not (match(waste_details_code,'(?i).*\*$') or waste_details_pop or waste_details_is_dangerous)
+sql_bsdd_non_dangerous_transporter_query_str = r"""
+select
+    id,
+    form_id as bs_id,
+    taken_over_at as sent_at,
+    transporter_company_siret,
+    emitter_company_siret,
+    recipient_company_siret,
+    eco_organisme_siret,
+    transporter_number_plate,
+    transporter_transport_mode,
+    case 
+        when (emitter_company_siret = :siret) and (emitter_type = 'APPENDIX1_PRODUCER') 
+        then waste_details_quantity -- For appendix 1 we take the estimated quantity as received quantity
+        else quantity_received
+    end as quantity_received,
+    case 
+        when status='REFUSED' and quantity_refused is null then quantity_received -- If the BSDD is in status refused, then quantity_refused should be quantity_received
+        else quantity_refused
+    end as quantity_refused,
+    waste_details_code as waste_code
+from
+    refined_zone_enriched.bsdd_transporter_enriched
+where
+    (
+        emitter_company_siret = :siret
+        or recipient_company_siret = :siret
+        or transporter_company_siret = :siret
+        or eco_organisme_siret = :siret
+    )
+    and not (waste_details_code like '%*'
+        or waste_details_pop
+        or waste_details_is_dangerous)
+    -- to avoid pandas datetime overflow
+    and (
+		taken_over_at between '1677-09-22' and '2262-04-11'
+		or taken_over_at is null
+	)
 """
 
 sql_company_query_str = """
@@ -147,7 +223,6 @@ where c.siret = :siret
 sql_bsda_query_str = """
 select
     id,
-    id as readable_id,
     created_at,
     emitter_emission_signature_date,
     worker_work_signature_date,
@@ -159,9 +234,7 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     weight_value as waste_details_quantity,
-    weight_is_estimate as emitter_waste_weight_is_estimate,
     destination_reception_weight as quantity_received,
-    COALESCE(destination_reception_refused_weight, 0) as quantity_refused,
     waste_code,
     waste_material_name as waste_name,
     destination_operation_code as processing_operation_code,
@@ -171,8 +244,7 @@ select
     emitter_pickup_site_address as worksite_address,
     worker_company_siret,
     emitter_is_private_individual,
-    eco_organisme_siret,
-    destination_reception_refusal_reason as refusal_reason
+    eco_organisme_siret
 from
     trusted_zone_trackdechets.bsda
 where
@@ -196,7 +268,7 @@ where
 	)
 """
 
-sql_bsda_transporter_query_str = """
+sql_bsda_transporter_query_str = r"""
 select
     id,
     bsda_id as bs_id,
@@ -229,7 +301,6 @@ where
 sql_bsdasri_query_str = """
 select
     id,
-    id as readable_id,
     created_at,
     transporter_taken_over_at as sent_at,
     destination_reception_date as received_at,
@@ -238,7 +309,6 @@ select
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
     emitter_waste_weight_value as waste_details_quantity,
-    emitter_waste_weight_is_estimate,
     destination_reception_waste_weight_value as quantity_received,
     case 
         when status='REFUSED' and destination_reception_waste_refused_weight_value is null 
@@ -251,8 +321,7 @@ select
     status,
     transporter_transport_mode,
     transporter_company_siret,
-    eco_organisme_siret,
-    destination_reception_waste_refusal_reason as refusal_reason
+    eco_organisme_siret
 from
         trusted_zone_trackdechets.bsdasri
 where
@@ -280,15 +349,13 @@ where
 sql_bsff_query_str = """
 select
     id,
-    id as readable_id,
     created_at,
     transporter_transport_signature_date as sent_at, -- This is to handle the case when we need a "sent_at" date without using transporter data
     destination_reception_date as received_at,
     emitter_company_siret,
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
-    weight_value as waste_details_quantity,
-    weight_is_estimate,
+    weight_value as waste_detail_quantity,
     waste_code,
     status
 from
@@ -316,8 +383,7 @@ select
     operation_code,
     volume,
     acceptation_weight,
-    weight,
-    acceptation_refusal_reason as refusal_reason
+    weight
 from
     trusted_zone_trackdechets.bsff_packaging bp
 where
@@ -363,7 +429,6 @@ where
 sql_bsvhu_query_str = """
 select
     id,
-    id as readable_id,
     created_at,
     transporter_transport_taken_over_at as sent_at,
     destination_reception_date as received_at,
@@ -371,17 +436,12 @@ select
     emitter_company_siret,
     emitter_company_address,
     destination_company_siret as recipient_company_siret,
-    weight_value as waste_details_quantity,
+    weight_value as waste_detail_quantity,
     destination_reception_weight as quantity_received,
-    case 
-        when status='REFUSED' then weight_value
-        else 0
-    end as quantity_refused,
     waste_code,
     destination_operation_code as processing_operation_code,
     status,
-    transporter_company_siret,
-    destination_reception_refusal_reason as refusal_reason
+    transporter_company_siret
 from
     trusted_zone_trackdechets.bsvhu
 where

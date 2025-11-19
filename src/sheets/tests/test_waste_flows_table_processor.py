@@ -401,7 +401,7 @@ def test_empty_bs_data_with_transport_data(waste_code_data: pl.LazyFrame):
                         "emitter_company_siret",
                         "emitter_company_address",
                         "recipient_company_siret",
-                        "waste_details_quantity",
+                        "waste_detail_quantity",
                         "waste_code",
                         "quantity_received",
                         "status",

@@ -39,15 +39,6 @@ def render_bsd_canceled_table(computed, graph_context="web"):
     }
 
 
-@register.inclusion_tag("sheets/components/bsd_refused_table.html")
-def render_bsd_refused_table(computed, graph_context="web"):
-    return {
-        "bsd_refused_data": computed.bsd_refused_data,
-        "company_siret": computed.org_id,
-        "graph_context": graph_context,
-    }
-
-
 @register.inclusion_tag("sheets/components/same_emitter_recipient_table.html")
 def render_same_emitter_recipient_table(computed, graph_context="web"):
     return {
