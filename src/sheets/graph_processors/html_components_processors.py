@@ -506,6 +506,20 @@ class WasteFlowsTableProcessor:
                         "quantity_received"
                     )
                 )
+            cols_used = [
+                "id",
+                "emitter_company_siret",
+                "recipient_company_siret",
+                "transporter_company_siret",
+                "sent_at",
+                "received_at",
+                "waste_code",
+                "quantity_received",
+                "quantity_refused",
+            ]
+            cols_present = [col for col in cols_used if col in df.collect_schema().names()]
+            if cols_present:
+                df = df.select(cols_present)
             dfs_to_concat.append(df)
 
         if len(dfs_to_concat) == 0:
@@ -524,7 +538,7 @@ class WasteFlowsTableProcessor:
             ("recipient_company_siret", "received_at", "incoming"),
             ("transporter_company_siret", "sent_at", "transported"),
         ]:
-            if (siret_key in df.columns) and (date_key in df.columns):
+            if (siret_key in df.collect_schema().names()) and (date_key in df.collect_schema().names()):
                 temp_df = df.filter(
                     (pl.col(siret_key) == siret) & (pl.col(date_key).is_between(*self.data_date_interval))
                 ).with_columns(pl.lit(flow_type).alias("flow_status"))
@@ -743,7 +757,7 @@ class BsdCanceledTableProcessor:
                 "comment",
             ]
 
-            schema = bs_data.columns
+            schema = bs_data.collect_schema().names()
             # Human-friendly id is stored in the readable_id column in the case of BSDDs
             if "readable_id" in schema:
                 columns_to_take.append("readable_id")
@@ -764,7 +778,6 @@ class BsdCanceledTableProcessor:
 
             temp_df = temp_df.select(columns_to_take)
             temp_df = temp_df.rename({"bs_id": "id"}, strict=False)
-
             dfs.append(temp_df)
 
         if dfs:
@@ -779,6 +792,145 @@ class BsdCanceledTableProcessor:
         if len(self.preprocessed_df) == 0:
             return True
 
+        return False
+
+    def build_context(self):
+        data = self.preprocessed_df
+        return data.to_dicts()
+
+    def build(self):
+        self._preprocess_data()
+
+        data = {}
+        if not self._check_empty_data():
+            data = self.build_context()
+
+        return data
+
+
+class BsdRefusedTableProcessor:
+    """Component that displays an exhaustive tables with the list of 'bordereaux' that have been refused.
+
+    Parameters
+    ----------
+
+    company_siret: str
+        SIRET number of the establishment for which the data is displayed (used for data preprocessing).
+    bs_data_dfs: dict
+        Dict with key being the 'bordereau' type and values the LazyFrame containing the bordereau data.
+    data_date_interval : tuple[datetime, datetime]
+        Represents the date range for which the data is being processed.
+        It consists of two `datetime` objects, the start date and the end date.
+    """
+
+    def __init__(
+        self,
+        company_siret: str,
+        bs_data_dfs: Dict[str, pl.LazyFrame],
+        packagings_data_df: pl.LazyFrame,
+        waste_codes_df: pl.LazyFrame,
+        data_date_interval: tuple[datetime, datetime],
+    ) -> None:
+        self.company_siret = company_siret
+        self.bs_data_dfs = bs_data_dfs
+        self.packagings_data_df = packagings_data_df
+        self.waste_codes_df = waste_codes_df
+        self.data_date_interval = data_date_interval
+
+        self.preprocessed_df = pl.DataFrame()
+
+    def _compute_bsff_quantities(self, bsff_df: pl.LazyFrame) -> pl.LazyFrame:
+        if self.packagings_data_df is None:
+            bsff_df = bsff_df.with_columns(
+                pl.lit(0.0).alias("quantity_received"),
+                pl.lit(0.0).alias("quantity_refused"),
+            )
+            return bsff_df
+
+        df = bsff_df.select(pl.selectors.exclude("quantity_received"))
+        df = df.join(
+            self.packagings_data_df.group_by("bsff_id").agg(
+                pl.col("acceptation_weight").sum().round(3), pl.col("weight").sum().round(3)
+            ),
+            left_on="id",
+            right_on="bsff_id",
+        ).rename({"acceptation_weight": "quantity_received", "weight": "quantity_refused"})
+
+        return df
+
+    def _preprocess_data(self) -> None:
+        """
+        Preprocess the data to display the list of 'bordereaux' that have been refused.
+        """
+        columns_to_take = [
+            "readable_id",
+            "refused_at",
+            "emitter_company_siret",
+            "recipient_company_siret",
+            "waste_code",
+            "quantity_emitted",
+            "quantity_refused",
+            "refusal_reason",
+        ]
+
+        dfs_processed = []
+
+        for bs_type, df in self.bs_data_dfs.items():
+            refused_bs_df = df.filter(
+                (pl.col("recipient_company_siret") == self.company_siret)
+                & (pl.col("status") == "REFUSED")
+                & pl.col("received_at").is_between(*self.data_date_interval)
+            ).with_columns(
+                pl.col("received_at").dt.strftime("%d/%m/%Y %H:%M").alias("refused_at"),
+                pl.col("waste_details_quantity").alias("quantity_emitted"),
+            )
+
+            if bs_type == BSFF:
+                if self.packagings_data_df is None:
+                    refused_bs_df = refused_bs_df.with_columns(
+                        pl.lit(0.0).alias("quantity_emitted"),
+                        pl.lit(0.0).alias("quantity_refused"),
+                        pl.lit("").alias("refusal_reason"),
+                    )
+                else:
+                    # We keep only BSFF "refused" for which all packagings are also refused.
+                    # If at least one packaging has a different refusal reason, we consider it partially refused and we don't show it in this appendix.
+                    refused_bs_df = (
+                        refused_bs_df.join(
+                            self.packagings_data_df.group_by("bsff_id").agg(
+                                (pl.col("acceptation_status") == "REFUSED").alias("is_packaged_refused"),
+                                (pl.col("refusal_reason")).alias("refusal_reasons"),
+                            ),
+                            left_on="id",
+                            right_on="bsff_id",
+                        )
+                        .filter(pl.col("is_packaged_refused").list.all())
+                        .with_columns(
+                            pl.when(pl.col("refusal_reasons").is_null())
+                            .then(pl.lit(""))
+                            .otherwise(pl.col("refusal_reasons").list.join(" | "))
+                            .alias("refusal_reason"),
+                            pl.lit(0.0).alias("quantity_refused"),
+                        )
+                    )
+
+            refused_bs_df = refused_bs_df.select(columns_to_take)
+            dfs_processed.append(refused_bs_df)
+
+        if dfs_processed:
+            concat_df = pl.concat(dfs_processed, how="diagonal")
+            # Data is enriched with waste description from the waste nomenclature
+            final_df = concat_df.join(
+                self.waste_codes_df,
+                left_on="waste_code",
+                right_on="code",
+                how="left",
+            )
+            self.preprocessed_df = final_df.collect()
+
+    def _check_empty_data(self) -> bool:
+        if self.preprocessed_df.is_empty():
+            return True
         return False
 
     def build_context(self):
@@ -869,7 +1021,7 @@ class SameEmitterRecipientTableProcessor:
             df = df.group_by("id").agg(
                 pl.col(c).min() if c in ["sent_at", "received_at"] else pl.col(c).max()
                 for c in columns_to_take
-                if c in df.columns and not c == "id"
+                if c in df.collect_schema().names() and not c == "id"
             )
 
             if bs_type == BSDA:
@@ -969,7 +1121,7 @@ class StorageStatsProcessor:
                     pl.col("sent_at").min(),
                     pl.col("received_at").min(),
                 ]
-                if "quantity_refused" in df.columns:
+                if "quantity_refused" in df.collect_schema().names():
                     agg_exprs.append(
                         pl.col("quantity_refused").max(),
                     )
@@ -980,15 +1132,28 @@ class StorageStatsProcessor:
                     .group_by("id")
                     .agg(*agg_exprs)
                 )
-                dfs_to_concat.append(df_to_concat)
 
             else:
-                dfs_to_concat.append(df)
+                # Keep only necessary columns for later processing
+                columns_needed = [
+                    "id",
+                    "emitter_company_siret",
+                    "recipient_company_siret",
+                    "waste_code",
+                    "quantity_received",
+                    "sent_at",
+                    "received_at",
+                    "quantity_refused",
+                ]
+                df_to_concat = df_to_concat.select(
+                    [c for c in columns_needed if c in df_to_concat.collect_schema().names()]
+                )
+                dfs_to_concat.append(df_to_concat)
 
         if len(dfs_to_concat) > 0:
             df = pl.concat(dfs_to_concat, how="diagonal")
             # Handle quantity refused
-            if "quantity_refused" in df.columns:
+            if "quantity_refused" in df.collect_schema().names():
                 df = df.with_columns(pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0))
 
             emitted_mask = (pl.col("emitter_company_siret") == siret) & pl.col("sent_at").is_between(
@@ -1589,7 +1754,7 @@ class QuantityOutliersTableProcessor:
                         right_on="bsff_id",
                     ).rename({"acceptation_weight": "quantity_received"})
                 else:
-                    return
+                    return  # TODO: Probably should continue instead of returning here
 
             df_quantity_outliers = df_with_transport.filter(
                 (pl.col("quantity_received") > 40)
@@ -1650,7 +1815,7 @@ class QuantityOutliersTableProcessor:
     def _add_stats(self) -> list:
         stats = []
 
-        has_quantity_refused = "quantity_refused" in self.preprocessed_data.columns
+        has_quantity_refused = "quantity_refused" in self.preprocessed_data.collect_schema().names()
 
         for e in self.preprocessed_data.iter_rows(named=True):
             row = {
@@ -1759,7 +1924,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
                 bs_df: pl.LazyFrame = pl.concat(bs_2760_dfs, how="diagonal")
 
                 filter_expr = pl.col("quantity_received") > 0
-                if "quantity_refused" in bs_df.columns:
+                if "quantity_refused" in bs_df.collect_schema().names():
                     filter_expr = (
                         pl.col("quantity_received") - pl.col("quantity_refused").fill_null(0).fill_nan(0)
                     ) > 0
@@ -1770,7 +1935,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
 
                 if len(bs_df) > 0:
                     total_quantity = bs_df.select(pl.col("quantity_received").sum()).item()
-                    if "quantity_refused" in bs_df.columns:
+                    if "quantity_refused" in bs_df.collect_schema().names():
                         total_quantity -= (
                             bs_df.select(pl.col("quantity_refused").sum()).fill_null(0).fill_nan(0).sum().item()
                         )
@@ -1847,7 +2012,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
                     self.packagings_data_df,
                 )
 
-                if "quantity_refused" in bs_filtered_df.columns:
+                if "quantity_refused" in bs_filtered_df.collect_schema().names():
                     bs_filtered_df = bs_filtered_df.with_columns(
                         pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0)
                     )
@@ -2044,7 +2209,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
             if df is not None:
                 rows = []
 
-                if "quantity_refused" in df.columns:
+                if "quantity_refused" in df.collect_schema().names():
                     df = df.with_columns(
                         (pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0)).alias(
                             "quantity_received"
@@ -2899,7 +3064,7 @@ class IncineratorOutgoingWasteProcessor:
 
             concat_df = concat_df.with_columns(pl.col("waste_name").fill_null(""))
             # Handle quantity refused
-            if "quantity_refused" in concat_df.columns:
+            if "quantity_refused" in concat_df.collect_schema().names():
                 concat_df = concat_df.with_columns(
                     (pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0)).alias(
                         "quantity_received"
