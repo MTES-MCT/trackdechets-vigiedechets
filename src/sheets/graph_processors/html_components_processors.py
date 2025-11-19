@@ -914,7 +914,9 @@ class BsdRefusedTableProcessor:
                         )
                     )
 
-            refused_bs_df = refused_bs_df.select(columns_to_take)
+            refused_bs_df = refused_bs_df.with_columns(
+                pl.coalesce([pl.col("refusal_reason"), pl.lit("")]).cast(pl.String).alias("refusal_reason")
+            ).select(columns_to_take)
             dfs_processed.append(refused_bs_df)
 
         if dfs_processed:
