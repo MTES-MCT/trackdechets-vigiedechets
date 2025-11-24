@@ -38,7 +38,6 @@ select
     next_destination_company_vat_number,
     next_destination_processing_operation,
     eco_organisme_siret,
-    signed_at,
     COALESCE(waste_refusal_reason, '') as refusal_reason
  from
     trusted_zone_trackdechets.bsdd
