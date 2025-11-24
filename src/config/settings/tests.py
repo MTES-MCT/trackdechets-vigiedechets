@@ -55,3 +55,5 @@ SKIP_SIRET_CHECK = True
 ALLOWED_USER_FOR_SENTINEL = ["allowed_for_sentinel@mail.test"]
 
 SKIP_ROAD_CONTROL_SIRET_CHECK = True
+
+SUPPORT_FORM_RECIPIENT = "help@support.test"

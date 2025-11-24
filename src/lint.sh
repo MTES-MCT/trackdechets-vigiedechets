@@ -11,9 +11,9 @@ for arg in "$@"; do
 done
 
 # Always run Python linting and formatting
-#uv run isort .
-#uv run ruff check .
-#uv run ruff format .
+uv run isort .
+uv run ruff check .
+uv run ruff format .
 
 # Always run HTML formatting
 git ls-files -z -- '*.html'|xargs -0r uv run djade --target-version 5.1

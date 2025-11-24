@@ -13,6 +13,7 @@ Transition Écologique.
 - les librairies nécessaires aux fonctionalités géographiques de django (GDAL et GEOS)
 - la librairie pango
 - [uv](https://docs.astral.sh/uv/) (package manager)
+- Pour certaines fonctionnalités, un accès à un S3-like est nécessaire (AWS, Scaleway, Minio en local)
 
 ## Installation
 

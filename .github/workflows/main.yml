@@ -24,6 +24,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        minio:
+          image: bitnami/minio:latest
+          ports:
+            - 9000:9000
+            - 9001:9001
+          env:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: minioadmin
+            MINIO_DEFAULT_BUCKETS: mybucket
+          options: >-
+            --health-cmd "curl -f http://localhost:9000/minio/health/live"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
     steps:
       - name: Set locales
         run: sudo apt-get install -y tzdata locales && sudo locale-gen fr_FR && sudo dpkg-reconfigure --frontend=noninteractive locales
@@ -56,6 +70,12 @@ jobs:
       - name: Bandit security checks
         run: uv run --frozen bandit --exit-zero -c pyproject.toml  -r src
 
+      - name: Check for missing migrations
+        working-directory: src
+        run: uv run --frozen python manage.py makemigrations --check --dry-run
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+
       - name: Run Tests
         working-directory: src
         run: uv run --frozen pytest
@@ -78,11 +98,11 @@ jobs:
           CSRF_TRUSTED_ORIGINS: "https://url.test"
           TD_API_URL: http://api.test
           TD_API_TOKEN: xyz"
-          AWS_BUCKET_NAME: plop
-          AWS_S3_REGION_NAME: fr-par
-          AWS_S3_ENDPOINT_URL: "https://s3.fr-par.scw.cloud"
-          AWS_ACCESS_KEY_ID: "XYZ"
-          AWS_SECRET_ACCESS_KEY: "xyz2"
+          AWS_BUCKET_NAME: mybucket
+          AWS_S3_REGION_NAME: us-east-1
+          AWS_S3_ENDPOINT_URL: "http://localhost:9000"
+          AWS_S3_ACCESS_KEY_ID: "minioadmin"
+          AWS_S3_SECRET_ACCESS_KEY: "minioadmin"
           GUN_DATA_UPDATE_DATE_STRING: "Février 2025"
           GISTRID_DATA_UPDATE_DATE_STRING: "Février 2025"
           RNDTS_DATA_UPDATE_DATE_STRING: "Novembre 2024"

@@ -1,4 +1,5 @@
 {% extends "modal.html" %}
+
 {% block modal_content %}
   <div class="faq-search-result ">
 
@@ -11,12 +12,12 @@
     {% for page in results %}
       <p>
       <h3>
-        <a href="{% url "faq_page" page.pk %}">
+        <a href="{% url "faq" page.pk %}">
 
           {% if page.highlighted_title %}
             {{ page.highlighted_title|safe }}
           {% else %}
-            {{ page.title }}**
+            {{ page.title }}
           {% endif %}
 
         </a>
@@ -30,4 +31,4 @@
 
     {% endfor %}
   </div>
-{% endblock %}
+{% endblock modal_content %}

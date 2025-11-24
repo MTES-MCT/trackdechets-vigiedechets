@@ -2,6 +2,7 @@ from braces.views._access import AccessMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import HttpResponseRedirect
+from django.http.response import Http404
 from django.urls import reverse_lazy
 
 
@@ -123,4 +124,13 @@ class FullyLoggedMixin(AccessMixin):
             if not email_is_allowed:
                 raise PermissionDenied()
 
+        return super().dispatch(request, *args, **kwargs)
+
+
+class HtmxOnlyMixin:
+    """Restrict views responses to htmx requests"""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.htmx:
+            raise Http404()
         return super().dispatch(request, *args, **kwargs)

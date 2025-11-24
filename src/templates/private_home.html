@@ -1,22 +1,78 @@
 {% extends "base.html" %}
-{% load oidc_helpers %}
-{% block main %}
-    <div class="fr-container">
-        {% if user.is_authenticated %}
-            <p>Bonjour, {{ user.username }}.</p>
-            {% if user.is_staff %}
-                <p>
-                    <a href="{% url "admin:index" %}">Admin équipe</a>
-                </p>
-            {% endif %}
-            <p>
-            <form action="{% logout_url %}" method="post">
-                {% csrf_token %}
-                <button class="fr-fr-btn fr-btn--tertiary-no-outline fr-icon-logout-box-r-line">Déconnexion</button>
-            </form>
-            </p>
-        {% else %}
-            <a href="{% url "login" %}">Connectez-vous</a>
-        {% endif %}
+{% load oidc_helpers partials solo_tags static %}
+
+{% partialdef webinar_card %}
+  <div class="webinar-card">
+    <div class="webinar-card__infos">
+      <h4 class="webinar-card__title">{{ webinar.title }}</h4>
+      <p class="webinar-card__date">
+        <span aria-hidden="true" class="fr-icon-calendar-event-fill td-text-blue"></span>
+        <span class="td-text-capitalize">{{ webinar.scheduled_at|date:"l d F Y, H:i" }}</span>
+      </p>
     </div>
+    <div class="webinar-card__actions">
+      {% if webinar.is_future %}
+
+        <a href="{% url 'webinar_ics' webinar.pk %}"
+           class="fr-btn fr-btn--primary fr-btn--icon-left fr-icon-calendar-event-fill">
+          Ajouter au calendrier
+        </a>
+        {% if webinar.visio_link %}
+          <a href="{{ webinar.visio_link }}"
+             class="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-chat-2-line">
+            Participer au Zoom
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endpartialdef %}
+
+{% block main %}
+  {% get_solo 'common.SiteConfiguration' as site_config %}
+  <div class="fr-container">
+    <section class="td-hero" id="hero">
+      <div class="fr-grid-row">
+        <div class="fr-col-md-6 fr-col-12 fr-col-md-offset-1 td-hero__text ">
+          <h2 class="fr-h1 fr-mb-0">Découvrez Vigiedéchets</h2>
+          <p class="fr-callout__text"></p>
+          <p>
+            {{ site_config.welcome_content_connected }}
+          </p>
+          <p class="text-right">
+          {% if not hide_faq_link %}
+            <a href="{% url "faq_home" %}"
+               class="fr-btn fr-btn--primary">
+              Accéder à la documentation
+            </a>
+            {% endif %}
+          </p>
+        </div>
+        <div class="fr-col-md-6 fr-col-12 fr-col-md-offset-1 fr-grid-row fr-grid-row--center">
+          <img src="{% static "img/illustrationCollector.svg" %}" width="290px" alt="Illustration zone industrielle">
+        </div>
+      </div>
+    </section>
+
+    {% if webinars %}
+      <div class="main fr-mt-4w">
+        <h1>Prochaines formations Trackdéchets</h1>
+        <div class="webinar-cards">
+          {% for webinar in webinars %}
+            {% partial webinar_card %}
+          {% endfor %}
+        </div>
+
+      </div>
+    {% endif %}
+
+
+
+
+    {% if not user.is_authenticated %}
+      <a href="{% url "login" %}">Connectez-vous</a>
+    {% endif %}
+
+
+  </div>
 {% endblock main %}

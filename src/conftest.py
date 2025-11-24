@@ -1,3 +1,6 @@
+import datetime as dt
+
+import boto3
 import pytest
 from django.conf import settings
 from django.test.client import Client
@@ -269,3 +272,64 @@ def verified_api(logged_in_api):
     session.save()
 
     return client
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_s3_after_tests():
+    """Clean up only files created during this test session."""
+    test_start_time = dt.datetime.now(dt.timezone.utc)
+
+    yield  # Run all tests
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+        aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_S3_REGION_NAME,
+    )
+    bucket = settings.AWS_S3_BUCKET_NAME  # Also: use AWS_STORAGE_BUCKET_NAME for django-storages
+
+    paginator = s3.get_paginator("list_objects_v2")
+    objects_to_delete = []
+
+    for page in paginator.paginate(Bucket=bucket):
+        for obj in page.get("Contents", []):
+            if obj["LastModified"] >= test_start_time:
+                objects_to_delete.append({"Key": obj["Key"]})
+
+    if objects_to_delete:
+        for i in range(0, len(objects_to_delete), 1000):
+            batch = objects_to_delete[i : i + 1000]
+            s3.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+
+
+class HTMXClient:
+    def __init__(self, client):
+        self._client = client
+
+    def get(self, *args, **kwargs):
+        kwargs.setdefault("HTTP_HX_REQUEST", "true")
+        return self._client.get(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        kwargs.setdefault("HTTP_HX_REQUEST", "true")
+        return self._client.post(*args, **kwargs)
+
+    def put(self, *args, **kwargs):
+        kwargs.setdefault("HTTP_HX_REQUEST", "true")
+        return self._client.put(*args, **kwargs)
+
+    def patch(self, *args, **kwargs):
+        kwargs.setdefault("HTTP_HX_REQUEST", "true")
+        return self._client.patch(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        kwargs.setdefault("HTTP_HX_REQUEST", "true")
+        return self._client.delete(*args, **kwargs)
+
+
+@pytest.fixture
+def htmx_client():
+    """Factory that wraps any client with HTMX headers."""
+    return lambda client: HTMXClient(client)

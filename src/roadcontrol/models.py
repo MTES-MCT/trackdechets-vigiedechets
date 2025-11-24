@@ -158,12 +158,7 @@ class BsdPdf(Base):
 
 
 @receiver(pre_delete, sender=PdfBundle)
-def delete_has_folder(sender, instance, *args, **kwargs):
+def delete_pdf_bundle_files(sender, instance, *args, **kwargs):
     """Delete S3 files on model deletion"""
     instance.zip_file.delete()
-
-
-@receiver(pre_delete, sender=PdfBundle)
-def delete_has_folder(sender, instance, *args, **kwargs):
-    """Delete S3 files on model deletion"""
     instance.pdf_file.delete()

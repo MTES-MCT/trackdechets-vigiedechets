@@ -730,16 +730,16 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "5.2.7"
+version = "5.2.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "sqlparse" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b1/96/bd84e2bb997994de8bcda47ae4560991084e86536541d7214393880f01a8/django-5.2.7.tar.gz", hash = "sha256:e0f6f12e2551b1716a95a63a1366ca91bbcd7be059862c1b18f989b1da356cdd", size = 10865812, upload-time = "2025-10-01T14:22:12.081Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/a2/933dbbb3dd9990494960f6e64aca2af4c0745b63b7113f59a822df92329e/django-5.2.8.tar.gz", hash = "sha256:23254866a5bb9a2cfa6004e8b809ec6246eba4b58a7589bc2772f1bcc8456c7f", size = 10849032, upload-time = "2025-11-05T14:07:32.778Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/ef/81f3372b5dd35d8d354321155d1a38894b2b766f576d0abffac4d8ae78d9/django-5.2.7-py3-none-any.whl", hash = "sha256:59a13a6515f787dec9d97a0438cd2efac78c8aca1c80025244b0fe507fe0754b", size = 8307145, upload-time = "2025-10-01T14:22:49.476Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/3d/a035a4ee9b1d4d4beee2ae6e8e12fe6dee5514b21f62504e22efcbd9fb46/django-5.2.8-py3-none-any.whl", hash = "sha256:37e687f7bd73ddf043e2b6b97cfe02fcbb11f2dbb3adccc6a2b18c6daa054d7f", size = 8289692, upload-time = "2025-11-05T14:07:28.761Z" },
 ]
 
 [[package]]
@@ -749,18 +749,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8a/bd/e05a9356f1ed15d1496ff901c33f9b9f354d154941d2366f961cd1530820/django_admin_rangefilter-0.13.3.tar.gz", hash = "sha256:8151b840753ea2c4de9963b1904cbbe7e786b7bc04de5dbd64567c86d287bbe8", size = 23588, upload-time = "2025-07-05T06:09:56.731Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6a/a5/fec346d1b793001c3a57947f643bfa174da667f0a8375ac59c8127243c8a/django_admin_rangefilter-0.13.3-py2.py3-none-any.whl", hash = "sha256:a776b1de5c5c153ed167e11fe757f138380207b2295a44d29d939c6ded76463a", size = 48396, upload-time = "2025-07-05T06:09:55.36Z" },
-]
-
-[[package]]
-name = "django-admin-sortable2"
-version = "2.2.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d4/76/8af26a825442fb33688c820cf79e4b769d8c4b976a2ddaa7434b96706e05/django_admin_sortable2-2.2.8.tar.gz", hash = "sha256:59dfd7ced63e66adfb471b2a4d89ba3faae49c0148827047c8cf65759fc54c9e", size = 64599, upload-time = "2025-05-15T06:44:31.684Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/97/7d0b28f52027f36751cec372f0eaf3a5bc1be169a141818acece40628e04/django_admin_sortable2-2.2.8-py3-none-any.whl", hash = "sha256:b4cf66d75450b0f89c883d94b10e6133a4e7832c5bfed1568e3e71e400dc2b48", size = 90597, upload-time = "2025-05-15T06:44:30.649Z" },
 ]
 
 [[package]]
@@ -855,6 +843,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d9/f9/c6bf4a6e067160bd8920fa4c9ff837c0f5db8ad3c4362433b426478dc420/django-grappelli-4.0.2.tar.gz", hash = "sha256:cf753ba830b5597a5a453bedcf6358c1538368c916d2ed1ae7b4cee1a660fe09", size = 11062665, upload-time = "2025-04-28T13:48:00.329Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/66/bec8c43767f830d8c4884d8350d81e28043d3a04364b9fca43946d98a47e/django_grappelli-4.0.2-py2.py3-none-any.whl", hash = "sha256:ed0a87a3cf025ad359fffb995b5d37d0bae5b4fd32eb0f06428c8a7a47702594", size = 1823578, upload-time = "2025-04-28T13:48:04.279Z" },
+]
+
+[[package]]
+name = "django-htmx"
+version = "1.26.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e8/ea/3d0fb10e6ebbceab57b5e228c8ae5e4ebed3b6d6767d07468923ca000fa3/django_htmx-1.26.0.tar.gz", hash = "sha256:88ecc2f8a3f13ad5a50e6b16be127f04fba369124cc40a09b21ce33babb04aa6", size = 65345, upload-time = "2025-09-22T09:23:41.582Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/fc/dbbc54af504427f5f248a73cf9a2d40bfd22631bbf042d313563acc4d223/django_htmx-1.26.0-py3-none-any.whl", hash = "sha256:3a80ffaa6df5a07e833752cd8ada7cee0fa711787841ab17a805075b1aecacc7", size = 62122, upload-time = "2025-09-22T09:23:40.18Z" },
 ]
 
 [[package]]
@@ -1248,6 +1249,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
+]
+
+[[package]]
+name = "icalendar"
+version = "6.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "tzdata" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/08/13/e5899c916dcf1343ea65823eb7278d3e1a1d679f383f6409380594b5f322/icalendar-6.3.1.tar.gz", hash = "sha256:a697ce7b678072941e519f2745704fc29d78ef92a2dc53d9108ba6a04aeba466", size = 177169, upload-time = "2025-05-20T07:42:50.683Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6c/25/b5fc00e85d2dfaf5c806ac8b5f1de072fa11630c5b15b4ae5bbc228abd51/icalendar-6.3.1-py3-none-any.whl", hash = "sha256:7ea1d1b212df685353f74cdc6ec9646bf42fa557d1746ea645ce8779fdfbecdd", size = 242349, upload-time = "2025-05-20T07:42:48.589Z" },
 ]
 
 [[package]]
@@ -2368,13 +2382,13 @@ dependencies = [
     { name = "clickhouse-sqlalchemy" },
     { name = "django" },
     { name = "django-admin-rangefilter" },
-    { name = "django-admin-sortable2" },
     { name = "django-anymail" },
     { name = "django-braces" },
     { name = "django-defender" },
     { name = "django-environ" },
     { name = "django-filter" },
     { name = "django-grappelli" },
+    { name = "django-htmx" },
     { name = "django-import-export", extra = ["xlsx"] },
     { name = "django-jsonform" },
     { name = "django-mptt" },
@@ -2391,6 +2405,7 @@ dependencies = [
     { name = "geopandas" },
     { name = "gunicorn" },
     { name = "httpx" },
+    { name = "icalendar" },
     { name = "kaleido" },
     { name = "mozilla-django-oidc" },
     { name = "numpy" },
@@ -2431,15 +2446,15 @@ test = [
 requires-dist = [
     { name = "celery", specifier = "==5.5.3" },
     { name = "clickhouse-sqlalchemy", specifier = ">=0.2.3" },
-    { name = "django", specifier = ">=5.2.7" },
+    { name = "django", specifier = ">=5.2.8" },
     { name = "django-admin-rangefilter", specifier = ">=0.13.3" },
-    { name = "django-admin-sortable2", specifier = ">=2.2.8" },
     { name = "django-anymail", extras = ["sendinblue"], specifier = ">=13.1" },
     { name = "django-braces", specifier = ">=1.17.0" },
     { name = "django-defender", specifier = ">=0.9.8" },
     { name = "django-environ", specifier = ">=0.12.0" },
     { name = "django-filter", specifier = ">=25.2" },
     { name = "django-grappelli", specifier = ">=4.0.2" },
+    { name = "django-htmx", specifier = ">=1.26.0" },
     { name = "django-import-export", extras = ["xlsx"], specifier = ">=4.3.13" },
     { name = "django-jsonform", specifier = ">=2.23.2" },
     { name = "django-mptt", specifier = ">=0.18.0" },
@@ -2456,6 +2471,7 @@ requires-dist = [
     { name = "geopandas", specifier = "==1.0.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "icalendar", specifier = "==6.3.1" },
     { name = "kaleido", specifier = "==0.2.1" },
     { name = "mozilla-django-oidc", specifier = ">=4.0.1" },
     { name = "numpy", specifier = "==1.26.4" },

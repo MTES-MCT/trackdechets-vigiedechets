@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Assistance Trackdéchets{% endblock %}
+
+{% block main %}
+
+
+  <div class="fr-container fr-mt-3w">
+    <p><a href="{% url "faq_home" %}" class="fr-link fr-icon-arrow-left-line fr-link--icon-left">Retour à la FAQ</a></p>
+
+      <div
+        hx-get="{% url "assistance_page" current_page.pk %}"
+        id="block"
+        hx-swap="outerHTML"
+        hx-trigger="load"></div>
+
+  </div>
+
+
+{% endblock main %}

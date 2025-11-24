@@ -2,10 +2,11 @@
 
 import django.db.models.deletion
 import django_jsonform.models.fields
-import faq.models
 import mptt.fields
-import roadcontrol.storage_backends
 from django.db import migrations, models
+
+import config.storage_backends
+import faq.models
 
 
 class Migration(migrations.Migration):
@@ -47,7 +48,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('content', models.TextField(blank=True, verbose_name='Content')),
-                ('image', models.ImageField(blank=True, max_length=512, storage=roadcontrol.storage_backends.PrivateMediaStorage(), upload_to=faq.models.image_path, verbose_name='Image')),
+                ('image', models.ImageField(blank=True, max_length=512, storage=config.storage_backends.PrivateMediaStorage(), upload_to=faq.models.image_path, verbose_name='Image')),
                 ('video_source', models.URLField(blank=True, max_length=512, verbose_name='Video url')),
                 ('page', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='blocks', to='faq.faqpage')),
             ],

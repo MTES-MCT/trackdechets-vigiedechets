@@ -43,8 +43,8 @@ def list_s3_bucket_contents(bucket_name, prefix=""):
         client = session.client(
             "s3",
             endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
         )
 
         # List objects in the bucket

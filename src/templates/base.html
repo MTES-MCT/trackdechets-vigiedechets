@@ -1,181 +1,186 @@
-{% load oidc_helpers simple_menu solo_tags static %}
+{% load django_htmx oidc_helpers simple_menu solo_tags static %}
 
 {% get_solo 'common.SiteConfiguration' as site_config %}
 
 <!DOCTYPE html>
 <html lang="fr" data-fr-scheme="light">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta name="theme-color" content="#000091"/>
-    <title>
-        {% block title %}Trackdéchets - Vigiedéchets{% endblock %}
-    </title>
-    <link rel="stylesheet" href="{% static "css/dsfr.main.min.css" %}"/>
-    <link href="{% static "css/utility/utility.min.css" %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static "css/style.css" %}"/>
-    {% block extra_head %}{% endblock %}
-    <link rel="apple-touch-icon"
-          sizes="120x120"
-          href="{% static "img/apple-touch-icon.png" %}">
-    <link rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="{% static "img/favicon-32x32.png" %}">
-    <link rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="{% static "img/favicon-16x16.png" %}">
-    <link rel="manifest" href="{% static "site.webmanifest" %}">
-    <link rel="mask-icon"
-          href="{% static "img/safari-pinned-tab.svg" %}"
-          color="#fff">
-    <meta name="theme-color" content="#ffffff">
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="theme-color" content="#000091" />
+  <title>
+    {% block title %}Trackdéchets - Vigiedéchets{% endblock %}
+  </title>
+  <link rel="stylesheet" href="{% static "css/dsfr.main.min.css" %}" />
+  <link href="{% static "css/utility/utility.min.css" %}" rel="stylesheet">
+  <link rel="stylesheet" href="{% static "css/style.css" %}"/>
+
+  {% htmx_script %}
+
+  {% block extra_head %}{% endblock %}
+  <link rel="apple-touch-icon"
+        sizes="120x120"
+        href="{% static "img/apple-touch-icon.png" %}">
+  <link rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href="{% static "img/favicon-32x32.png" %}">
+  <link rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href="{% static "img/favicon-16x16.png" %}">
+  <link rel="manifest" href="{% static "site.webmanifest" %}">
+  <link rel="mask-icon"
+        href="{% static "img/safari-pinned-tab.svg" %}"
+        color="#fff">
+  <meta name="theme-color" content="#ffffff">
 </head>
 <body>
 
 {% if site_config.banner_content or site_config.banner_title %}
-    <div class="fr-notice fr-notice--info">
-        <div class="fr-container">
-            <div class="fr-notice__body">
-                <p>
-                    <span class="fr-notice__title">{{ site_config.banner_title }}</span>
-                    <span class="fr-notice__desc">{{ site_config.banner_content }}</span>
-                </p>
-            </div>
-        </div>
+  <div class="fr-notice fr-notice--{{ site_config.banner_type }}">
+    <div class="fr-container">
+      <div class="fr-notice__body">
+        <p>
+          <span class="fr-notice__title">{{ site_config.banner_title }}</span>
+          <span class="fr-notice__desc">{{ site_config.banner_content }}</span>
+        </p>
+      </div>
     </div>
+  </div>
 {% endif %}
 
 <header role="banner" class="fr-header fr-mb-2v">
-    {% if not user.is_verified and not user.is_authenticated_from_oidc %}
+  {% if not user.is_verified and not user.is_authenticated_from_oidc %}
 
-        <div class="fr-header__body">
-            <div class="fr-container">
-                <div class="fr-header__body-row">
-                    <a href="/">
-                        <div class="fr-header__brand fr-enlarge-link">
-                            <div class="fr-header__brand-top">
-                                <div class="fr-header__logo">
-                                    <p class="fr-logo">
-                                        Ministère
-                                        <br>
-                                        de la transition
-                                        <br>
-                                        écologique,
-                                        <br>
-                                        de la biodiversité,
-                                        <br>
-                                        de la forêt, de la mer
-                                        <br>
-                                        et de la pêche
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="fr-header__service">
-                                <img src="{% static "img/trackdechets.png" %}"
-                                     width="70px"
-                                     height="70px"
-                                     alt="Icone trackdéchets"/>
-                            </div>
-                            <div class="fr-h5">
-                                Vigiedéchets
-                            </div>
-                        </div>
-                    </a>
+    <div class="fr-header__body">
+      <div class="fr-container">
+        <div class="fr-header__body-row">
+          <a href="/">
+            <div class="fr-header__brand fr-enlarge-link">
+              <div class="fr-header__brand-top">
+                <div class="fr-header__logo">
+                  <p class="fr-logo">
+                    Ministère
+                    <br>
+                    de la transition
+                    <br>
+                    écologique,
+                    <br>
+                    de la biodiversité,
+                    <br>
+                    de la forêt, de la mer
+                    <br>
+                    et de la pêche
+                  </p>
                 </div>
+              </div>
+              <div class="fr-header__service">
+                <img src="{% static "img/trackdechets.png" %}"
+                     width="70px"
+                     height="70px"
+                     alt="Icone trackdéchets" />
+              </div>
+              <div class="fr-h5">
+                Vigiedéchets
+              </div>
             </div>
+          </a>
         </div>
-    {% endif %}
+      </div>
+    </div>
+  {% endif %}
 
-    {% if user.is_verified or user.is_authenticated_from_oidc %}
-        {% generate_menu %}
-        <div class="fr-container">
-            <nav role="navigation" aria-label="Menu principal" class="fr-nav">
-                <ul class="fr-nav__list">
-                    <li class="fr-nav__item" style="display: flex">
-                        <a class="fr-nav__link" href="/">
+  {% if user.is_verified or user.is_authenticated_from_oidc %}
+    {% generate_menu %}
+    <div class="fr-container">
+      <nav role="navigation" aria-label="Menu principal" class="fr-nav">
+        <ul class="fr-nav__list">
+          <li class="fr-nav__item" style="display: flex">
+            <a class="fr-nav__link" href="/">
 
-                            <img src="{% static "img/marianne.svg" %}" alt="Logo marianne"
-                                 style="height: 40px; width: 40px; margin-right: 8px;">
-                            <span class="fr-text--bold"> Vigiedéchets</span> </a>
+              <img src="{% static "img/marianne.svg" %}" alt="Logo marianne"
+                   style="height: 40px; width: 40px; margin-right: 8px;">
+              <span class="fr-text--bold"> Vigiedéchets</span> </a>
 
 
-                    </li>
-                    {% for item in menus.main %}
-                        <li class="fr-nav__item">
-                            {% if item.children %}
-                                <button class="fr-nav__btn"
-                                        aria-expanded="false"
-                                        aria-controls="{{ item.menu_id }}"
-                                        {% if item.selected %}aria-current="page"{% endif %}>
-                                    {{ item.title }}
-                                </button>
-                                <div class="fr-collapse fr-menu" id="{{ item.menu_id }}">
-                                    <ul class="fr-menu__list">
-                                        {% for subitem in item.children %}
-                                            <li>
-                                                <a href="{{ subitem.url }}"
-                                                   aria-controls="modal-header__menu"
-                                                   target="{{ subitem.target|default:"_self" }}"
-                                                   {% if subitem.selected %}aria-current="page"{% endif %}
-                                                   class="fr-nav__link">{{ subitem.title }}</a>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            {% else %}
-                                <a href="{{ item.url }}"
-                                   aria-controls="modal-header__menu"
-                                   target="{{ item.target|default:"_self" }}"
-                                   {% if item.selected %}aria-current="page"{% endif %}
-                                   class="fr-nav__link">{{ item.title }}</a>
-                            {% endif %}
-                        </li>
+          </li>
+          {% for item in menus.main %}
+            <li class="fr-nav__item">
+              {% if item.children %}
+                <button class="fr-nav__btn"
+                        aria-expanded="false"
+                        aria-controls="{{ item.menu_id }}"
+                        {% if item.selected %}aria-current="page"{% endif %}>
+                  {{ item.title }}
+                </button>
+                <div class="fr-collapse fr-menu" id="{{ item.menu_id }}">
+                  <ul class="fr-menu__list">
+                    {% for subitem in item.children %}
+                      <li>
+                        <a href="{{ subitem.url }}"
+                           aria-controls="modal-header__menu"
+                           target="{{ subitem.target|default:"_self" }}"
+                           {% if subitem.selected %}aria-current="page"{% endif %}
+                           class="fr-nav__link">{{ subitem.title }}</a>
+                      </li>
                     {% endfor %}
+                  </ul>
+                </div>
+              {% else %}
+                <a href="{{ item.url }}"
+                   aria-controls="modal-header__menu"
+                   target="{{ item.target|default:"_self" }}"
+                   {% if item.selected %}aria-current="page"{% endif %}
+                   class="fr-nav__link">{{ item.title }}</a>
+              {% endif %}
+            </li>
+          {% endfor %}
 
-                    <li style="margin-left: auto;">
-                        <form action="{% logout_url %}" method="post" class="fr-nav__link">
-                            {% csrf_token %}
-                            <button class="fr-btn fr-btn--tertiary-no-outline fr-icon-logout-box-r-line"
-                                    title="Se déconnecter"></button>
-                        </form>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    {% endif %}
+          <li style="margin-left: auto;">
+            <form action="{% logout_url %}" method="post" class="fr-nav__link">
+              {% csrf_token %}
+              <button class="fr-btn fr-btn--tertiary-no-outline fr-icon-logout-box-r-line"
+                      title="Se déconnecter"></button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
 </header>
 {% if messages %}
-    <div class="fr-container">
-        {% for message in messages %}
-            <div class="fr-alert fr-alert--{{ message.tags }} fr-alert--sm fr-my-4v">
-                <p>{{ message }}</p>
-            </div>
-        {% endfor %}
-    </div>
+  <div class="fr-container">
+    {% for message in messages %}
+      <div class="fr-alert fr-alert--{{ message.tags }} fr-alert--sm fr-my-4v">
+        <p>{{ message }}</p>
+      </div>
+    {% endfor %}
+  </div>
 {% endif %}
 {% block main %}{% endblock %}
+
+
 <script src="{% static "js/utils.js" %}" charset="utf-8"></script>
-<script src="{% static "js/htmx.2.0.2.min.js" %}"></script>
+
 
 {% if MATOMO_SITE_ID %}
-    <script>
-        var _paq = window._paq = window._paq || [];
-        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-        _paq.push(['trackPageView']);
-        _paq.push(['enableLinkTracking']);
-        (function () {
-            var u = "https://stats.beta.gouv.fr/";
-            _paq.push(['setTrackerUrl', u + 'matomo.php']);
-            _paq.push(['setSiteId', {{ MATOMO_SITE_ID }}]);
-            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-            g.async = true;
-            g.src = u + 'matomo.js';
-            s.parentNode.insertBefore(g, s);
-        })();
-    </script>
+  <script>
+    var _paq = window._paq = window._paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackFaqPageView" */
+    _paq.push(["trackFaqPageView"]);
+    _paq.push(["enableLinkTracking"]);
+    (function() {
+      var u = "https://stats.beta.gouv.fr/";
+      _paq.push(["setTrackerUrl", u + "matomo.php"]);
+      _paq.push(["setSiteId", {{ MATOMO_SITE_ID }}]);
+      var d = document, g = d.createElement("script"), s = d.getElementsByTagName("script")[0];
+      g.async = true;
+      g.src = u + "matomo.js";
+      s.parentNode.insertBefore(g, s);
+    })();
+  </script>
 {% endif %}
 
 

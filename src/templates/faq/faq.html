@@ -15,11 +15,9 @@
             <nav class="fr-sidemenu" role="navigation" aria-labelledby="sidemenu-title">
 
               <div class="fr-sidemenu__inner">
-                <button aria-expanded="false" aria-controls="sidemenu-collapse-1" type="button"
-                        class="fr-sidemenu__btn">Dans cette rubrique
-                </button>
+
                 <div class="fr-collapse" id="sidemenu-collapse-1">
-                  <p class="fr-sidemenu__title" id="sidemenu-title">FAQ</p>
+                  <p class="fr-sidemenu__title" id="sidemenu-title">Documentation</p>
 
                 </div>
 
@@ -31,7 +29,6 @@
 
                       <a type="link" class="fr-sidemenu__link" id="sidemenu-item-{{ node.pk }}"
                          href="#"
-
                          hx-get="{% url 'faq_page' node.pk %}"
                          hx-target="#faq-content"
                       >{{ node.title }}</a>
@@ -52,11 +49,13 @@
         </div>
 
 
-          <div class="fr-col-9">
-            <form class="fr-search-bar fr-mb-2w fr-col-6" role="search"
-                  hx-get="{% url "faq_page_search" %}" hx-target="#id_search_results"
+        <div class="fr-col-9">
+          <div class="flex ">
 
-           hx-on--after-request="this.reset()"
+            <form class="fr-search-bar fr-mb-2w fr-col-5" role="search"
+                  hx-get="{% url "faq_page_search" %}"
+                  hx-target="#id_search_results"
+                  hx-on--after-request="this.reset()"
             >
               <label class="fr-label" for="search-input">
                 Rechercher
@@ -73,42 +72,72 @@
             </form>
 
 
+          </div>
+          {% if current_page %}
+            <div hx-get="{% url "faq_page" current_page.pk %}" hx-trigger="load" id="faq-content">
+            </div>
 
-            <div hx-get="{% url "faq_page" current_page.pk %} " hx-trigger="load" id="faq-content">
+          {% endif %}
+          <hr>
 
 
+          <div class="fr-notice fr-notice--info">
+            <div class="fr-container">
+              <div class="fr-notice__body">
+
+                <p>
+                  <span
+                    class="fr-notice__title">             Vous n'avez pas trouvé la réponse à votre question ?</span>
+                  <span class="fr-notice__desc">  Vous pouvez utiliser notre
+                  <a href="{% url "assistance_wrapper_home" %}"
+                     class="fr-link">formulaire d'assistance</a>.
+                       </span>
+
+                </p>
+              </div>
             </div>
           </div>
+
+
         </div>
+      </div>
 
     </div>
+
   </div>
 
-<div id="id_search_results"></div>
+  <div id="id_search_results"></div>
+
+
 {% endblock main %}
 
 {% block scripts %}
-  <script>
-    (function() {
-      function highlight() {
-        const items = document.getElementsByClassName("fr-sidemenu__link");
-        const pathname = window.location.pathname;
-        const pattern = new URLPattern({ pathname: "/faq/:id/" });
 
-        const result = pattern.exec({ pathname });
-        const faqId = result?.pathname.groups.id;
-        const count = items.length;
-        for (let i = 0; i < count; i++) {
-          items[i].removeAttribute("aria-current");
-          if (items[i].id === `sidemenu-item-${faqId}`) {
-            items[i].setAttribute("aria-current", "page");
-          }
+
+  <script>
+    function highlight() {
+      // highlight faq side menu
+      const items = document.getElementsByClassName("fr-sidemenu__link");
+      const pathname = window.location.pathname;
+      const pattern = new URLPattern({ pathname: "/faq/:id/" });
+
+      const result = pattern.exec({ pathname });
+      const faqId = result?.pathname.groups.id;
+      const count = items.length;
+      for (let i = 0; i < count; i++) {
+        items[i].removeAttribute("aria-current");
+        if (items[i].id === `sidemenu-item-${faqId}`) {
+          items[i].setAttribute("aria-current", "page");
         }
       }
+    }
 
-      htmx.on("highlightNavigation", function() {
+    document.addEventListener("DOMContentLoaded", function() {
+      document.addEventListener("highlightNavigation", function() {
         highlight();
       });
-    })();
+    });
+
   </script>
+
 {% endblock scripts %}

@@ -1,0 +1,6 @@
+.prose-editor-field,
+.ProseMirror,
+[data-prose-editor] {
+    min-height: 200px !important;
+}
+

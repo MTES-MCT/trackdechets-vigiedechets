@@ -7,8 +7,8 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
+import config.storage_backends
 import roadcontrol.models
-import roadcontrol.storage_backends
 
 
 class Migration(migrations.Migration):
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('params', models.JSONField(default=dict)),
                 ('state', models.CharField(choices=[('INITIAL', 'Initial'), ('PROCESSING', 'Processing'), ('READY', 'Ready'), ('ERROR', 'Error')], default='INITIAL', max_length=20, verbose_name='State')),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Downloaded at')),
-                ('zip_file', models.FileField(blank=True, max_length=512, storage=roadcontrol.storage_backends.PrivateMediaStorage(), upload_to=roadcontrol.models.bundle_path, verbose_name='Zip File')),
+                ('zip_file', models.FileField(blank=True, max_length=512, storage=config.storage_backends.PrivateMediaStorage(), upload_to=roadcontrol.models.bundle_path, verbose_name='Zip File')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Created by')),
             ],
             options={
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('weight', models.DecimalField(blank=True, decimal_places=2, max_digits=6, null=True, verbose_name='Weight')),
                 ('adr_code', models.CharField(blank=True, max_length=255, verbose_name='Adr Code')),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Created at')),
-                ('pdf_file', models.FileField(blank=True, max_length=512, storage=roadcontrol.storage_backends.PrivateMediaStorage(), upload_to=roadcontrol.models.bsd_path, verbose_name='Pdf')),
+                ('pdf_file', models.FileField(blank=True, max_length=512, storage=config.storage_backends.PrivateMediaStorage(), upload_to=roadcontrol.models.bsd_path, verbose_name='Pdf')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Created by')),
                 ('bundle', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='pdfs', to='roadcontrol.pdfbundle', verbose_name='Bundle')),
             ],
