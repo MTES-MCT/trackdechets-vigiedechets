@@ -39,7 +39,7 @@ select
     next_destination_processing_operation,
     eco_organisme_siret,
     signed_at,
-    waste_refusal_reason as refusal_reason
+    COALESCE(waste_refusal_reason, '') as refusal_reason
  from
     trusted_zone_trackdechets.bsdd
 where
@@ -172,7 +172,7 @@ select
     worker_company_siret,
     emitter_is_private_individual,
     eco_organisme_siret,
-    destination_reception_refusal_reason as refusal_reason
+    COALESCE(destination_reception_refusal_reason, '') as refusal_reason
 from
     trusted_zone_trackdechets.bsda
 where
@@ -252,7 +252,7 @@ select
     transporter_transport_mode,
     transporter_company_siret,
     eco_organisme_siret,
-    destination_reception_waste_refusal_reason as refusal_reason
+    COALESCE(destination_reception_waste_refusal_reason, '') as refusal_reason
 from
         trusted_zone_trackdechets.bsdasri
 where
@@ -317,7 +317,7 @@ select
     volume,
     acceptation_weight,
     weight,
-    acceptation_refusal_reason as refusal_reason
+    COALESCE(acceptation_refusal_reason, '') as refusal_reason
 from
     trusted_zone_trackdechets.bsff_packaging bp
 where
@@ -381,7 +381,7 @@ select
     destination_operation_code as processing_operation_code,
     status,
     transporter_company_siret,
-    destination_reception_refusal_reason as refusal_reason
+    COALESCE(destination_reception_refusal_reason, '') as refusal_reason
 from
     trusted_zone_trackdechets.bsvhu
 where
