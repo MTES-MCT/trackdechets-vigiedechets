@@ -57,12 +57,6 @@ def sample_data_bsdd():
         "next_destination_company_vat_number": [None, "VATB", None, "VATD"],
         "next_destination_processing_operation": [None, "R3", None, "R1"],
         "eco_organisme_siret": [None, None, None, None],
-        "signed_at": [
-            datetime(2024, 1, 15, 10, 0, tzinfo=tz),
-            datetime(2024, 2, 20, 10, 0, tzinfo=tz),
-            datetime(2024, 3, 25, 10, 0, tzinfo=tz),
-            datetime(2024, 4, 30, 10, 0, tzinfo=tz),
-        ],
         "refusal_reason": [None, None, "Refusal reason 1", "Refusal reason 2"],
     }
     return pl.DataFrame(
