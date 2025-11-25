@@ -16,7 +16,7 @@ class ExportTypeChoice(models.TextChoices):
 class DataExport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     export_type = models.CharField(
-        _("Export Type"),
+        _("Bsd Type"),
         max_length=20,
         choices=ExportTypeChoice.choices,
     )
@@ -40,10 +40,8 @@ class DataExport(models.Model):
 class DataExportDownload(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     export_type = models.CharField(
-        _("Export Type"),
+        _("Bsd Type"),
         max_length=20,
-        null=True
-
     )
     year = models.PositiveSmallIntegerField(blank=True, null=True)
     user = models.CharField(
