@@ -26,7 +26,7 @@
                                         {% csrf_token %}
                                     </form>
                                     <h3 class="fr-card__title">
-                                        <button form="id_form_{{ export.pk }}">{{ export.get_bsd_type_display }}</button>
+                                        <button form="id_form_{{ export.pk }}">{{ export.get_export_type_display }}</button>
                                     </h3>
                                     <div class="fr-card__end">
                                         <p class="fr-card__detail">Parquet – {{ export.verbose_size }}</p>
