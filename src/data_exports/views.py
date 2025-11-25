@@ -11,7 +11,7 @@ from accounts.constants import PERMS_DATA_EXPORT
 from common.mixins import FullyLoggedMixin
 
 from .constants import PRESIGNED_URL_EXPIRATION
-from .models import ExportTypeChoice, DataExport, DataExportDownload
+from .models import DataExport, DataExportDownload, ExportTypeChoice
 
 
 class DummyForm(forms.Form):
@@ -70,5 +70,7 @@ class ExportDownload(FullyLoggedMixin, FormView):
             Params={"Bucket": settings.PARQUET_BUCKET_NAME, "Key": export.s3_path},
             ExpiresIn=PRESIGNED_URL_EXPIRATION,
         )
-        DataExportDownload.objects.create(user=str(self.request.user), year=export.year, export_type=export.export_type)
+        DataExportDownload.objects.create(
+            user=str(self.request.user), year=export.year, export_type=export.export_type
+        )
         return response
