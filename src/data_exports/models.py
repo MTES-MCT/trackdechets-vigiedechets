@@ -11,12 +11,16 @@ class ExportTypeChoice(models.TextChoices):
     BSDASRI = "BSDASRI", _("DASRI")
     BSVHU = "BSVHU", _("VHU")
     BSFF = "BSFF", _("Fluides Frigo")
+    DND_ENTRANT = "DND_ENTRANT", _("Registre entrant : Déchets non dangereux")
+    DND_SORTANT = "DND_SORTANT", _("Registre sortant : Déchets non dangereux")
+    TEXS_ENTRANT = "TEXS_ENTRANT", _("Registre entrant : Terres et sédiments")
+    TEXS_SORTANT = "TEXS_SORTANT", _("Registre sortant : Terres et sédiments")
 
 
 class DataExport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     export_type = models.CharField(
-        _("Bsd Type"),
+        _("Export Type"),
         max_length=20,
         choices=ExportTypeChoice.choices,
     )
@@ -40,7 +44,7 @@ class DataExport(models.Model):
 class DataExportDownload(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     export_type = models.CharField(
-        _("Bsd Type"),
+        _("Export Type"),
         max_length=20,
     )
     year = models.PositiveSmallIntegerField(blank=True, null=True)
