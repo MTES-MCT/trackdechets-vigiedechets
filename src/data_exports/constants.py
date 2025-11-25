@@ -1,2 +1,1 @@
-PARQUET_BUCKET_NAME = "donnees-sandbox"
 PRESIGNED_URL_EXPIRATION = 300  # seconds

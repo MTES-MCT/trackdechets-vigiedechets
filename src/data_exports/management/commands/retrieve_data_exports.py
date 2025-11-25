@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
 
-from ...constants import PARQUET_BUCKET_NAME
 from ...models import DataExport
 
 logger = logging.getLogger(__name__)
@@ -83,7 +82,7 @@ class Command(BaseCommand):
     def handle(self, verbosity=0, **options):
         """List bucket content and create DataExport objects to display on relevant page"""
         try:
-            data = list_s3_bucket_contents(PARQUET_BUCKET_NAME)
+            data = list_s3_bucket_contents(settings.PARQUET_BUCKET_NAME)
             for el in data:
                 key = el["key"]
                 matches = re.search(pattern, key)

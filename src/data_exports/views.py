@@ -10,7 +10,7 @@ from django.views.generic import FormView, TemplateView
 from accounts.constants import PERMS_DATA_EXPORT
 from common.mixins import FullyLoggedMixin
 
-from .constants import PARQUET_BUCKET_NAME, PRESIGNED_URL_EXPIRATION
+from .constants import PRESIGNED_URL_EXPIRATION
 from .models import ExportTypeChoice, DataExport, DataExportDownload
 
 
@@ -67,7 +67,7 @@ class ExportDownload(FullyLoggedMixin, FormView):
         )
         response = client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": PARQUET_BUCKET_NAME, "Key": export.s3_path},
+            Params={"Bucket": settings.PARQUET_BUCKET_NAME, "Key": export.s3_path},
             ExpiresIn=PRESIGNED_URL_EXPIRATION,
         )
         DataExportDownload.objects.create(user=str(self.request.user), year=export.year, export_type=export.export_type)
