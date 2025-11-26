@@ -37,6 +37,7 @@ select
     next_destination_company_country,
     next_destination_company_vat_number,
     next_destination_processing_operation,
+    emitter_is_private_individual,
     eco_organisme_siret,
     COALESCE(waste_refusal_reason, '') as refusal_reason
  from

@@ -12,7 +12,8 @@ def sample_data_bsdd():
     data = {
         "id": ["bsdd-1", "bsdd-2", "bsdd-3", "bsdd-4"],
         "recipient_company_siret": ["12345678900011", "12345678900011", "98765432100022", "12345678900011"],
-        "emitter_company_siret": ["98765432100022", "98765432100022", "12345678900011", "98765432100011"],
+        "emitter_company_siret": ["98765432100022", "98765432100022", "12345678900011", ""],
+        "emitter_is_private_individual": [False, False, False, True],
         "received_at": [
             datetime(2024, 1, 10, tzinfo=tz),
             datetime(2024, 2, 15, tzinfo=tz),
