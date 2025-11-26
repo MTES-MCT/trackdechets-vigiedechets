@@ -868,6 +868,7 @@ class BsdRefusedTableProcessor:
             "emitter_company_siret",
             "recipient_company_siret",
             "waste_code",
+            "waste_name",
             "quantity_emitted",
             "quantity_refused",
             "refusal_reason",
@@ -914,6 +915,18 @@ class BsdRefusedTableProcessor:
                         )
                     )
 
+            schema = refused_bs_df.collect_schema().names()
+
+            # BSDASRI, BSVHU, BSFF do not have waste name
+            if "waste_name" not in schema:
+                refused_bs_df = refused_bs_df.join(
+                self.waste_codes_df.select("code", pl.col("description").alias("waste_name")),
+                    left_on="waste_code",
+                    right_on="code",
+                    how="left",
+                )
+                pass
+
             refused_bs_df = refused_bs_df.with_columns(
                 pl.coalesce([pl.col("refusal_reason"), pl.lit("")]).cast(pl.String).alias("refusal_reason")
             ).select(columns_to_take)
@@ -921,14 +934,7 @@ class BsdRefusedTableProcessor:
 
         if dfs_processed:
             concat_df = pl.concat(dfs_processed, how="diagonal")
-            # Data is enriched with waste description from the waste nomenclature
-            final_df = concat_df.join(
-                self.waste_codes_df,
-                left_on="waste_code",
-                right_on="code",
-                how="left",
-            )
-            self.preprocessed_df = final_df.collect()
+            self.preprocessed_df = concat_df.collect()
 
     def _check_empty_data(self) -> bool:
         if self.preprocessed_df.is_empty():

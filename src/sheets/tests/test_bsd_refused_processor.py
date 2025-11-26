@@ -43,6 +43,12 @@ def test_bsd_refused_processor(
         "emitter_company_siret": ["98765432100011", "77777777700031", "49016873200053", "24358764500022"],
         "recipient_company_siret": ["12345678900011", "12345678900011", "12345678900011", "12345678900011"],
         "waste_code": ["20 01 08*", "18 01 06*", "20 01 27*", "14 06 02*"],
+        "waste_name": [
+            "Solvant D",
+            "Déchets infectieux",
+            "peinture, encres, colles et résines contenant des substances dangereuses",
+            "autres solvants et mélanges de solvants halogénés",
+        ],        
         "quantity_emitted": [40.0, 200.0, 245.0, 80.5],
         "quantity_refused": [40.0, 197.0, 45.0, 0.0],
         "refusal_reason": [
@@ -51,11 +57,6 @@ def test_bsd_refused_processor(
             "Refusal reason 2",
             "Refusal reason 1 | Refusal reason 2",
         ],
-        "description": [
-            None,
-            "produits chimiques à base de ou contenant des substances dangereuses",
-            "peinture, encres, colles et résines contenant des substances dangereuses",
-            "autres solvants et mélanges de solvants halogénés",
-        ],
+
     }
     assert_frame_equal(processor.preprocessed_df, pl.DataFrame(data=expected_results))
