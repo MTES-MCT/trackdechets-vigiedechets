@@ -1,0 +1,28 @@
+<dialog id="id_modal" class="fr-modal fr-modal--opened" aria-labelledby="modal-0-title"
+        data-fr-concealing-backdrop="true">
+  <div class="fr-container fr-container--fluid fr-container-md">
+    <div class="fr-grid-row fr-grid-row--center">
+      <div class="fr-col-12 fr-col-md-8 fr-col-lg-6">
+        <div class="fr-modal__body">
+          <div class="fr-modal__header">
+            <button aria-controls="modal-0" title="Fermer" type="button" id="button-5" class="fr-btn--close fr-btn" onclick="document.getElementById('id_modal')?.remove();">
+              Fermer
+            </button>
+          </div>
+          <div class="fr-modal__content">
+            {% block modal_content %}
+            {% endblock modal_content %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+<script>
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.getElementById('id_modal')?.remove();
+    }
+});
+</script>

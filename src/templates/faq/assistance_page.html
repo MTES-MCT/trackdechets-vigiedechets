@@ -1,0 +1,69 @@
+<div id="block">
+  <h2 class="fr-alert__title fr-display--xs">{{ page.title }}</h2>
+
+
+  {% if page.content %}
+    <div class=" fr-text--lg ">{{ page.content|safe }}</div>{% endif %}
+  {% for child in page.get_children.all %}
+    <div hx-get="{% url "assistance_page" child.id %}"
+         hx-target="#block"
+         hx-swap="outerHTML"
+         class="fr-mt-1w">
+
+
+      <a href="#" target="_self"
+         class="fr-link fr-icon-arrow-right-line fr-link--icon-right fr-link--lg">{{ child.anchor }}</a>
+    </div>
+  {% endfor %}
+
+  {% if page.parent %}
+    <button class="fr-btn fr-mt-3w"
+            hx-get="{% url "assistance_page" page.parent.pk %}"
+            hx-target="#block"
+            hx-swap="outerHTML">Retour
+    </button>
+  {% endif %}
+  {% if page.open_form %}
+
+    <div class="contact-form fr-mt-4w" id="contact-form">
+      <hr>
+      <h3>Contactez-nous</h3>
+      <p>Merci de renseigner au mieux les champs proposés pour accélérer le traitement de votre demande.</p>
+      <div class="fr-notice fr-notice--info fr-mb-4v">
+        <div class="fr-container">
+          <div class="fr-notice__body">
+            <p class="fr-notice__title">
+              Nous ne proposons pas d’assistance téléphonique. Nous vous invitons donc à détailler votre demande par
+              écrit.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form hx-post="{% url "assistance_contact" %}"
+            id="id_assistance_contact_form"
+            method="post"
+            hx-trigger="submit"
+            hx-target="#contact-form"
+            hx-swap="outerHTML"
+            hx-encoding='multipart/form-data'>
+        {% csrf_token %}
+        {% include 'forms/_form_snippet.html' with form=form %}
+        <input type="hidden" value="{{ page.title }}" name="assistance_page_title">
+        <div class="fr-grid-row fr-grid-row--right fr-mt-1v">
+          <button type="submit" class="fr-btn">Envoyer</button>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+
+  {# {% if page.closed_form %} #}
+  {# <div id="form-wrapper" class="fr-mt-4v"> #}
+  {# <button hx-get="{% url "assistance_contact" %}?page={{ page.id }}" #}
+  {# hx-trigger="click" #}
+  {# hx-target="#form-wrapper" #}
+  {# class="fr-btn">Nous contacter #}
+  {# </button> #}
+  {# </div> #}
+  {# {% endif %} #}
+</div>

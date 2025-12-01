@@ -157,7 +157,8 @@ class BsdPdf(Base):
         return "Bordereau"
 
 
-@receiver(pre_delete, sender=BsdPdf)
-def delete_has_folder(sender, instance, *args, **kwargs):
+@receiver(pre_delete, sender=PdfBundle)
+def delete_pdf_bundle_files(sender, instance, *args, **kwargs):
     """Delete S3 files on model deletion"""
+    instance.zip_file.delete()
     instance.pdf_file.delete()

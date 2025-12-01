@@ -18,6 +18,9 @@
 .td-text-warning {
     color: var(--warning-425-625);
 }
+.td-text-blue {
+  color: var(--text-action-high-blue-france);
+}
 
 .td-text-valid {
     color: var(--text-default-info);
@@ -97,6 +100,11 @@ table .td--right {
     border-bottom: 1px solid var(--grey-975-75-active);
 }
 
+.td-hero {
+    background-color: var(--background-contrast-blue-france);
+    padding: 2rem 3rem;
+}
+
 /* Warning */
 .warning-banner {
     height: 32px;
@@ -126,7 +134,7 @@ table .td--right {
     color: var(--text-default-info);
 }
 
-/*Spinner*/
+/*Modal*/
 
 .backdrop {
     background-color: rgba(0, 0, 0, 0.3);
@@ -139,6 +147,8 @@ table .td--right {
     align-items: center;
 
 }
+
+/*Spinner*/
 
 .spinner {
     margin: 100px auto;
@@ -228,11 +238,7 @@ table .td--right {
     width: 100%;
 }
 
-.bsd-card-list {
-}
 
-.bsd-card-list__item {
-}
 
 /* Style coming from TD UI dashboard*/
 .bsd-card-list {
@@ -638,6 +644,10 @@ table .td--right {
     text-align: center;
 }
 
+.text-right {
+    text-align: right;
+}
+
 /* Map*/
 .fr-tabs__panel {
     border: 1px solid #ccc;
@@ -667,7 +677,7 @@ table .td--right {
 /* Choice js custom styles*/
 
 
-.choices__list--multiple  .choices__item[aria-selected=true] {
+.choices__list--multiple .choices__item[aria-selected=true] {
     background-color: rgb(0, 0, 145) !important;
 }
 
@@ -677,4 +687,60 @@ table .td--right {
 
 table {
     width: 100% !important;
+}
+
+/*Faq*/
+.faq-search-result mark {
+    background: #ffeb3b;
+    padding: 2px;
+}
+
+.faq-search-result-snippet {
+    color: #666;
+    margin: 10px 0;
+}
+
+/* section courses */
+.webinar-cards {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+}
+
+.webinar-card {
+  display: flex;
+  padding: 1rem;
+  border: 1px solid var(--border-default-grey);
+  flex-direction: column;
+  justify-content: center;
+  @media (width > 62em)  and  (min-width: 62em) {
+    justify-content: space-between;
+    flex-direction: row;
+    row-gap: 0.5em;
+  }
+}
+
+.webinar-card__title {
+  font-size: 1.2rem;
+  line-height: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.webinar-card__date {
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+.webinar-card__actions {
+  align-self: flex-end;
+  display: flex;
+  column-gap: 1em;
+  @media (width < 62em) {
+    margin-top: 1em;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 0.5em;
+  }
 }

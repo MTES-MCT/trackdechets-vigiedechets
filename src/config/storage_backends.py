@@ -7,4 +7,4 @@ class PrivateMediaStorage(S3Boto3Storage):
     default_acl = "private"
     file_overwrite = False
     custom_domain = False
-    bucket_name = settings.AWS_BUCKET_NAME
+    bucket_name = settings.AWS_S3_BUCKET_NAME

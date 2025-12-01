@@ -1,7 +1,27 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block main %}
     <div class="fr-container">
-        <a href="{% url "login" %}">Connectez vous</a>
+          <section class="td-hero" id="hero">
+      <div class="fr-grid-row">
+        <div class="fr-col-md-6 fr-col-12 fr-col-md-offset-1 td-hero__text ">
+          <h2 class="fr-h1 fr-mb-0">Vigiedéchets</h2>
+          <p class="fr-callout__text"></p>
+          <p>
+            {{ site_config.welcome_content }}
+          </p>
+          <p class="text-right">
+
+            <a href="{% url "login" %}"
+               class="fr-btn fr-btn--primary">
+            Connectez-vous
+            </a>
+          </p>
+        </div>
+        <div class="fr-col-md-6 fr-col-12 fr-col-md-offset-1 fr-grid-row fr-grid-row--center">
+          <img src="{% static "img/illustrationCollector.svg" %}" width="290px" alt="Illustration zone industrielle">
+        </div>
+      </div>
+    </section>
     </div>
 {% endblock main %}

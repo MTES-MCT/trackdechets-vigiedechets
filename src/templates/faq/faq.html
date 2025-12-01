@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load mptt_tags %}
+
+{% block title %}FAQ Bordereau - Vigiedéchets{% endblock %}
+
+{% block main %}
+
+  <div class="fr-container fr-mt-3w">
+
+    <div class="fr-container--fluid">
+      <div class="fr-grid-row fr-grid-row--gutters">
+        <div class="fr-col-3">
+
+          <div>
+            <nav class="fr-sidemenu" role="navigation" aria-labelledby="sidemenu-title">
+
+              <div class="fr-sidemenu__inner">
+
+                <div class="fr-collapse" id="sidemenu-collapse-1">
+                  <p class="fr-sidemenu__title" id="sidemenu-title">Documentation</p>
+
+                </div>
+
+
+                <ul class="fr-sidemenu__list">
+                  {% recursetree faq_pages %}
+                    <li class="fr-sidemenu__item" id="faq-item-{{ node.pk }}">
+
+
+                      <a type="link" class="fr-sidemenu__link" id="sidemenu-item-{{ node.pk }}"
+                         href="#"
+                         hx-get="{% url 'faq_page' node.pk %}"
+                         hx-target="#faq-content"
+                      >{{ node.title }}</a>
+
+                      {% if not node.is_leaf_node %}
+
+                        <ul class="fr-sidemenu__list">
+                          {{ children }}
+                        </ul>
+                      {% endif %}
+                    </li>
+                  {% endrecursetree %}
+                </ul>
+              </div>
+            </nav>
+
+          </div>
+        </div>
+
+
+        <div class="fr-col-9">
+          <div class="flex ">
+
+            <form class="fr-search-bar fr-mb-2w fr-col-5" role="search"
+                  hx-get="{% url "faq_page_search" %}"
+                  hx-target="#id_search_results"
+                  hx-on--after-request="this.reset()"
+            >
+              <label class="fr-label" for="search-input">
+                Rechercher
+              </label>
+
+              <input class="fr-input" aria-describedby="search-input-messages" placeholder="Rechercher"
+                     name="q"
+                     id="search-input"
+                     type="search">
+              <div class="fr-messages-group" id="search-input-messages" aria-live="polite">
+              </div>
+              <button title="Rechercher" type="submit" class="fr-btn">Rechercher</button>
+
+            </form>
+
+
+          </div>
+          {% if current_page %}
+            <div hx-get="{% url "faq_page" current_page.pk %}" hx-trigger="load" id="faq-content">
+            </div>
+
+          {% endif %}
+          <hr>
+
+
+          <div class="fr-notice fr-notice--info">
+            <div class="fr-container">
+              <div class="fr-notice__body">
+
+                <p>
+                  <span
+                    class="fr-notice__title">             Vous n'avez pas trouvé la réponse à votre question ?</span>
+                  <span class="fr-notice__desc">  Vous pouvez utiliser notre
+                  <a href="{% url "assistance_wrapper_home" %}"
+                     class="fr-link">formulaire d'assistance</a>.
+                       </span>
+
+                </p>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="id_search_results"></div>
+
+
+{% endblock main %}
+
+{% block scripts %}
+
+
+  <script>
+    function highlight() {
+      // highlight faq side menu
+      const items = document.getElementsByClassName("fr-sidemenu__link");
+      const pathname = window.location.pathname;
+      const pattern = new URLPattern({ pathname: "/faq/:id/" });
+
+      const result = pattern.exec({ pathname });
+      const faqId = result?.pathname.groups.id;
+      const count = items.length;
+      for (let i = 0; i < count; i++) {
+        items[i].removeAttribute("aria-current");
+        if (items[i].id === `sidemenu-item-${faqId}`) {
+          items[i].setAttribute("aria-current", "page");
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      document.addEventListener("highlightNavigation", function() {
+        highlight();
+      });
+    });
+
+  </script>
+
+{% endblock scripts %}

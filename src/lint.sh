@@ -16,7 +16,7 @@ uv run ruff check .
 uv run ruff format .
 
 # Always run HTML formatting
-git ls-files -z -- '*.html' | xargs -0r djade --target-version 5.1
+git ls-files -z -- '*.html'|xargs -0r uv run djade --target-version 5.1
 
 # Run TypeScript/JavaScript related commands only if --ts flag is provided
 if [ "$RUN_TS" = true ]; then

@@ -74,6 +74,14 @@ class CustomIndexDashboard(Dashboard):
                 ),
             )
         )
+        self.children.append(
+            modules.ModelList(
+                _("Faq & bannière"),
+                column=1,
+                collapsible=False,
+                models=("faq.*", "common.*"),
+            )
+        )
 
         self.children.append(
             modules.AppList(

@@ -23,17 +23,21 @@ DEBUG = env("DEBUG")
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.postgres",
     "django.contrib.gis",
+]
+THIRD_PARTY_APPS = [
     "grappelli.dashboard",
     "grappelli",
     "django.contrib.admin",
+    "django_prose_editor",
     "template_partials",
     "solo.apps.SoloAppConfig",
     "anymail",
@@ -50,6 +54,11 @@ INSTALLED_APPS = [
     "rangefilter",
     "mptt",
     "oidc",
+    "django_htmx",
+    "django_jsonform",
+]
+
+LOCAL_APPS = [
     "accounts",
     "common",
     "content",
@@ -60,8 +69,9 @@ INSTALLED_APPS = [
     "data_exports",
     "registry",
     "sentinel",
+    "faq",
 ]
-
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -75,6 +85,7 @@ MIDDLEWARE = [
     "defender.middleware.FailedLoginMiddleware",
     "request.middleware.RequestMiddleware",
     "oidc.middleware.OidcMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -319,9 +330,9 @@ REQUEST_IGNORE_PATHS = (
 # Storages
 
 AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL")
-AWS_BUCKET_NAME = env("AWS_BUCKET_NAME")
-AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_S3_BUCKET_NAME = env("AWS_S3_BUCKET_NAME")
+AWS_S3_ACCESS_KEY_ID = env("AWS_S3_ACCESS_KEY_ID")
+AWS_S3_SECRET_ACCESS_KEY = env("AWS_S3_SECRET_ACCESS_KEY")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
 AWS_QUERYSTRING_EXPIRE = 5 * 60  # mn
 STORAGES = {
@@ -329,7 +340,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "private_s3": {
-        "BACKEND": "roadcontrol.storage_backends.PrivateMediaStorage",
+        "BACKEND": "config.storage_backends.PrivateMediaStorage",
     },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
@@ -346,7 +357,9 @@ MATOMO_SITE_ID = env("MATOMO_SITE_ID", default=None)
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]
 
-
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_RESULT_EXTENDED = True
+
+
+HIDE_FAQ_NAV = env.bool("HIDE_FAQ_NAV", False)
