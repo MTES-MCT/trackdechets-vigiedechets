@@ -1,5 +1,5 @@
-echo "Installing npm dependencies."
-npm ci --dev
+echo "Installing pnpm dependencies."
+pnpm install --frozen-lockfile --dev --ignore-scripts
 echo "Building front."
-npm run build
-npm prune --production
+pnpm run build
+pnpm prune --production
