@@ -770,6 +770,26 @@ class BsdCanceledTableProcessor:
             if "quantity_refused" in schema:
                 columns_to_take.append("quantity_refused")
 
+            # fill emitter_company_siret if it is null or empty
+            # with particulier if the emitter is a private individual
+            # with n/a if the emitter is not a private individual or if we do not know
+            if "emitter_is_private_individual" in schema:
+                bs_data = bs_data.with_columns(
+                    pl.when(
+                        (
+                            (pl.col("emitter_company_siret").is_null() | (pl.col("emitter_company_siret") == ""))
+                            & (pl.col("emitter_is_private_individual"))
+                        )
+                    )
+                    .then(pl.lit("PARTICULIER"))
+                    .alias("emitter_company_siret")
+                )
+            bs_data = bs_data.with_columns(
+                pl.when((pl.col("emitter_company_siret").is_null() | (pl.col("emitter_company_siret") == "")))
+                .then(pl.lit("N/A"))
+                .alias("emitter_company_siret")
+            )
+
             temp_df = cancellations.join(
                 bs_data,
                 left_on="bs_id",
@@ -868,6 +888,7 @@ class BsdRefusedTableProcessor:
             "emitter_company_siret",
             "recipient_company_siret",
             "waste_code",
+            "waste_name",
             "quantity_emitted",
             "quantity_refused",
             "refusal_reason",
@@ -914,6 +935,39 @@ class BsdRefusedTableProcessor:
                         )
                     )
 
+            schema = refused_bs_df.collect_schema().names()
+
+            # BSDASRI, BSVHU, BSFF do not have waste name
+            if "waste_name" not in schema:
+                refused_bs_df = refused_bs_df.join(
+                    self.waste_codes_df.select("code", pl.col("description").alias("waste_name")),
+                    left_on="waste_code",
+                    right_on="code",
+                    how="left",
+                )
+                pass
+
+            # fill emitter_company_siret if it is null or empty
+            # with particulier if the emitter is a private individual
+            # with n/a if the emitter is not a private individual or if we do not know
+            if "emitter_is_private_individual" in schema:
+                refused_bs_df = refused_bs_df.with_columns(
+                    pl.when(
+                        (
+                            (pl.col("emitter_company_siret").is_null() | (pl.col("emitter_company_siret") == ""))
+                            & (pl.col("emitter_is_private_individual"))
+                        )
+                    )
+                    .then(pl.lit("PARTICULIER"))
+                    .otherwise(pl.col("emitter_company_siret"))
+                    .alias("emitter_company_siret")
+                )
+            refused_bs_df = refused_bs_df.with_columns(
+                pl.coalesce([pl.col("emitter_company_siret"), pl.lit("N/A")])
+                .cast(pl.String)
+                .alias("emitter_company_siret")
+            )
+
             refused_bs_df = refused_bs_df.with_columns(
                 pl.coalesce([pl.col("refusal_reason"), pl.lit("")]).cast(pl.String).alias("refusal_reason")
             ).select(columns_to_take)
@@ -921,14 +975,7 @@ class BsdRefusedTableProcessor:
 
         if dfs_processed:
             concat_df = pl.concat(dfs_processed, how="diagonal")
-            # Data is enriched with waste description from the waste nomenclature
-            final_df = concat_df.join(
-                self.waste_codes_df,
-                left_on="waste_code",
-                right_on="code",
-                how="left",
-            )
-            self.preprocessed_df = final_df.collect()
+            self.preprocessed_df = concat_df.collect()
 
     def _check_empty_data(self) -> bool:
         if self.preprocessed_df.is_empty():
