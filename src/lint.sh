@@ -20,9 +20,9 @@ git ls-files -z -- '*.html' | xargs -0r djade --target-version 5.1
 
 # Run TypeScript/JavaScript related commands only if --ts flag is provided
 if [ "$RUN_TS" = true ]; then
-  npm run lint
-  npm run format
-  npm run typecheck
+  pnpm run lint
+  pnpm run format
+  pnpm run typecheck
   echo "TypeScript checks completed."
 else
   echo "Skipping TypeScript checks. Use --ts to run them."

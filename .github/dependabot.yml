@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Configuration for npm packages
+  - package-ecosystem: "npm"
+    directory: "/"  # Location of package.json
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 10
+    groups:
+      # Only group minor and patch dependencies
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+
+  # Configuration for Python packages
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 14

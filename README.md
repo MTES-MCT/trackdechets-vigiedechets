@@ -78,7 +78,7 @@ Pour les tâches asynchrones, dans une autre fenêtre de terminal:
 A la racine du projet :
 
 ```
-    $ npm install
+    $ pnpm install --frozen-lockfile --dev --ignore-scripts
 ```
 
 ### Lancement de l'UI de cartographie
@@ -86,7 +86,7 @@ A la racine du projet :
 Dans un second terminal,
 
 ```
-    $ npm run dev
+    $ pnpm run dev
 ```
 
 ### Utilitaires

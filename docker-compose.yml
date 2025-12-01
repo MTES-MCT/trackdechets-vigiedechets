@@ -71,7 +71,7 @@ services:
   frontend:
     image: node:20-alpine
     working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    command: sh -c "npm install -g pnpm && pnpm install --frozen-lockfile --dev --ignore-scripts && pnpm run dev -- --host 0.0.0.0"
     volumes:
       - .:/app
     ports:
