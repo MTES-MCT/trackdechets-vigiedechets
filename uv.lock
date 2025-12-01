@@ -957,19 +957,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-request"
-version = "1.7.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "python-dateutil" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/8b/d490d2a1f61bc1f33d42765644b46b356ee3056bd892ecf1fee45f94ac28/django_request-1.7.1.tar.gz", hash = "sha256:a4c9dcfe5a9c61765f26e98269df2b8de492fa319ed0eacd41c8bcd4d7b181e4", size = 80825, upload-time = "2025-10-16T10:31:56.187Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/cf/89ec73c050cb68a73d18c32bc1af3532274cc89041cf5a3b391270767545/django_request-1.7.1-py3-none-any.whl", hash = "sha256:5c386fe66c056999cefafb700c7e81c57e011b43574a052689bdf30fb7bfa023", size = 85108, upload-time = "2025-10-16T10:31:54.652Z" },
-]
-
-[[package]]
 name = "django-simple-menu"
 version = "2.1.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2395,7 +2382,6 @@ dependencies = [
     { name = "django-otp" },
     { name = "django-prose-editor", extra = ["sanitize"] },
     { name = "django-registration" },
-    { name = "django-request" },
     { name = "django-simple-menu" },
     { name = "django-solo" },
     { name = "django-storages", extra = ["s3"] },
@@ -2461,7 +2447,6 @@ requires-dist = [
     { name = "django-otp", specifier = ">=1.6.3" },
     { name = "django-prose-editor", extras = ["sanitize"], specifier = ">=0.21.0" },
     { name = "django-registration", specifier = ">=5.2.1" },
-    { name = "django-request", specifier = ">=1.7.1" },
     { name = "django-simple-menu", specifier = ">=2.1.4" },
     { name = "django-solo", specifier = ">=2.4.0" },
     { name = "django-storages", extras = ["s3"], specifier = ">=1.14.6" },

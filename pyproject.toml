@@ -21,7 +21,6 @@ dependencies = [
     "django-otp>=1.6.3",
     "django-prose-editor[sanitize]>=0.21.0",
     "django-registration>=5.2.1",
-    "django-request>=1.7.1",
     "django-simple-menu>=2.1.4",
     "django-solo>=2.4.0",
     "django-storages[s3]>=1.14.6",
