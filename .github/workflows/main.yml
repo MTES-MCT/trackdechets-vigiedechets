@@ -117,3 +117,4 @@ jobs:
           DWH_SSH_KEY: ssh key
           DWH_SSH_KEY_PASSPHRASE: passphrase
           ALLOWED_USER_FOR_SENTINEL: ""
+          PARQUET_BUCKET_NAME: "donnees-test"

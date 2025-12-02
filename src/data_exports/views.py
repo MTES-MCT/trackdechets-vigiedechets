@@ -10,8 +10,8 @@ from django.views.generic import FormView, TemplateView
 from accounts.constants import PERMS_DATA_EXPORT
 from common.mixins import FullyLoggedMixin
 
-from .constants import PARQUET_BUCKET_NAME, PRESIGNED_URL_EXPIRATION
-from .models import BsdTypeChoice, DataExport, DataExportDownload
+from .constants import PRESIGNED_URL_EXPIRATION
+from .models import DataExport, DataExportDownload, ExportTypeChoice
 
 
 class DummyForm(forms.Form):
@@ -29,8 +29,8 @@ class ExportList(FullyLoggedMixin, TemplateView):
         years = list(range(current_year, oldest_year - 1, -1)) + [None]
         exports = defaultdict(list)
         for year in years:
-            for bsd_type in BsdTypeChoice:
-                exp = DataExport.objects.filter(year=year, bsd_type=bsd_type).first()
+            for export_type in ExportTypeChoice:
+                exp = DataExport.objects.filter(year=year, export_type=export_type).first()
                 if exp:
                     exports[year].append(exp)
 
@@ -67,8 +67,10 @@ class ExportDownload(FullyLoggedMixin, FormView):
         )
         response = client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": PARQUET_BUCKET_NAME, "Key": export.s3_path},
+            Params={"Bucket": settings.PARQUET_BUCKET_NAME, "Key": export.s3_path},
             ExpiresIn=PRESIGNED_URL_EXPIRATION,
         )
-        DataExportDownload.objects.create(user=str(self.request.user), year=export.year, bsd_type=export.bsd_type)
+        DataExportDownload.objects.create(
+            user=str(self.request.user), year=export.year, export_type=export.export_type
+        )
         return response

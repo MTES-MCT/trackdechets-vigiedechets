@@ -7,12 +7,11 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.management.base import BaseCommand
 
-from ...constants import PARQUET_BUCKET_NAME
 from ...models import DataExport
 
 logger = logging.getLogger(__name__)
 
-pattern = r"^(bsdd|bsda|bsdasri|bsvhu|bsff)\/(bsdd|bsda|bsdasri|bsvhu|bsff)_?(20\d{2})?.parquet$"
+pattern = r"^(bsdd|bsda|bsdasri|bsvhu|bsff|dnd_entrant|dnd_sortant|texs_entrant|texs_sortant)\/(bsdd|bsda|bsdasri|bsvhu|bsff|dnd_entrant|dnd_sortant|texs_entrant|texs_sortant)_?(20\d{2})?.parquet$"
 
 
 def verbosify_byte_size(size_bytes):
@@ -83,21 +82,22 @@ class Command(BaseCommand):
     def handle(self, verbosity=0, **options):
         """List bucket content and create DataExport objects to display on relevant page"""
         try:
-            data = list_s3_bucket_contents(PARQUET_BUCKET_NAME)
+            data = list_s3_bucket_contents(settings.PARQUET_BUCKET_NAME)
             for el in data:
                 key = el["key"]
                 matches = re.search(pattern, key)
 
                 if not matches:
                     continue
-                bsd_type, _, year = matches.groups()
+                export_type, _, year = matches.groups()
                 file_name = key.split("/")[1]
 
                 year = int(year) if year else None
                 size = el["size"]
 
+                logger.info("Creating data export for %s", file_name)
                 created = DataExport.objects.create(
-                    bsd_type=bsd_type.upper(),
+                    export_type=export_type.upper(),
                     year=year,
                     s3_path=key,
                     size=size,

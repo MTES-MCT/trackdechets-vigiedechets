@@ -5,20 +5,24 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
-class BsdTypeChoice(models.TextChoices):
+class ExportTypeChoice(models.TextChoices):
     BSDD = "BSDD", _("Déchets dangereux")
     BSDA = "BSDA", _("Amiante")
     BSDASRI = "BSDASRI", _("DASRI")
     BSVHU = "BSVHU", _("VHU")
     BSFF = "BSFF", _("Fluides Frigo")
+    DND_ENTRANT = "DND_ENTRANT", _("Registre entrant : Déchets non dangereux")
+    DND_SORTANT = "DND_SORTANT", _("Registre sortant : Déchets non dangereux")
+    TEXS_ENTRANT = "TEXS_ENTRANT", _("Registre entrant : Terres et sédiments")
+    TEXS_SORTANT = "TEXS_SORTANT", _("Registre sortant : Terres et sédiments")
 
 
 class DataExport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    bsd_type = models.CharField(
-        _("Bsd Type"),
+    export_type = models.CharField(
+        _("Export Type"),
         max_length=20,
-        choices=BsdTypeChoice.choices,
+        choices=ExportTypeChoice.choices,
     )
     year = models.PositiveSmallIntegerField(blank=True, null=True)
     name = models.CharField(_("Export name"), max_length=255, blank=True)
@@ -34,13 +38,13 @@ class DataExport(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"Export {self.bsd_type} {self.year or 'full'}"
+        return f"Export {self.export_type} {self.year or 'full'}"
 
 
 class DataExportDownload(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    bsd_type = models.CharField(
-        _("Bsd Type"),
+    export_type = models.CharField(
+        _("Export Type"),
         max_length=20,
     )
     year = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -56,4 +60,4 @@ class DataExportDownload(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"Export Download {self.bsd_type} {self.year or 'full'} by {self.user}"
+        return f"Export Download {self.export_type} {self.year or 'full'} by {self.user}"

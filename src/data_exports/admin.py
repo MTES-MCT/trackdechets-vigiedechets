@@ -7,7 +7,7 @@ from .models import DataExport, DataExportDownload
 class DataExportAdmin(admin.ModelAdmin):
     list_display = [
         "id",
-        "bsd_type",
+        "export_type",
         "year",
         "name",
         "verbose_size",
@@ -19,7 +19,7 @@ class DataExportAdmin(admin.ModelAdmin):
 class DataExportDownloadAdmin(admin.ModelAdmin):
     list_display = [
         "id",
-        "bsd_type",
+        "export_type",
         "year",
         "user",
         "created_at",
