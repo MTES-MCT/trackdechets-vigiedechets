@@ -46,7 +46,6 @@ THIRD_PARTY_APPS = [
     "django_otp.plugins.otp_email",
     "django_filters",
     "django_vite",
-    "request",  # webstats module
     "simple_menu",
     "rest_framework",
     "rest_framework.authtoken",
@@ -83,7 +82,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "defender.middleware.FailedLoginMiddleware",
-    "request.middleware.RequestMiddleware",
     "oidc.middleware.OidcMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
