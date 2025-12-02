@@ -17,6 +17,8 @@ Transition Écologique.
 
 ## Installation
 
+
+
 ### Initialisation d'un environnement Installation des dépendances
 
 ```
@@ -43,6 +45,22 @@ $ uv sync --frozen --group test
 - WAREHOUSE_URL, en lecture seule, contenant un dump des données du data warehouse Trackdéchets
 
 Se référer au fichier env.dist
+
+#### Problèmes sur MacOs
+
+Sur macOs, si vous rencontrez une erreur semblable à:
+
+```
+    OSError: cannot load library 'libgobject-2.0-0'
+```
+
+il peut être nécessaire d'ajouter la variable d'environnement suivante nécessaire au moteur pdf (weasyprint):
+
+```
+    $ export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
+
+```
+
 
 ### Setup de la db
 
