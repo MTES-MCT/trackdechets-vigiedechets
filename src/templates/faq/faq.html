@@ -14,46 +14,64 @@
 
             <nav class="fr-sidemenu" role="navigation" aria-labelledby="sidemenu-title">
               <div class="fr-sidemenu__inner">
-                <button aria-expanded="false" aria-controls="sidemenu" type="button" class="fr-sidemenu__btn">Dans cette
-                  rubrique
+                <button
+                  class="fr-sidemenu__btn"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="sidemenu"
+                >
+                  Dans cette rubrique
                 </button>
+
                 <div class="fr-collapse" id="sidemenu">
                   <p class="fr-sidemenu__title" id="sidemenu-title">FAQ</p>
+
                   <ul class="fr-sidemenu__list">
                     {% recursetree faq_pages %}
-                      {% if node.is_root_node %}
-                        <li class="fr-sidemenu__item">
-                          <button aria-expanded="false" aria-controls="sidemenu-{{ node.id }}" type="button"
-                                  class="fr-sidemenu__btn">
+                      <li class="fr-sidemenu__item">
+                        {# Determine if this node should be a link or button #}
+                        {% if node.is_root_node and not node.is_leaf_node %}
+                          {# Root non-leaf: collapsible button #}
+                          <button
+                            class="fr-sidemenu__btn"
+                            type="button"
+                            aria-expanded="false"
+                            aria-controls="sidemenu-{{ node.id }}"
+                          >
                             {{ node.title }}
                           </button>
-                          {% if not node.is_leaf_node %}
-                            <div class="fr-collapse" id="sidemenu-{{ node.id }}">
-                              <ul class="fr-sidemenu__list">
-                                {{ children }}
-                              </ul>
-                            </div>
-                          {% endif %}
-                        </li>
-                      {% else %}
-                        <li class="fr-sidemenu__item">
-                          <a href="#" class="fr-sidemenu__link"
-                             id="sidemenu-item-{{ node.pk }}"
-                             hx-get="{% url 'faq_page' node.pk %}"
-                             hx-target="#faq-content">{{ node.title }}</a>
+
+                          <div class="fr-collapse" id="sidemenu-{{ node.id }}">
+                            <ul class="fr-sidemenu__list">
+                              {{ children }}
+                            </ul>
+                          </div>
+                        {% else %}
+                          {# All other cases: link #}
+                          <a
+                            href="{% url 'faq_page' node.pk %}"
+                            class="fr-sidemenu__link"
+                            id="sidemenu-item-{{ node.pk }}"
+                            hx-get="{% url 'faq_page' node.pk %}"
+                            hx-target="#faq-content"
+                            hx-push-url="true"
+                          >
+                            {{ node.title }}
+                          </a>
+
+                          {# Non-leaf nodes can have nested children #}
                           {% if not node.is_leaf_node %}
                             <ul class="fr-sidemenu__list">
                               {{ children }}
                             </ul>
                           {% endif %}
-                        </li>
-                      {% endif %}
+                        {% endif %}
+                      </li>
                     {% endrecursetree %}
                   </ul>
                 </div>
               </div>
             </nav>
-
 
           </div>
         </div>
