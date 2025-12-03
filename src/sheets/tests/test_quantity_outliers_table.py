@@ -7,7 +7,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDD, BSFF
 
-from ..graph_processors.html_components_processors import QuantityOutliersTableProcessor
+from ..graph_processors.html_components import QuantityOutliersTableProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

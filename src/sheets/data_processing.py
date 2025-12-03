@@ -39,7 +39,7 @@ from .data_extraction import (
     get_registries_ndw_data,
     get_ssd_data,
 )
-from .graph_processors.html_components_processors import (
+from .graph_processors.html_components import (
     BsdaWorkerStatsProcessor,
     BsdCanceledTableProcessor,
     BsdRefusedTableProcessor,

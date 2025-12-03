@@ -8,9 +8,7 @@ from polars.testing import assert_frame_equal
 from sheets.constants import BSDA, BSDASRI, BSDD, BSFF
 from sheets.data_extract import load_waste_code_data
 
-from ..graph_processors.html_components_processors import (
-    WasteFlowsTableProcessor,
-)  # Adjust the import to your actual module
+from ..graph_processors.html_components import WasteFlowsTableProcessor
 from .constants import EXPECTED_FILES_PATH
 
 tz = ZoneInfo("Europe/Paris")

@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 import pytest
 
-from ..graph_processors.html_components_processors import RegistryTransporterStatsProcessor
+from ..graph_processors.html_components import RegistryTransporterStatsProcessor
 
 tz = ZoneInfo("Europe/Paris")
 
