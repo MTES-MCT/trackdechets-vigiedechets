@@ -36,33 +36,36 @@ def sample_data():
     # Sample bordereau data for BSDA
     bsda_data = pl.LazyFrame(
         {
-            "recipient_company_siret": ["12345678900000", "12345678900000"],
-            "processing_operation_code": ["D5", "R2"],
-            "processed_at": [
-                datetime(2023, 2, 2, tzinfo=tz),
-                datetime(2023, 4, 3, tzinfo=tz),
-            ],
-            "quantity_received": [5.0, 15.0],
+            "recipient_company_siret": ["12345678900000", "12345678900000", "12345678900000"],
+            "processing_operation_code": ["D5", "R2", "D5"],
+                "processed_at": [
+                    datetime(2023, 2, 2, tzinfo=tz),
+                    datetime(2023, 4, 3, tzinfo=tz),
+                    datetime(2023, 4, 15, tzinfo=tz),  # Changed to be within date interval
+                ],
+            "quantity_received": [5.0, 15.0, 10.0],
+            "waste_code": ["17 06 05*", "02 01 01*", "17 06 01*"],  # First and third are asbestos
         }
     )
 
     # Sample RNDTS incoming data
     rndts_incoming_data = pl.LazyFrame(
         {
-            "siret": ["12345678900000", "12345678900000"],
+            "siret": ["12345678900000", "12345678900000", "12345678900000"],
             "reception_date": [
                 datetime(2023, 1, 1, tzinfo=tz),
                 datetime(2023, 2, 2, tzinfo=tz),
+                datetime(2023, 3, 3, tzinfo=tz),
             ],
-            "operation_code": ["D5", "R1"],
-            "weight_value": [30.0, 20.0],
+            "operation_code": ["D5", "R1", "D10"],
+            "weight_value": [30.0, 20.0, 15.0],
         }
     )
 
     bs_data_dfs = {BSDD: bsdd_data, BSDA: bsda_data}
     data_date_interval = (
         datetime(2023, 1, 1, tzinfo=tz),
-        datetime(2023, 4, 30, tzinfo=tz),
+        datetime(2023, 5, 31, tzinfo=tz),  # Extended to include May 5th
     )
 
     return bs_data_dfs, rndts_incoming_data, icpe_data, data_date_interval
@@ -110,15 +113,20 @@ def test_preprocess_data_multi_rubriques(sample_data):
         "num_found_processing_codes": 1,
         "bs_list": pl.DataFrame(
             {
-                "recipient_company_siret": ["12345678900000", "12345678900000"],
-                "processing_operation_code": ["D5", "D5"],
-                "processed_at": [datetime(2023, 2, 2, tzinfo=tz), datetime(2023, 2, 2, tzinfo=tz)],
-                "quantity_received": [22.0, 5.0],
-                "quantity_refused": [2.0, None],
-                "bs_type": ["BSDD", "BSDA"],
+                "recipient_company_siret": ["12345678900000", "12345678900000", "12345678900000"],
+                "processing_operation_code": ["D5", "D5", "D5"],
+                "processed_at": [
+                    datetime(2023, 2, 2, tzinfo=tz),
+                    datetime(2023, 2, 2, tzinfo=tz),
+                    datetime(2023, 4, 15, tzinfo=tz),  # Changed to be within date interval
+                ],
+                "quantity_received": [22.0, 5.0, 10.0],
+                "quantity_refused": [2.0, None, None],
+                "bs_type": ["BSDD", "BSDA", "BSDA"],
+                "waste_code": [None, "17 06 05*", "17 06 01*"],  # BSDD has None, BSDA has asbestos codes
             }
         ),
-        "stats": {"total_bs": "2", "total_quantity": "25"},
+        "stats": {"total_bs": "3", "total_quantity": "35"},
     }
 
     assert item.keys() == expected_output.keys()
@@ -211,17 +219,17 @@ def test_preprocess_non_dangerous_rubriques(sample_data):
         {
             "missing_rubriques": "2771",
             "num_missing_rubriques": 1,
-            "found_processing_codes": "R1",
-            "num_found_processing_codes": 1,
+            "found_processing_codes": "D10, R1",  # Now includes both D10 and R1
+            "num_found_processing_codes": 2,
             "statements_list": pl.DataFrame(
                 {
-                    "siret": ["12345678900000"],
-                    "reception_date": [datetime(2023, 2, 2, tzinfo=tz)],
-                    "operation_code": ["R1"],
-                    "weight_value": [20.0],
+                    "siret": ["12345678900000", "12345678900000"],
+                    "reception_date": [datetime(2023, 3, 3, tzinfo=tz), datetime(2023, 2, 2, tzinfo=tz)],
+                    "operation_code": ["D10", "R1"],
+                    "weight_value": [15.0, 20.0],
                 }
             ),
-            "stats": {"total_statements": "1", "total_quantity": "20"},
+            "stats": {"total_statements": "2", "total_quantity": "35"},
         },
     ]
 
@@ -237,11 +245,27 @@ def test_preprocess_non_dangerous_rubriques(sample_data):
 
 
 def test_preprocess_data_multi_rubriques_without_quantity_refused(sample_data):
-    """Test that multiple rubrique processing works correctly."""
+    """Test that multiple rubrique processing works correctly with asbestos filtering."""
     bs_data_dfs, rndts_incoming_data, icpe_data, data_date_interval = sample_data
+    # Create BSDA-only data with asbestos and non-asbestos waste
+    bsda_only_data = {
+        BSDA: pl.LazyFrame(
+            {
+                "recipient_company_siret": ["12345678900000", "12345678900000", "12345678900000"],
+                "processing_operation_code": ["D5", "D5", "D5"],
+                "processed_at": [
+                    datetime(2023, 2, 2, tzinfo=tz),
+                    datetime(2023, 4, 15, tzinfo=tz),
+                    datetime(2023, 4, 20, tzinfo=tz),
+                ],
+                "quantity_received": [5.0, 10.0, 8.0],
+                "waste_code": ["17 06 05*", "17 06 01*", "02 01 01*"],  # First two are asbestos, third is not
+            }
+        )
+    }
     processor = WasteProcessingWithoutICPERubriqueProcessor(
         company_siret="12345678900000",
-        bs_data_dfs={k: v for k, v in bs_data_dfs.items() if k == BSDA},
+        bs_data_dfs=bsda_only_data,
         registry_incoming_data=None,
         icpe_data=pl.LazyFrame({"rubrique": ["2791-1", "2718-1"]}),
         data_date_interval=data_date_interval,
@@ -260,14 +284,15 @@ def test_preprocess_data_multi_rubriques_without_quantity_refused(sample_data):
         "num_found_processing_codes": 1,
         "bs_list": pl.DataFrame(
             {
-                "recipient_company_siret": ["12345678900000"],
-                "processing_operation_code": ["D5"],
-                "processed_at": [datetime(2023, 2, 2, tzinfo=tz)],
-                "quantity_received": [5.0],
-                "bs_type": ["BSDA"],
+                "recipient_company_siret": ["12345678900000", "12345678900000"],
+                "processing_operation_code": ["D5", "D5"],
+                "processed_at": [datetime(2023, 2, 2, tzinfo=tz), datetime(2023, 4, 15, tzinfo=tz)],
+                "quantity_received": [5.0, 10.0],
+                "bs_type": ["BSDA", "BSDA"],
+                "waste_code": ["17 06 05*", "17 06 01*"],  # Only asbestos codes
             }
         ),
-        "stats": {"total_bs": "1", "total_quantity": "5"},
+        "stats": {"total_bs": "2", "total_quantity": "15"},
     }
 
     assert item.keys() == expected_output.keys()

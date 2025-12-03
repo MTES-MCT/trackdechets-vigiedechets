@@ -75,14 +75,28 @@ class WasteProcessingWithoutICPERubriqueProcessor:
                 bs_2760_dfs.append(bsdd_data_filtered)
 
             if not has_2760_2:  # Means no authorization for ICPE 2760-1 NEITHER 2760-2 (BSDA case)
-                bsda_data = self.bs_data_dfs[BSDA]
+                bsda_data = self.bs_data_dfs.get(BSDA)
 
                 if bsda_data is not None:
-                    bsda_data_filtered = bsda_data.filter(
+                    # Filter for asbestos waste codes only when neither 2760-1 nor 2760-2 are present
+                    # Asbestos waste codes: 17 06 01*, 17 06 05*, 06 13 04*
+                    asbestos_waste_codes = ["17 06 01*", "17 06 05*", "06 13 04*"]
+                    
+                    # Check if waste_code column exists in the schema
+                    schema = bsda_data.collect_schema()
+                    has_waste_code = "waste_code" in schema.names()
+                    
+                    filter_expr = (
                         (pl.col("recipient_company_siret") == self.siret)
                         & (pl.col("processing_operation_code") == "D5")
                         & (pl.col("processed_at").is_between(*self.data_date_interval))
                     )
+                    
+                    # Only filter by asbestos waste codes if the column exists
+                    if has_waste_code:
+                        filter_expr = filter_expr & (pl.col("waste_code").is_in(asbestos_waste_codes))
+                    
+                    bsda_data_filtered = bsda_data.filter(filter_expr)
                     bsda_data_filtered = bsda_data_filtered.with_columns(pl.lit("BSDA").alias("bs_type"))
                     bs_2760_dfs.append(bsda_data_filtered)
 
@@ -219,12 +233,13 @@ class WasteProcessingWithoutICPERubriqueProcessor:
         rubriques_mapping = [
             {
                 "rubriques": ["2760-2"],
-                "processing_codes": ["D5"],
+                "processing_codes": ["R1", "D10"],
             },
             {
                 "rubriques": ["2771"],
                 "processing_codes": [
                     "D10",
+                    "R1",
                 ],
             },
             {
