@@ -1,5 +1,6 @@
 import datetime as dt
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -37,11 +38,11 @@ class FaqPage(MPTTModel):
         "maxItems": 10,
     }
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200)
+
     position = models.PositiveIntegerField(default=0)
 
     user_categories = ArrayField(
-        models.CharField(max_length=32, blank=True, choices=UserCategoryChoice.choices),
+        models.CharField(max_length=32, choices=UserCategoryChoice.choices),
         default=list,
         blank=True,
         schema=ITEMS_SCHEMA,
@@ -94,6 +95,12 @@ def image_path(instance, filename):
     return f"faq/images/{unique_id}{ext}"
 
 
+def clean_list_items(html):
+    # Remove <p> tags from inside <li> tags that prose mirror adds
+    html = re.sub(r"<li>\s*<p>(.*?)</p>\s*</li>", r"<li>\1</li>", html, flags=re.DOTALL)
+    return html
+
+
 class ContentBlock(models.Model):
     page = models.ForeignKey(FaqPage, on_delete=models.CASCADE, related_name="blocks")
     order = models.PositiveIntegerField(default=0)
@@ -126,7 +133,8 @@ class ContentBlock(models.Model):
 
     def enriched_content(self):
         assistance_link = reverse_lazy("assistance_wrapper_home")
-        content = self.content.replace("#ASSISTANCE", f"<a href='{assistance_link}'>FAQ</a>")
+        content = clean_list_items(self.content)
+        content = content.replace("#ASSISTANCE", f"<a href='{assistance_link}'>FAQ</a>")
         return content
 
 

@@ -25,6 +25,6 @@ class PrivateHomeView(FullyLoggedMixin, TemplateView):
     allowed_user_categories = ALL_USER_CATEGORIES
 
     def get_context_data(self, **kwargs):
-        webinars = Webinar.objects.future().order_by("scheduled_at")
+        webinars = Webinar.objects.future().order_by("scheduled_at")[:5]
         hide_faq_link = settings.HIDE_FAQ_NAV
         return super().get_context_data(**kwargs, webinars=webinars, hide_faq_link=hide_faq_link)

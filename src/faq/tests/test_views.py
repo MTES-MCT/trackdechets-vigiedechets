@@ -116,6 +116,33 @@ def test_faq_page_allow_user_with_right_category(htmx_client, verified_gendarme)
     assert res.status_code == 200
 
 
+def test_faq_page_search_view_deny_anon(htmx_client, anon_client):
+    url = reverse("faq_page_search")
+
+    res = anon_client.get(url)
+    assert res.status_code == 404
+
+    hx = htmx_client(anon_client)
+    res = hx.get(url)
+    assert res.status_code == 302
+
+
+def test_faq_page_search_view(htmx_client, verified_user):
+    page_1 = FaqPageFactory()
+    ContentBlockFactory(no_media=True, content="lorem ipsum", page=page_1)
+    page_2 = FaqPageFactory()
+    ContentBlockFactory(no_media=True, content="truc bidule", page=page_2)
+
+    url = reverse("faq_page_search")
+
+    hx = htmx_client(verified_user)
+    res = hx.get(url, data={"q": "bidule"})
+    assert res.status_code == 200
+    assert '1 résultat pour "bidule"' in res.content.decode()
+    assert page_2.title in res.content.decode()
+    assert reverse("faq", args=[page_2.pk]) in res.content.decode()
+
+
 # assistance views
 def test_assistance_wrapper_home_view_deny_anon(anon_client):
     url = reverse("assistance_wrapper_home")

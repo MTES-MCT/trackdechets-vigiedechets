@@ -4,30 +4,31 @@
 
 {% block content %}
 
-    <p>Bonjour,</p>
-    <p>
-        Vous venez de vous connecter à Vigiedéchets de Trackdéchets.
-        <br>
+  <p>Bonjour,</p>
+  <p>
+    Vous venez de vous connecter à Vigiedéchets de Trackdéchets.
+    <br>
 
-        Pour des raisons de sécurité, l'authentification à cet outil nécessite également d'y associer un code de
-        sécurité à usage unique, à recopier dans le formulaire de Vigiedéchets : {{ token }}
-    </p>
-
-
-
-    <p style="text-align: center;color:#fff"><a href="{% second_factor_url %}"
-                                                style="color:#fff"
-                                                target="_blank"
-                                                class="button"
-    >Compléter
-        le code sur Vigiedéchets
-    </a></p>
+    Pour des raisons de sécurité, l'authentification à cet outil nécessite également d'y associer un code de
+    sécurité à usage unique, à recopier dans le formulaire de Vigiedéchets : <b
+    style="font-weight: bold"> {{ token }}</b>
+  </p>
 
 
-    <p>
-        Pour rappel, ces données comportent des informations confidentielles et commerciales et ne doivent pas être
-        exposées publiquement.
-    </p>
-    <p>Merci pour votre compréhension.</p>
+
+  <p style="text-align: center;color:#fff"><a href="{% second_factor_url %}"
+                                              style="color:#fff"
+                                              target="_blank"
+                                              class="button"
+  >Compléter
+    le code sur Vigiedéchets
+  </a></p>
+
+
+  <p>
+    Pour rappel, ces données comportent des informations confidentielles et commerciales et ne doivent pas être
+    exposées publiquement.
+  </p>
+  <p>Merci pour votre compréhension.</p>
 
 {% endblock content %}

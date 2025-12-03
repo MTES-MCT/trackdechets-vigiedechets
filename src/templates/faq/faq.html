@@ -9,48 +9,58 @@
 
     <div class="fr-container--fluid">
       <div class="fr-grid-row fr-grid-row--gutters">
-        <div class="fr-col-3">
-
+        <div class="fr-col-4">
           <div>
+
             <nav class="fr-sidemenu" role="navigation" aria-labelledby="sidemenu-title">
-
               <div class="fr-sidemenu__inner">
-
-                <div class="fr-collapse" id="sidemenu-collapse-1">
-                  <p class="fr-sidemenu__title" id="sidemenu-title">Documentation</p>
-
-                </div>
-
-
-                <ul class="fr-sidemenu__list">
-                  {% recursetree faq_pages %}
-                    <li class="fr-sidemenu__item" id="faq-item-{{ node.pk }}">
-
-
-                      <a type="link" class="fr-sidemenu__link" id="sidemenu-item-{{ node.pk }}"
-                         href="#"
-                         hx-get="{% url 'faq_page' node.pk %}"
-                         hx-target="#faq-content"
-                      >{{ node.title }}</a>
-
-                      {% if not node.is_leaf_node %}
-
-                        <ul class="fr-sidemenu__list">
-                          {{ children }}
-                        </ul>
+                <button aria-expanded="false" aria-controls="sidemenu" type="button" class="fr-sidemenu__btn">Dans cette
+                  rubrique
+                </button>
+                <div class="fr-collapse" id="sidemenu">
+                  <p class="fr-sidemenu__title" id="sidemenu-title">FAQ</p>
+                  <ul class="fr-sidemenu__list">
+                    {% recursetree faq_pages %}
+                      {% if node.is_root_node %}
+                        <li class="fr-sidemenu__item">
+                          <button aria-expanded="false" aria-controls="sidemenu-{{ node.id }}" type="button"
+                                  class="fr-sidemenu__btn">
+                            {{ node.title }}
+                          </button>
+                          {% if not node.is_leaf_node %}
+                            <div class="fr-collapse" id="sidemenu-{{ node.id }}">
+                              <ul class="fr-sidemenu__list">
+                                {{ children }}
+                              </ul>
+                            </div>
+                          {% endif %}
+                        </li>
+                      {% else %}
+                        <li class="fr-sidemenu__item">
+                          <a href="#" class="fr-sidemenu__link"
+                             id="sidemenu-item-{{ node.pk }}"
+                             hx-get="{% url 'faq_page' node.pk %}"
+                             hx-target="#faq-content">{{ node.title }}</a>
+                          {% if not node.is_leaf_node %}
+                            <ul class="fr-sidemenu__list">
+                              {{ children }}
+                            </ul>
+                          {% endif %}
+                        </li>
                       {% endif %}
-                    </li>
-                  {% endrecursetree %}
-                </ul>
+                    {% endrecursetree %}
+                  </ul>
+                </div>
               </div>
             </nav>
+
 
           </div>
         </div>
 
 
-        <div class="fr-col-9">
-          <div class="flex ">
+        <div class="fr-col-8">
+          <div class="flex">
 
             <form class="fr-search-bar fr-mb-2w fr-col-5" role="search"
                   hx-get="{% url "faq_page_search" %}"
@@ -63,6 +73,9 @@
 
               <input class="fr-input" aria-describedby="search-input-messages" placeholder="Rechercher"
                      name="q"
+                     minlength="3"
+                     maxlength="20"
+                     required
                      id="search-input"
                      type="search">
               <div class="fr-messages-group" id="search-input-messages" aria-live="polite">
@@ -87,7 +100,7 @@
 
                 <p>
                   <span
-                    class="fr-notice__title">             Vous n'avez pas trouvé la réponse à votre question ?</span>
+                    class="fr-notice__title"> Vous n'avez pas trouvé la réponse à votre question ?</span>
                   <span class="fr-notice__desc">  Vous pouvez utiliser notre
                   <a href="{% url "assistance_wrapper_home" %}"
                      class="fr-link">formulaire d'assistance</a>.
@@ -113,8 +126,26 @@
 
 {% block scripts %}
 
-
   <script>
+    function expandParentSection(activeLink) {
+      // When coming directly on a given page, the submenu might be collapsed, this function opens it
+      // Find the parent collapse div
+      const parentCollapse = activeLink.closest(".fr-collapse");
+
+      if (parentCollapse && parentCollapse.id.startsWith("sidemenu-")) {
+        // Find the button that controls this collapse
+        const collapseId = parentCollapse.id;
+        const button = document.querySelector(`button[aria-controls="${collapseId}"]`);
+
+        if (button) {
+          // Expand the section
+          button.setAttribute("aria-expanded", "true");
+          parentCollapse.classList.add("fr-collapse--expanded");
+        }
+      }
+    }
+
+
     function highlight() {
       // highlight faq side menu
       const items = document.getElementsByClassName("fr-sidemenu__link");
@@ -128,6 +159,8 @@
         items[i].removeAttribute("aria-current");
         if (items[i].id === `sidemenu-item-${faqId}`) {
           items[i].setAttribute("aria-current", "page");
+
+          expandParentSection(items[i]);
         }
       }
     }

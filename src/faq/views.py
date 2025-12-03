@@ -59,7 +59,7 @@ class FaqPageView(HtmxOnlyMixin, FullyLoggedMixin, DetailView):
 language = "french_unaccent"
 
 
-class FaqSearchView(FullyLoggedMixin, FormView):
+class FaqSearchView(HtmxOnlyMixin, FullyLoggedMixin, FormView):
     """Search view for FAQ pages with filtering capabilities"""
 
     allowed_user_categories = ["*"]

@@ -26,7 +26,7 @@ def test_faq_page_creation():
 
     assert faq.id is not None
     assert faq.title is not None
-    assert faq.slug is not None
+
     assert faq.created_at is not None
     assert faq.updated_at is not None
 

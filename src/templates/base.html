@@ -12,9 +12,9 @@
   <title>
     {% block title %}Trackdéchets - Vigiedéchets{% endblock %}
   </title>
-  <link rel="stylesheet" href="{% static "css/dsfr.main.min.css" %}" />
+  <link rel="stylesheet" href="{% static "css/dsfr.min.css" %}" />
   <link href="{% static "css/utility/utility.min.css" %}" rel="stylesheet">
-  <link rel="stylesheet" href="{% static "css/style.css" %}"/>
+  <link rel="stylesheet" href="{% static "css/style.css" %}" />
 
   {% htmx_script %}
 
@@ -163,6 +163,10 @@
 
 
 <script src="{% static "js/utils.js" %}" charset="utf-8"></script>
+<script type="module" src="{% static "js/dsfr/core.module.min.js" %}" charset="utf-8"></script>
+<script type="module" src="{% static "js/dsfr/sidemenu.module.min.js" %}" charset="utf-8"></script>
+<script nomodule src="{% static "js/dsfr/core.nomodule.min.js" %}" charset="utf-8"></script>
+<script nomodule src="{% static "js/dsfr/sidemenu.nomodule.min.js" %}" charset="utf-8"></script>
 
 
 {% if MATOMO_SITE_ID %}
