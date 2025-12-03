@@ -64,7 +64,7 @@ from .graph_processors.html_components import (
     WasteIsDangerousStatementsProcessor,
     WasteProcessingWithoutICPERubriqueProcessor,
 )
-from .graph_processors.plotly_components_processors import (
+from .graph_processors.plotly_components import (
     BsdaWorkerQuantityProcessor,
     BsdQuantitiesGraph,
     BsdTrackedAndRevisedProcessor,
