@@ -3,7 +3,7 @@ from .base import *  # noqa
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "plop",
+        "NAME": "vigiedechets_test",
         "USER": "postgres",
         "PASSWORD": "admin",
         "HOST": "localhost",

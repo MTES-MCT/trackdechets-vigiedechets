@@ -27,7 +27,7 @@ class SuggestedPageInline(admin.StackedInline):
 
 
 @admin.register(FaqPage)
-class PageAdmin(DraggableMPTTAdmin):
+class FaqPageAdmin(DraggableMPTTAdmin):
     list_display = [
         "tree_actions",
         "indented_title",
@@ -35,8 +35,10 @@ class PageAdmin(DraggableMPTTAdmin):
     ]
     position_field = "position"
 
-    search_fields = ["title", "slug"]
-    prepopulated_fields = {"slug": ("title",)}
+    search_fields = [
+        "title",
+    ]
+
     inlines = [ContentBlockInline, SuggestedPageInline]
 
     @admin.display(
@@ -45,7 +47,13 @@ class PageAdmin(DraggableMPTTAdmin):
     def get_user_categories(self, obj):
         if not obj.user_categories:
             return "Tous"
-        return ",".join([str(getattr(UserCategoryChoice, el).label) for el in obj.user_categories])
+        # prevent empty strings in array breaking the page
+        user_categories = ",".join(
+            [str(getattr(UserCategoryChoice, el).label) for el in obj.user_categories if el in UserCategoryChoice]
+        )
+        if not user_categories:
+            return "Tous"
+        return user_categories
 
 
 @admin.register(AssistancePage)

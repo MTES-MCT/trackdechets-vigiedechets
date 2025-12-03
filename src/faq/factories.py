@@ -2,7 +2,6 @@ import uuid
 
 import factory
 from django.utils import timezone
-from django.utils.text import slugify
 from factory import fuzzy
 from factory.django import DjangoModelFactory
 
@@ -16,7 +15,7 @@ class FaqPageFactory(DjangoModelFactory):
         model = FaqPage
 
     title = factory.Faker("sentence", nb_words=5)
-    slug = factory.LazyAttribute(lambda obj: slugify(obj.title)[:200])
+
     position = factory.Sequence(lambda n: n)
 
     parent = None  # Default to root level, can be overridden
