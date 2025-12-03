@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import polars as pl
 import pytest
 
-from ..graph_processors.plotly_components_processors import RegistryQuantitiesGraphProcessor
+from ..graph_processors.plotly_components import RegistryQuantitiesGraphProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

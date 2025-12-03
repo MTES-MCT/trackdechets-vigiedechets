@@ -7,7 +7,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError, InvalidOperationError
 from polars.testing import assert_frame_equal
 
-from ..graph_processors.plotly_components_processors import ICPEAnnualItemProcessor
+from ..graph_processors.plotly_components import ICPEAnnualItemProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

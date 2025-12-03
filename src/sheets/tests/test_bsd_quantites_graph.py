@@ -7,9 +7,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDD, BSFF
 
-from ..graph_processors.plotly_components_processors import (
-    BsdQuantitiesGraph,
-)  # Remplace "your_module" par le bon module
+from ..graph_processors.plotly_components import BsdQuantitiesGraph
 
 tz = ZoneInfo("Europe/Paris")
 
