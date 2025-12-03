@@ -6,7 +6,7 @@ import pytest
 
 from sheets.constants import BSDD
 
-from ..graph_processors.html_components_processors import BsdStatsProcessor
+from ..graph_processors.html_components import BsdStatsProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

@@ -8,7 +8,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDA, BSDASRI, BSDD
 
-from ..graph_processors.html_components_processors import IncineratorOutgoingWasteProcessor
+from ..graph_processors.html_components import IncineratorOutgoingWasteProcessor
 from .constants import EXPECTED_FILES_PATH
 
 tz = ZoneInfo("Europe/Paris")

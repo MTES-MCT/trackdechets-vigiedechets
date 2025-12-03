@@ -6,7 +6,7 @@ import pytest
 from polars.exceptions import ColumnNotFoundError
 from polars.testing import assert_frame_equal
 
-from ..graph_processors.html_components_processors import SSDProcessor
+from ..graph_processors.html_components import SSDProcessor
 
 tz = ZoneInfo("Europe/Paris")
 
