@@ -32,11 +32,11 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.postgres",
     "django.contrib.gis",
+    "django.contrib.admin",
 ]
 THIRD_PARTY_APPS = [
     "grappelli.dashboard",
     "grappelli",
-    "django.contrib.admin",
     "django_prose_editor",
     "template_partials",
     "solo.apps.SoloAppConfig",
@@ -52,7 +52,6 @@ THIRD_PARTY_APPS = [
     "mozilla_django_oidc",
     "rangefilter",
     "mptt",
-    "oidc",
     "django_htmx",
     "django_jsonform",
 ]
@@ -60,6 +59,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "accounts",
     "common",
+    "oidc",
     "content",
     "import_export",
     "roadcontrol",
@@ -361,5 +361,6 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_RESULT_EXTENDED = True
 
-
 HIDE_FAQ_NAV = env.bool("HIDE_FAQ_NAV", False)
+
+SUPPORT_FORM_RECIPIENT = env("SUPPORT_FORM_RECIPIENT")

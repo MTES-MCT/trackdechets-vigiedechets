@@ -58,7 +58,11 @@ class FaqPageAdmin(DraggableMPTTAdmin):
 
 @admin.register(AssistancePage)
 class AssistancePageAdmin(DraggableMPTTAdmin):
-    list_display = ["tree_actions", "indented_title", "display_contact_form", "display_contact_form"]
+    list_display = [
+        "tree_actions",
+        "indented_title",
+        "display_contact_form",
+    ]
 
     list_display_links = ("indented_title",)
 

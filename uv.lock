@@ -914,6 +914,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-multiupload"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/67/26/aeac3095539b591f4dde37c979129c3dccd84c9071f55074ce3c8b99d970/django-multiupload-0.6.1.tar.gz", hash = "sha256:85ee24db8fdb1082494daea312fed5649ecab07326f8502ccf58ca6ab2e3fe5d", size = 6250, upload-time = "2021-10-06T21:29:12.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/18/0d/644af993262efe2fa846beb21707d4a781b2649171f3ee4448079ba8b7de/django_multiupload-0.6.1-py3-none-any.whl", hash = "sha256:ac968fdce7f2640531acbcc003bf1d41ab122bf72a6972ef02940885f0cea2d5", size = 7354, upload-time = "2021-10-06T21:29:10.929Z" },
+]
+
+[[package]]
 name = "django-otp"
 version = "1.6.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2379,6 +2391,7 @@ dependencies = [
     { name = "django-import-export", extra = ["xlsx"] },
     { name = "django-jsonform" },
     { name = "django-mptt" },
+    { name = "django-multiupload" },
     { name = "django-otp" },
     { name = "django-prose-editor", extra = ["sanitize"] },
     { name = "django-registration" },
@@ -2444,6 +2457,7 @@ requires-dist = [
     { name = "django-import-export", extras = ["xlsx"], specifier = ">=4.3.13" },
     { name = "django-jsonform", specifier = ">=2.23.2" },
     { name = "django-mptt", specifier = ">=0.18.0" },
+    { name = "django-multiupload", specifier = ">=0.6.1" },
     { name = "django-otp", specifier = ">=1.6.3" },
     { name = "django-prose-editor", extras = ["sanitize"], specifier = ">=0.21.0" },
     { name = "django-registration", specifier = ">=5.2.1" },
