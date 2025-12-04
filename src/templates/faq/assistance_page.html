@@ -9,23 +9,21 @@
          hx-target="#block"
          hx-swap="outerHTML"
          class="fr-mt-1w">
-
-
       <a href="#" target="_self"
          class="fr-link fr-icon-arrow-right-line fr-link--icon-right fr-link--lg">{{ child.anchor }}</a>
     </div>
   {% endfor %}
 
-  {% if page.parent %}
-    <button class="fr-btn fr-mt-3w"
-            hx-get="{% url "assistance_page" page.parent.pk %}"
-            hx-target="#block"
-            hx-swap="outerHTML">Retour
-    </button>
-  {% endif %}
-  {% if page.open_form %}
-
-    <div class="contact-form fr-mt-4w" id="contact-form">
+  {% if page.has_form %}
+    <div>
+    {% if page.closed_form %}
+      <p>
+      <button onclick="document.getElementById('contact-form').classList.toggle('hidden')" class="fr-btn fr-mt-3w">
+        Nous contacter
+      </button>
+      </p>
+    {% endif %}
+    <div class="contact-form fr-mt-4w {% if page.closed_form %}hidden{% endif %}" id="contact-form">
       <hr>
       <h3>Contactez-nous</h3>
       <p>Merci de renseigner au mieux les champs proposés pour accélérer le traitement de votre demande.</p>
@@ -57,13 +55,12 @@
     </div>
   {% endif %}
 
-  {# {% if page.closed_form %} #}
-  {# <div id="form-wrapper" class="fr-mt-4v"> #}
-  {# <button hx-get="{% url "assistance_contact" %}?page={{ page.id }}" #}
-  {# hx-trigger="click" #}
-  {# hx-target="#form-wrapper" #}
-  {# class="fr-btn">Nous contacter #}
-  {# </button> #}
-  {# </div> #}
-  {# {% endif %} #}
+  {% if page.parent %}
+    <button class="fr-btn fr-mt-3w"
+            hx-get="{% url "assistance_page" page.parent.pk %}"
+            hx-target="#block"
+            hx-swap="outerHTML">Retour
+    </button>
+  {% endif %}
+</div>
 </div>

@@ -31,6 +31,9 @@
     white-space: nowrap;
 }
 
+.hidden {
+    display: none;
+}
 
 /* cells */
 .row {
