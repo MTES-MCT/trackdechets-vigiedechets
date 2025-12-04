@@ -2,6 +2,8 @@
 
 ## Utilitaire de préparation de fiches d'inspection, téléchargement de registre, contrôle routier et visualisation cartographique
 
+## Description fonctionnelle
+
 Dépôt de code du projet **Trackdéchets Vigiedéchets** incubé à la Fabrique Numérique du Ministère de la
 Transition Écologique.
 
@@ -12,37 +14,20 @@ Transition Écologique.
 - Le package manager UV https://docs.astral.sh/uv/
 - les librairies nécessaires aux fonctionalités géographiques de django (GDAL et GEOS)
 - la librairie pango
-- [uv](https://docs.astral.sh/uv/) (package manager)
 - Pour certaines fonctionnalités, un accès à un S3-like est nécessaire (AWS, Scaleway, Minio en local)
 
 ## Installation
 
-
-
 ### Initialisation d'un environnement Installation des dépendances
 
-```
-$ uv sync --frozen
-```
 
-Pour installer les dépendances de dev
-
-```
-$ uv sync --frozen --group dev
-```
-
-Pour installer les dépendances de test
-
-```
-$ uv sync --frozen --group test
-```
 
 ### Variable d'environnement
 
 2 db sont nécessaires:
 
 - DATABASE_URL, managée par django, pour les comptes, les données calculées etc.
-- WAREHOUSE_URL, en lecture seule, contenant un dump des données du data warehouse Trackdéchets
+- Un accès à l'entrepôt de données (clickhouse), via un tunnel ssh.
 
 Se référer au fichier env.dist
 
@@ -60,7 +45,6 @@ il peut être nécessaire d'ajouter la variable d'environnement suivante nécess
     $ export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib
 
 ```
-
 
 ### Setup de la db
 
