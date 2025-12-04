@@ -32,11 +32,11 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.postgres",
     "django.contrib.gis",
-    "django.contrib.admin",
 ]
 THIRD_PARTY_APPS = [
     "grappelli.dashboard",
     "grappelli",
+    "django.contrib.admin",  # keep it after grappelli
     "django_prose_editor",
     "template_partials",
     "solo.apps.SoloAppConfig",
