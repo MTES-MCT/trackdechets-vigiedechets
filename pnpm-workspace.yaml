@@ -1,1 +1,6 @@
 minimumReleaseAge: 20160  # minutes; 2 weeks
+minimumReleaseAgeExclude:
+  - react
+  - react-dom
+  - '@types/react'
+  - '@types/react-dom'
