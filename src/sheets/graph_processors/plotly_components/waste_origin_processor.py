@@ -5,12 +5,14 @@ import plotly.graph_objects as go
 import polars as pl
 
 from sheets.utils import format_number_str
+from ...constants import BSFF
 
 
 class WasteOriginProcessor:
     """Component with a bar figure representing the quantity of waste received by départements (only TOP 6).
 
     Parameters
+    ----------
     company_siret: str
         SIRET number of the establishment for which the data is displayed (used for data preprocessing).
     bs_data_dfs: dict
@@ -19,6 +21,9 @@ class WasteOriginProcessor:
         Static data about regions and départements with their codes.
     data_date_interval: tuple
         Date interval to filter data.
+    packagings_data: LazyFrame, optional
+        For BSFF data, packagings dataset to be able to compute the quantities.
+        Quantities are stored at packaging level for BSFF, not at bordereau level.
     """
 
     def __init__(
@@ -27,18 +32,65 @@ class WasteOriginProcessor:
         bs_data_dfs: Dict[str, pl.LazyFrame],
         departements_regions_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
+        packagings_data: pl.LazyFrame | None = None,
     ) -> None:
         self.company_siret = company_siret
         self.bs_data_dfs = bs_data_dfs
         self.departements_regions_df = departements_regions_df
         self.data_date_interval = data_date_interval
+        self.packagings_data = packagings_data
 
         self.preprocessed_serie = None
         self.figure = None
 
+    def _process_bsff_data(self) -> None:
+        """Process BSFF data to get the quantities received by container.
+        
+        If BSFF is present in bs_data_dfs and packagings_data is available:
+        - Joins packagings data to get quantities at container level
+        - Sums container quantities to get bordereau-level quantities
+        - Updates bs_data_dfs with processed BSFF data
+        
+        If packagings_data is None, BSFF is removed from bs_data_dfs and won't be processed.
+        If BSFF is not in bs_data_dfs, this method does nothing.
+        """
+        if BSFF not in self.bs_data_dfs:
+            return
+    
+        bsff_df = self.bs_data_dfs[BSFF]
+        if self.packagings_data is not None:
+            # Join packagings data to get quantities
+            df = bsff_df.join(
+                self.packagings_data.select(["bsff_id", "acceptation_weight", "acceptation_date"]),
+                left_on="id",
+                right_on="bsff_id",
+                validate="1:m",
+            )
+            # Use acceptation_date for received_at when filtering incoming data
+            df = df.with_columns(
+                pl.coalesce(pl.col("acceptation_date"), pl.col("received_at")).alias("received_at")
+            )
+            df = df.rename({"acceptation_weight": "quantity_received"})
+
+            # Re-aggregate at bordereau level
+            df = df.group_by("id").agg(
+                pl.col("emitter_company_siret").max(),
+                pl.col("emitter_company_address").max(),
+                pl.col("recipient_company_siret").max(),
+                pl.col("quantity_received").sum(),  # Sum of container quantities
+                pl.col("received_at").min(),
+            )
+            self.bs_data_dfs[BSFF] = df
+        else:
+            # If no packagings data, skip BSFF (can't calculate quantities)
+            # BSFF is set to None in bs_data_dfs and won't be processed
+            self.bs_data_dfs[BSFF] = None
+
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
             return
+
+        self._process_bsff_data()
 
         concat_df = pl.concat(
             [
@@ -47,7 +99,6 @@ class WasteOriginProcessor:
             ],
             how="diagonal",
         )
-
         # The postal code is extracted from the address field using a simple regex
         concat_df = concat_df.with_columns(
             pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")
