@@ -141,28 +141,17 @@ def test_bsff_process_bsff_data_method(
     THEN: BSFF data is joined with packagings, quantities are summed per bordereau,
           and the processed dataframe contains quantity_received, emitter_company_address, and received_at columns
     """
-    company_siret = "43210987654321"
-    bs_data_dfs = {BSFF: sample_bsff_data}
-
-    processor = WasteOriginProcessor(
-        company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
-        departements_regions_df=departements_regions_df,
-        data_date_interval=data_date_interval,
-        packagings_data=sample_packagings_data,
+    processed_bsff_df = WasteOriginProcessor._process_bsff_data(
+        packagings_data=sample_packagings_data, bsff_df=sample_bsff_data
     )
 
-    processor._process_bsff_data()
-
-    # Verify BSFF data was processed and updated in bs_data_dfs
-    assert BSFF in processor.bs_data_dfs
-    assert processor.bs_data_dfs[BSFF] is not None
+    # Verify BSFF data was processed correctly
+    assert processed_bsff_df is not None
 
     # Verify the processed dataframe has the correct structure
-    processed_df = processor.bs_data_dfs[BSFF].collect()
-    assert "quantity_received" in processed_df.columns
-    assert "emitter_company_address" in processed_df.columns
-    assert "received_at" in processed_df.columns
+    processed_df = processed_bsff_df.collect()
+    expected_columns = {"id", "emitter_company_siret", "emitter_company_address", "recipient_company_siret", "quantity_received", "received_at"}
+    assert set(processed_df.columns) == expected_columns
 
     # Verify quantities are summed correctly
     quantities = processed_df["quantity_received"].to_list()
@@ -176,50 +165,31 @@ def test_bsff_process_bsff_data_without_packagings(
     
     GIVEN: BSFF data exists but packagings_data is None
     WHEN: _process_bsff_data is called
-    THEN: BSFF entry in bs_data_dfs is set to None (cannot calculate quantities without packagings)
+    THEN: Returns None (cannot calculate quantities without packagings)
     """
-    company_siret = "43210987654321"
-    bs_data_dfs = {BSFF: sample_bsff_data}
-
-    processor = WasteOriginProcessor(
-        company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
-        departements_regions_df=departements_regions_df,
-        data_date_interval=data_date_interval,
-        packagings_data=None,
+    processed_bsff_df = WasteOriginProcessor._process_bsff_data(
+        packagings_data=None, bsff_df=sample_bsff_data
     )
 
-    processor._process_bsff_data()
-
-    # BSFF should be set to None
-    assert processor.bs_data_dfs[BSFF] is None
+    # Should return None when packagings_data is None
+    assert processed_bsff_df is None
 
 
 def test_bsff_process_bsff_data_not_in_dictionary(
     departements_regions_df, data_date_interval
 ):
-    """Test _process_bsff_data when BSFF is not in bs_data_dfs.
+    """Test _process_bsff_data when bsff_df is None.
     
-    GIVEN: BSFF is not present in bs_data_dfs dictionary
+    GIVEN: bsff_df is None (BSFF not present in bs_data_dfs)
     WHEN: _process_bsff_data is called
-    THEN: No error is raised and BSFF remains absent from bs_data_dfs
+    THEN: Returns None without raising an error
     """
-    company_siret = "43210987654321"
-    bs_data_dfs = {}
-
-    processor = WasteOriginProcessor(
-        company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
-        departements_regions_df=departements_regions_df,
-        data_date_interval=data_date_interval,
-        packagings_data=None,
+    processed_bsff_df = WasteOriginProcessor._process_bsff_data(
+        packagings_data=None, bsff_df=None
     )
 
-    # Should not raise an error
-    processor._process_bsff_data()
-
-    # BSFF should not be in the dictionary
-    assert BSFF not in processor.bs_data_dfs
+    # Should return None when bsff_df is None
+    assert processed_bsff_df is None
 
 
 def test_bsff_absent_from_dictionary_no_error(
@@ -260,7 +230,7 @@ def test_bsff_without_packagings_ignored(
     
     GIVEN: BSFF data exists but packagings_data is None
     WHEN: _preprocess_data is called
-    THEN: BSFF is set to None in bs_data_dfs and excluded from processing,
+    THEN: BSFF is excluded from processing (returns None from _process_bsff_data),
           resulting in empty preprocessed_serie
     """
     company_siret = "43210987654321"
@@ -276,10 +246,12 @@ def test_bsff_without_packagings_ignored(
 
     processor._preprocess_data()
 
-    # BSFF should be set to None and not processed
-    assert processor.bs_data_dfs[BSFF] is None
+    # BSFF should not be in the local copy used for processing
+    # Original bs_data_dfs should remain unchanged (not mutated)
+    assert BSFF in processor.bs_data_dfs
+    assert processor.bs_data_dfs[BSFF] is sample_bsff_data  # Original reference preserved
 
-    # No data should be in preprocessed_serie since BSFF was the only data
+    # No data should be in preprocessed_serie since BSFF was the only data and was excluded
     assert processor.preprocessed_serie is None or len(processor.preprocessed_serie) == 0
 
 
