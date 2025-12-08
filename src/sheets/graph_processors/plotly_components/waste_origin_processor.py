@@ -43,33 +43,37 @@ class WasteOriginProcessor:
         self.preprocessed_serie = None
         self.figure = None
 
-    def _process_bsff_data(self) -> None:
-        """Process BSFF data to get the quantities received by container.
-        
-        If BSFF is present in bs_data_dfs and packagings_data is available:
-        - Joins packagings data to get quantities at container level
-        - Sums container quantities to get bordereau-level quantities
-        - Updates bs_data_dfs with processed BSFF data
-        
-        If packagings_data is None, BSFF is removed from bs_data_dfs and won't be processed.
-        If BSFF is not in bs_data_dfs, this method does nothing.
+    @staticmethod
+    def _process_bsff_data(
+        packagings_data: pl.LazyFrame | None, bsff_df: pl.LazyFrame | None = None
+    ) -> pl.LazyFrame | None:
+        """Processes BSFF data to compute waste quantities received per container.
+
+        This method joins BSFF bordereau data with packagings data to obtain precise accepted quantities at the container level.
+        It then aggregates these container quantities to the bordereau level for each waste receipt.
+
+        Returns
+        -------
+        LazyFrame | None
+            - If both `bsff_df` and `packagings_data` are provided, returns a LazyFrame of processed BSFF data,
+              grouped by bordereau ID with sum of received quantities and other relevant fields.
+            - If either `bsff_df` or `packagings_data` is missing, returns None.
         """
-        if BSFF not in self.bs_data_dfs:
+
+        if bsff_df is None:
             return
-    
-        bsff_df = self.bs_data_dfs[BSFF]
-        if self.packagings_data is not None:
+        elif packagings_data is None:
+            return
+        else:
             # Join packagings data to get quantities
             df = bsff_df.join(
-                self.packagings_data.select(["bsff_id", "acceptation_weight", "acceptation_date"]),
+                packagings_data.select(["bsff_id", "acceptation_weight", "acceptation_date"]),
                 left_on="id",
                 right_on="bsff_id",
                 validate="1:m",
             )
             # Use acceptation_date for received_at when filtering incoming data
-            df = df.with_columns(
-                pl.coalesce(pl.col("acceptation_date"), pl.col("received_at")).alias("received_at")
-            )
+            df = df.with_columns(pl.coalesce(pl.col("acceptation_date"), pl.col("received_at")).alias("received_at"))
             df = df.rename({"acceptation_weight": "quantity_received"})
 
             # Re-aggregate at bordereau level
@@ -80,22 +84,22 @@ class WasteOriginProcessor:
                 pl.col("quantity_received").sum(),  # Sum of container quantities
                 pl.col("received_at").min(),
             )
-            self.bs_data_dfs[BSFF] = df
-        else:
-            # If no packagings data, skip BSFF (can't calculate quantities)
-            # BSFF is set to None in bs_data_dfs and won't be processed
-            self.bs_data_dfs[BSFF] = None
+            return df
 
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
             return
 
-        self._process_bsff_data()
+        # Work on a copy to avoid mutating shared dictionary
+        local_bs_data_dfs = dict(self.bs_data_dfs)
+        local_bs_data_dfs[BSFF] = self._process_bsff_data(
+            packagings_data=self.packagings_data, bsff_df=local_bs_data_dfs.get(BSFF)
+        )
 
         # Filter out None values (e.g., BSFF when packagings_data is None)
         dfs_to_concat = [
             df.filter(pl.col("received_at").is_between(*self.data_date_interval))
-            for df in self.bs_data_dfs.values()
+            for df in local_bs_data_dfs.values()
             if df is not None
         ]
 
