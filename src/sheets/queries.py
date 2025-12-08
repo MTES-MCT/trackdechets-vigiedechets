@@ -387,7 +387,7 @@ from
 where
     (emitter_company_siret = :siret
         or destination_company_siret = :siret
-        or transporter_company_siret = :siret)
+        or transporters_org_ids[1] = :siret)
     and not is_deleted
     and  status::text not in ('DRAFT', 'INITIAL')
     and not is_draft
