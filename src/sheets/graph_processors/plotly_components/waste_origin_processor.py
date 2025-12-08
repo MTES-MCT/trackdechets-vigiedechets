@@ -92,13 +92,17 @@ class WasteOriginProcessor:
 
         self._process_bsff_data()
 
-        concat_df = pl.concat(
-            [
-                df.filter(pl.col("received_at").is_between(*self.data_date_interval))
-                for df in self.bs_data_dfs.values()
-            ],
-            how="diagonal",
-        )
+        # Filter out None values (e.g., BSFF when packagings_data is None)
+        dfs_to_concat = [
+            df.filter(pl.col("received_at").is_between(*self.data_date_interval))
+            for df in self.bs_data_dfs.values()
+            if df is not None
+        ]
+
+        if len(dfs_to_concat) == 0:
+            return
+
+        concat_df = pl.concat(dfs_to_concat, how="diagonal")
         # The postal code is extracted from the address field using a simple regex
         concat_df = concat_df.with_columns(
             pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")
