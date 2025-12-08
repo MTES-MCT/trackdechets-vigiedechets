@@ -3,7 +3,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDA, BSDASRI, BSDD, BSFF
 
-from ..graph_processors.html_components_processors import BsdRefusedTableProcessor
+from ..graph_processors.html_components import BsdRefusedTableProcessor
 
 
 def test_bsd_refused_processor(

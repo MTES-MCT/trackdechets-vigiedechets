@@ -6,9 +6,7 @@ import pytest
 from plotly.graph_objects import Figure
 from polars.testing import assert_frame_equal
 
-from ..graph_processors.plotly_components_processors import (
-    BsdaWorkerQuantityProcessor,
-)  # Replace with actual module name
+from ..graph_processors.plotly_components import BsdaWorkerQuantityProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

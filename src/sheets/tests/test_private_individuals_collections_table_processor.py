@@ -5,7 +5,7 @@ import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
 
-from ..graph_processors.html_components_processors import PrivateIndividualsCollectionsTableProcessor
+from ..graph_processors.html_components import PrivateIndividualsCollectionsTableProcessor
 
 tz = ZoneInfo("Europe/Paris")
 

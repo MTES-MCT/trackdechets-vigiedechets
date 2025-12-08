@@ -4,7 +4,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDA, BSDASRI, BSDD
 
-from ..graph_processors.html_components_processors import BsdCanceledTableProcessor
+from ..graph_processors.html_components import BsdCanceledTableProcessor
 
 
 @pytest.mark.skip(reason="to fix")

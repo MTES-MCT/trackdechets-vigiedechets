@@ -7,7 +7,7 @@ from polars.testing import assert_frame_equal
 
 from sheets.constants import BSDA, BSDD
 
-from ..graph_processors.html_components_processors import WasteProcessingWithoutICPERubriqueProcessor
+from ..graph_processors.html_components import WasteProcessingWithoutICPERubriqueProcessor
 
 tz = ZoneInfo("Europe/Paris")
 
