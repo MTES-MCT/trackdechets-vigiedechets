@@ -86,19 +86,35 @@ class BsdCanceledTableProcessor:
                         )
                     )
                     .then(pl.lit("PARTICULIER"))
+                    .otherwise(pl.col("emitter_company_siret"))
                     .alias("emitter_company_siret")
                 )
             bs_data = bs_data.with_columns(
                 pl.when((pl.col("emitter_company_siret").is_null() | (pl.col("emitter_company_siret") == "")))
                 .then(pl.lit("N/A"))
+                .otherwise(pl.col("emitter_company_siret"))
                 .alias("emitter_company_siret")
             )
 
+            # Join cancellations with bs_data to get bordereau details including emitter_company_siret
             temp_df = cancellations.join(
                 bs_data,
                 left_on="bs_id",
                 right_on="id",
+                how="inner",
             )
+
+            # Ensure emitter_company_siret is present and not null after join
+            # This handles cases where the join might not preserve the column correctly
+            if "emitter_company_siret" in temp_df.collect_schema().names():
+                temp_df = temp_df.with_columns(
+                    pl.coalesce([pl.col("emitter_company_siret"), pl.lit("N/A")])
+                    .cast(pl.String)
+                    .alias("emitter_company_siret")
+                )
+            else:
+                # If emitter_company_siret is missing, add it (shouldn't happen but handle gracefully)
+                temp_df = temp_df.with_columns(pl.lit("N/A").alias("emitter_company_siret"))
 
             temp_df = temp_df.select(columns_to_take)
             temp_df = temp_df.rename({"bs_id": "id"}, strict=False)
