@@ -6,9 +6,9 @@ import polars as pl
 
 from sheets.utils import format_number_str
 from ...constants import BSFF
+from .waste_origin_base_processor import WasteOriginBaseProcessor
 
-
-class WasteOriginProcessor:
+class WasteOriginProcessor(WasteOriginBaseProcessor):
     """Component with a bar figure representing the quantity of waste received by départements (only TOP 6).
 
     Parameters
@@ -34,57 +34,8 @@ class WasteOriginProcessor:
         data_date_interval: tuple[datetime, datetime],
         packagings_data: pl.LazyFrame | None = None,
     ) -> None:
-        self.company_siret = company_siret
-        self.bs_data_dfs = bs_data_dfs
-        self.departements_regions_df = departements_regions_df
-        self.data_date_interval = data_date_interval
-        self.packagings_data = packagings_data
-
+        super().__init__(company_siret, bs_data_dfs, departements_regions_df, data_date_interval, packagings_data)
         self.preprocessed_serie = None
-        self.figure = None
-
-    @staticmethod
-    def _process_bsff_data(
-        packagings_data: pl.LazyFrame | None, bsff_df: pl.LazyFrame | None = None
-    ) -> pl.LazyFrame | None:
-        """Processes BSFF data to compute waste quantities received per container.
-
-        This method joins BSFF bordereau data with packagings data to obtain precise accepted quantities at the container level.
-        It then aggregates these container quantities to the bordereau level for each waste receipt.
-
-        Returns
-        -------
-        LazyFrame | None
-            - If both `bsff_df` and `packagings_data` are provided, returns a LazyFrame of processed BSFF data,
-              grouped by bordereau ID with sum of received quantities and other relevant fields.
-            - If either `bsff_df` or `packagings_data` is missing, returns None.
-        """
-
-        if bsff_df is None:
-            return
-        elif packagings_data is None:
-            return
-        else:
-            # Join packagings data to get quantities
-            df = bsff_df.join(
-                packagings_data.select(["bsff_id", "acceptation_weight", "acceptation_date"]),
-                left_on="id",
-                right_on="bsff_id",
-                validate="1:m",
-            )
-            # Use acceptation_date for received_at when filtering incoming data
-            df = df.with_columns(pl.coalesce(pl.col("acceptation_date"), pl.col("received_at")).alias("received_at"))
-            df = df.rename({"acceptation_weight": "quantity_received"})
-
-            # Re-aggregate at bordereau level
-            df = df.group_by("id").agg(
-                pl.col("emitter_company_siret").max(),
-                pl.col("emitter_company_address").max(),
-                pl.col("recipient_company_siret").max(),
-                pl.col("quantity_received").sum(),  # Sum of container quantities
-                pl.col("received_at").min(),
-            )
-            return df
 
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
@@ -234,13 +185,3 @@ class WasteOriginProcessor:
         )
 
         self.figure = fig
-
-    def build(self):
-        self._preprocess_data()
-
-        figure = {}
-        if not self._check_data_empty():
-            self._create_figure()
-            figure = self.figure.to_json()
-
-        return figure
