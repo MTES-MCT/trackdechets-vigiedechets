@@ -365,7 +365,7 @@ select
     id,
     id as readable_id,
     created_at,
-    transporter_transport_taken_over_at as sent_at,
+    first_transporter_transport_taken_over_at as sent_at,
     destination_reception_date as received_at,
     destination_operation_signature_date as processed_at,
     emitter_company_siret,
@@ -380,7 +380,7 @@ select
     waste_code,
     destination_operation_code as processing_operation_code,
     status,
-    transporter_company_siret,
+    transporters_org_ids[1] as transporter_company_siret,
     COALESCE(destination_reception_refusal_reason, '') as refusal_reason
 from
     trusted_zone_trackdechets.bsvhu
@@ -393,8 +393,8 @@ where
     and not is_draft
     -- to avoid pandas datetime overflow
     and (
-		transporter_transport_taken_over_at between '1677-09-22' and '2262-04-11'
-		or transporter_transport_taken_over_at is null
+		first_transporter_transport_taken_over_at between '1677-09-22' and '2262-04-11'
+		or first_transporter_transport_taken_over_at is null
 	)
     and (
 		destination_reception_date between '1677-09-22' and '2262-04-11'
