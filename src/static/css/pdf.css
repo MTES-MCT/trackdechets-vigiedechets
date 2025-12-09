@@ -179,7 +179,7 @@ ul {
 
 .pdf-table tbody tr {
     border: 1px solid #ccc;
-
+    break-inside: avoid;
 }
 
 .pdf-table tbody tr:nth-child(even) {
