@@ -5,6 +5,7 @@ from sheets.constants import BSDA, BSDASRI, BSDD
 
 from ..graph_processors.html_components import BsdCanceledTableProcessor
 
+
 def test_bsd_canceled_processor(
     sample_data_bsdd, sample_data_bsda, sample_data_bsdasri, sample_revised_data, data_date_interval
 ):

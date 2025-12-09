@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
-
 import polars as pl
-
 
 
 class WasteOriginBaseProcessor:
@@ -88,9 +86,11 @@ class WasteOriginBaseProcessor:
             return df
 
     def _preprocess_data(self) -> None:
-        raise NotImplementedError("This method is not implemented for the base processor.") 
+        raise NotImplementedError("This method is not implemented for the base processor.")
+
     def _create_figure(self) -> None:
         raise NotImplementedError("This method is not implemented for the base processor.")
+
     def _check_data_empty(self) -> bool:
         raise NotImplementedError("This method is not implemented for the base processor.")
 

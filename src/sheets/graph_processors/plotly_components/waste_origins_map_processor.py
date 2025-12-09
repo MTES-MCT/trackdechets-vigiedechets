@@ -6,9 +6,11 @@ import geopandas as gpd
 import pandas as pd
 import plotly.graph_objects as go
 import polars as pl
-from .waste_origin_base_processor import WasteOriginBaseProcessor
+
 from sheets.utils import format_number_str
+
 from ...constants import BSFF
+from .waste_origin_base_processor import WasteOriginBaseProcessor
 
 
 class WasteOriginsMapProcessor(WasteOriginBaseProcessor):

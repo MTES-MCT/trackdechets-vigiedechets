@@ -3,9 +3,8 @@ from zoneinfo import ZoneInfo
 
 import polars as pl
 import pytest
-from polars.testing import assert_frame_equal
 
-from sheets.constants import BSDA, BSDD, BSFF
+from sheets.constants import BSDD, BSFF
 
 from ..graph_processors.plotly_components import WasteOriginProcessor
 
@@ -96,13 +95,11 @@ def data_date_interval():
     )
 
 
-
-
 def test_bsff_with_packagings_quantities_summed_correctly(
     sample_bsff_data, sample_packagings_data, departements_regions_df, data_date_interval
 ):
     """Test that BSFF quantities are correctly summed from packagings in full preprocessing flow.
-    
+
     GIVEN: BSFF data with packagings data containing quantities at container level
            (bsff-1: 10.0, bsff-2: 20.0+30.0=50.0, bsff-3: 40.0+50.0=90.0, total=150.0)
     WHEN: _preprocess_data is called
@@ -135,7 +132,7 @@ def test_bsff_process_bsff_data_method(
     sample_bsff_data, sample_packagings_data, departements_regions_df, data_date_interval
 ):
     """Test the _process_bsff_data method directly.
-    
+
     GIVEN: BSFF data with packagings data containing quantities at container level
     WHEN: _process_bsff_data is called
     THEN: BSFF data is joined with packagings, quantities are summed per bordereau,
@@ -150,7 +147,14 @@ def test_bsff_process_bsff_data_method(
 
     # Verify the processed dataframe has the correct structure
     processed_df = processed_bsff_df.collect()
-    expected_columns = {"id", "emitter_company_siret", "emitter_company_address", "recipient_company_siret", "quantity_received", "received_at"}
+    expected_columns = {
+        "id",
+        "emitter_company_siret",
+        "emitter_company_address",
+        "recipient_company_siret",
+        "quantity_received",
+        "received_at",
+    }
     assert set(processed_df.columns) == expected_columns
 
     # Verify quantities are summed correctly
@@ -158,45 +162,35 @@ def test_bsff_process_bsff_data_method(
     assert sum(quantities) == pytest.approx(150.0, rel=1e-6)
 
 
-def test_bsff_process_bsff_data_without_packagings(
-    sample_bsff_data, departements_regions_df, data_date_interval
-):
+def test_bsff_process_bsff_data_without_packagings(sample_bsff_data, departements_regions_df, data_date_interval):
     """Test _process_bsff_data when packagings_data is None.
-    
+
     GIVEN: BSFF data exists but packagings_data is None
     WHEN: _process_bsff_data is called
     THEN: Returns None (cannot calculate quantities without packagings)
     """
-    processed_bsff_df = WasteOriginProcessor._process_bsff_data(
-        packagings_data=None, bsff_df=sample_bsff_data
-    )
+    processed_bsff_df = WasteOriginProcessor._process_bsff_data(packagings_data=None, bsff_df=sample_bsff_data)
 
     # Should return None when packagings_data is None
     assert processed_bsff_df is None
 
 
-def test_bsff_process_bsff_data_not_in_dictionary(
-    departements_regions_df, data_date_interval
-):
+def test_bsff_process_bsff_data_not_in_dictionary(departements_regions_df, data_date_interval):
     """Test _process_bsff_data when bsff_df is None.
-    
+
     GIVEN: bsff_df is None (BSFF not present in bs_data_dfs)
     WHEN: _process_bsff_data is called
     THEN: Returns None without raising an error
     """
-    processed_bsff_df = WasteOriginProcessor._process_bsff_data(
-        packagings_data=None, bsff_df=None
-    )
+    processed_bsff_df = WasteOriginProcessor._process_bsff_data(packagings_data=None, bsff_df=None)
 
     # Should return None when bsff_df is None
     assert processed_bsff_df is None
 
 
-def test_bsff_absent_from_dictionary_no_error(
-    sample_bsdd_data, departements_regions_df, data_date_interval
-):
+def test_bsff_absent_from_dictionary_no_error(sample_bsdd_data, departements_regions_df, data_date_interval):
     """Test that no error occurs when BSFF is not in bs_data_dfs during full preprocessing.
-    
+
     GIVEN: BSFF is not present in bs_data_dfs but other bordereau types (BSDD) are present
     WHEN: _preprocess_data is called
     THEN: No error is raised, processing completes gracefully,
@@ -223,11 +217,9 @@ def test_bsff_absent_from_dictionary_no_error(
     assert total_quantity == pytest.approx(60.0, rel=1e-6)
 
 
-def test_bsff_without_packagings_ignored(
-    sample_bsff_data, departements_regions_df, data_date_interval
-):
+def test_bsff_without_packagings_ignored(sample_bsff_data, departements_regions_df, data_date_interval):
     """Test that BSFF is ignored when packagings_data is None.
-    
+
     GIVEN: BSFF data exists but packagings_data is None
     WHEN: _preprocess_data is called
     THEN: BSFF is excluded from processing (returns None from _process_bsff_data),
@@ -263,7 +255,7 @@ def test_mix_bsff_and_other_bordereaux(
     data_date_interval,
 ):
     """Test that BSFF and other bordereau types work together correctly.
-    
+
     GIVEN: BSFF data with packagings and BSDD data in bs_data_dfs
     WHEN: _preprocess_data is called
     THEN: Both BSFF and BSDD are processed correctly, quantities are summed,
@@ -298,7 +290,7 @@ def test_departments_calculated_correctly_with_bsff_quantities(
     sample_bsff_data, sample_packagings_data, departements_regions_df, data_date_interval
 ):
     """Test that departments are correctly calculated with BSFF quantities.
-    
+
     GIVEN: BSFF data with packagings containing addresses with postal codes (75001, 13001, 69001)
     WHEN: _preprocess_data is called
     THEN: Departments are correctly extracted from addresses, quantities are aggregated by department,
@@ -335,7 +327,7 @@ def test_acceptation_date_used_for_received_at(
     sample_bsff_data, sample_packagings_data, departements_regions_df, data_date_interval
 ):
     """Test that acceptation_date is used for received_at when filtering.
-    
+
     GIVEN: BSFF data with received_at outside the date interval but packagings have acceptation_date within interval
     WHEN: _preprocess_data is called
     THEN: acceptation_date is used for filtering (via pl.coalesce), BSFF is processed,

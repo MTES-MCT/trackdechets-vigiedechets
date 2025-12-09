@@ -5,8 +5,10 @@ import plotly.graph_objects as go
 import polars as pl
 
 from sheets.utils import format_number_str
+
 from ...constants import BSFF
 from .waste_origin_base_processor import WasteOriginBaseProcessor
+
 
 class WasteOriginProcessor(WasteOriginBaseProcessor):
     """Component with a bar figure representing the quantity of waste received by départements (only TOP 6).
