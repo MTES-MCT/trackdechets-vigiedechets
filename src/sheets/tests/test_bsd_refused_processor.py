@@ -49,8 +49,8 @@ def test_bsd_refused_processor(
             "peinture, encres, colles et résines contenant des substances dangereuses",
             "autres solvants et mélanges de solvants halogénés",
         ],
-        "quantity_emitted": [40.0, 200.0, 245.0, 80.5],
-        "quantity_refused": [40.0, 197.0, 45.0, 0.0],
+        "quantity_emitted": ["40", "200", "245", "80.5"],
+        "quantity_refused": ["40", "197", "45", "0"],
         "refusal_reason": [
             "Refusal reason 2",
             "Refusal reason 1",

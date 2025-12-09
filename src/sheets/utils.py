@@ -21,10 +21,10 @@ def get_code_departement(postal_code: str) -> str:
     return postal_code[:2]
 
 
-def format_number_str(input_number: float, precision: int = 2) -> str:
+def format_number_str(input_number: float, precision: int = 2, default_value: str = "0") -> str:
     """Format a float to a string with thousands separated by space and rounding it at the given precision."""
     if not input_number:
-        return "0"
+        return default_value
 
     input_number = round(input_number, precision)
 
