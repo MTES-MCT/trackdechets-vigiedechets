@@ -387,6 +387,7 @@ class SheetProcessor:
             self.bs_dfs,
             DEPARTEMENTS_REGION_DATA,
             data_date_interval,
+            packagings_data=self.bsff_packagings_df,
         )
         self.computed.waste_origin_data = waste_origin.build()
 
@@ -396,6 +397,7 @@ class SheetProcessor:
             DEPARTEMENTS_REGION_DATA,
             REGIONS_GEODATA,
             data_date_interval,
+            packagings_data=self.bsff_packagings_df,
         )
         self.computed.waste_origin_map_data = waste_origin_map.build()
 

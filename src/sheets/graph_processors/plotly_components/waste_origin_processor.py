@@ -5,12 +5,14 @@ import plotly.graph_objects as go
 import polars as pl
 
 from sheets.utils import format_number_str
+from ...constants import BSFF
+from .waste_origin_base_processor import WasteOriginBaseProcessor
 
-
-class WasteOriginProcessor:
+class WasteOriginProcessor(WasteOriginBaseProcessor):
     """Component with a bar figure representing the quantity of waste received by départements (only TOP 6).
 
     Parameters
+    ----------
     company_siret: str
         SIRET number of the establishment for which the data is displayed (used for data preprocessing).
     bs_data_dfs: dict
@@ -19,6 +21,9 @@ class WasteOriginProcessor:
         Static data about regions and départements with their codes.
     data_date_interval: tuple
         Date interval to filter data.
+    packagings_data: LazyFrame, optional
+        For BSFF data, packagings dataset to be able to compute the quantities.
+        Quantities are stored at packaging level for BSFF, not at bordereau level.
     """
 
     def __init__(
@@ -27,27 +32,32 @@ class WasteOriginProcessor:
         bs_data_dfs: Dict[str, pl.LazyFrame],
         departements_regions_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
+        packagings_data: pl.LazyFrame | None = None,
     ) -> None:
-        self.company_siret = company_siret
-        self.bs_data_dfs = bs_data_dfs
-        self.departements_regions_df = departements_regions_df
-        self.data_date_interval = data_date_interval
-
+        super().__init__(company_siret, bs_data_dfs, departements_regions_df, data_date_interval, packagings_data)
         self.preprocessed_serie = None
-        self.figure = None
 
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
             return
 
-        concat_df = pl.concat(
-            [
-                df.filter(pl.col("received_at").is_between(*self.data_date_interval))
-                for df in self.bs_data_dfs.values()
-            ],
-            how="diagonal",
+        # Work on a copy to avoid mutating shared dictionary
+        local_bs_data_dfs = dict(self.bs_data_dfs)
+        local_bs_data_dfs[BSFF] = self._process_bsff_data(
+            packagings_data=self.packagings_data, bsff_df=local_bs_data_dfs.get(BSFF)
         )
 
+        # Filter out None values (e.g., BSFF when packagings_data is None)
+        dfs_to_concat = [
+            df.filter(pl.col("received_at").is_between(*self.data_date_interval))
+            for df in local_bs_data_dfs.values()
+            if df is not None
+        ]
+
+        if len(dfs_to_concat) == 0:
+            return
+
+        concat_df = pl.concat(dfs_to_concat, how="diagonal")
         # The postal code is extracted from the address field using a simple regex
         concat_df = concat_df.with_columns(
             pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")
@@ -175,13 +185,3 @@ class WasteOriginProcessor:
         )
 
         self.figure = fig
-
-    def build(self):
-        self._preprocess_data()
-
-        figure = {}
-        if not self._check_data_empty():
-            self._create_figure()
-            figure = self.figure.to_json()
-
-        return figure
