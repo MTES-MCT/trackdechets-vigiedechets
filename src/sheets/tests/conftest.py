@@ -299,7 +299,7 @@ def sample_packagings_data():
     data = {
         "id": ["packaging-1-1", "packaging-2-1", "packaging-2-2", "packaging-3-1", "packaging-3-2"],
         "bsff_id": ["bsff-1", "bsff-2", "bsff-2", "bsff-3", "bsff-3"],
-        "acceptation_weight": [10.0, 20.0, 30.0, 40.0, 50.0],
+        "acceptation_weight": [10.0003345, 20.0, 30.0, 40.0, 50.0],
         "acceptation_status": ["ACCEPTED", "REFUSED", "REFUSED", "REFUSED", "ACCEPTED"],
         "refusal_reason": [None, "Refusal reason 1", "Refusal reason 2", "Refusal reason 3", None],
         "acceptation_date": [
