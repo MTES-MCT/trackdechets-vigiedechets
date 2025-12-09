@@ -44,8 +44,8 @@
                         <td>{{ row.waste_code }}</td>
                         <td>{{ row.waste_name }}</td>
                         <td class="td--right">
-                            {% if row.quantity_received %}
-                                {{ row.quantity_received|number|safe }}
+                            {% if row.quantity_emitted %}
+                                {{ row.quantity_emitted|number|safe }}
                             {% else %}
                                 N/A
                             {% endif %}
