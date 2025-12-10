@@ -36,6 +36,11 @@ COLLECTOR_TYPES = {
     "OTHER_DANGEROUS_WASTES": "Autres cas déchets dangereux (Rubriques 2719, 2792-1, 2793-1, 2793-2, 2797-1, 2798)",
 }
 
+VHU_PROCESSOR_TYPES = {
+    "BROYEUR": "Broyeur VHU",
+    "DEMOLISSEUR": "Casse automobile / démolisseur",
+}
+
 BSDD = "bsdd"
 BSDD_NON_DANGEROUS = "bsdd_non_dangerous"
 BSDA = "bsda"
