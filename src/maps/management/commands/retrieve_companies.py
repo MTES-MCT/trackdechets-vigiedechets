@@ -118,7 +118,7 @@ class Command(BaseCommand):
         self.stdout.write("Deleting existing CartoCompany objects...")
         CartoCompany.objects.all().delete()
 
-        count_query = "SELECT COUNT() FROM refined_zone_vigiedechets.cartographie_des_etablissements_geocoded"
+        count_query = "SELECT COUNT() FROM refined_zone_vigiedechets.cartographie_etablissements_geocoded"
 
         count_df = build_query(count_query)
         total_count = count_df.item()
