@@ -50,7 +50,7 @@ def test_bsd_refused_processor(
             "autres solvants et mélanges de solvants halogénés",
         ],
         "quantity_emitted": ["40", "200", "245", "80.5"],
-        "quantity_refused": ["40", "197", "45", "0"],
+        "quantity_refused": ["40", "197", "45", "N/A"],
         "refusal_reason": [
             "Refusal reason 2",
             "Refusal reason 1",
