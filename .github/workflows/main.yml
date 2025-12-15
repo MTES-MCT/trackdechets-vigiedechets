@@ -25,7 +25,7 @@ jobs:
       ID_ID_CURRASSO: currasso-idp
       CSRF_TRUSTED_ORIGINS: "https://url.test"
       TD_API_URL: http://api.test
-      TD_API_TOKEN: xyz"
+      TD_API_TOKEN: xyz
       AWS_S3_BUCKET_NAME: vigidechets-test
       AWS_S3_REGION_NAME: us-east-1
       AWS_S3_ENDPOINT_URL: "http://localhost:9000"
@@ -46,7 +46,7 @@ jobs:
       DWH_SSH_KEY_PASSPHRASE: passphrase
       ALLOWED_USER_FOR_SENTINEL: ""
       PARQUET_BUCKET_NAME: "donnees-test"
-      SUPPORT_FORM_RECIPIENT: "test@test.com
+      SUPPORT_FORM_RECIPIENT: "test@test.com"
     services:
       postgres:
         image: postgis/postgis
@@ -55,7 +55,6 @@ jobs:
           POSTGRES_PASSWORD: admin
           POSTGRES_DB: vigiedechets_test
         ports: [ "5432:5432" ]
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
         image: redis
         ports:
