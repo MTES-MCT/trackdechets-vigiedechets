@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sheets.constants import COMPANY_TYPES
+from sheets.constants import COMPANY_TYPES, COLLECTOR_TYPES, WASTE_PROCESSOR_TYPES, VHU_PROCESSOR_TYPES
 
 from .centroids import DEPARTMENTS_CENTROIDS, REGIONS_CENTROIDS
 from .constants import PROCESSING_OPERATIONS_FIELDS, ROLES_TYPES, WASTE_NAMES
@@ -127,6 +127,9 @@ class CompanyExportSerializer(serializers.ModelSerializer):
     texs_roles = serializers.SerializerMethodField()
 
     profiles = serializers.SerializerMethodField()
+    collector_profiles = serializers.SerializerMethodField()
+    installation_profiles = serializers.SerializerMethodField()
+    vhu_installation_profiles = serializers.SerializerMethodField()
 
     processing_operations = serializers.SerializerMethodField()
 
@@ -137,6 +140,9 @@ class CompanyExportSerializer(serializers.ModelSerializer):
             "nom_etablissement",
             "adresse_td",
             "profiles",
+            "collector_profiles",
+            "installation_profiles",
+            "vhu_installation_profiles",
             "bsdd_roles",
             "bsdnd_roles",
             "bsda_roles",
@@ -184,3 +190,25 @@ class CompanyExportSerializer(serializers.ModelSerializer):
             return ""
 
         return ", ".join([COMPANY_TYPES.get(p) for p in obj.profils if p in COMPANY_TYPES])
+
+    def get_collector_profiles(self, obj):
+        if not obj.profils_collecteur:
+            return ""
+
+        return ", ".join([COLLECTOR_TYPES.get(p) for p in obj.profils_collecteur if p in COLLECTOR_TYPES])
+
+    def get_installation_profiles(self, obj):
+        if not obj.profils_installation:
+            return ""
+
+        return ", ".join(
+            [WASTE_PROCESSOR_TYPES.get(p) for p in obj.profils_installation if p in WASTE_PROCESSOR_TYPES]
+        )
+
+    def get_vhu_installation_profiles(self, obj):
+        if not obj.profils_installation_vhu:
+            return ""
+
+        return ", ".join(
+            [VHU_PROCESSOR_TYPES.get(p) for p in obj.profils_installation_vhu if p in VHU_PROCESSOR_TYPES]
+        )
