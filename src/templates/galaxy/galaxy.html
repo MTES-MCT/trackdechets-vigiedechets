@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load django_vite %}
+{% block extra_head %}
+    {% vite_hmr_client %}
+    {% vite_react_refresh %}
+    {% vite_asset 'galaxy.tsx' %}
+{% endblock extra_head %}
+
+{% block main %}
+    <div class="fr-mt-4v fr-p-2v">
+        <div id="galaxy-root"></div>
+    </div>
+{% endblock main %}
