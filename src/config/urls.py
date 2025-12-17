@@ -42,6 +42,7 @@ urlpatterns = [
     path("registry/", include("registry.urls")),
     path("roadcontrol/", include("roadcontrol.urls")),
     path("map/", include("maps.urls")),
+    path("galaxy/", include("galaxy.urls")),
     path("data-exports/", include("data_exports.urls")),
     path("sentinelle/", include("sentinel.urls")),
     path("faq/", include("faq.urls")),

@@ -65,6 +65,7 @@ LOCAL_APPS = [
     "roadcontrol",
     "sheets",
     "maps",
+    "galaxy",
     "data_exports",
     "registry",
     "sentinel",
