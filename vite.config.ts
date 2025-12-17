@@ -12,7 +12,10 @@ export default defineConfig({
     manifest: "manifest.json",
     outDir: resolve("./src/static/ui_app_ts/dist"),
     rollupOptions: {
-      input: resolve("./src/static/ui_app_ts/src/main.tsx"),
+      input: {
+        main: resolve("./src/static/ui_app_ts/src/main.tsx"),
+        galaxy: resolve("./src/static/ui_app_ts/src/galaxy.tsx"),
+      },
     },
   },
   server: {
