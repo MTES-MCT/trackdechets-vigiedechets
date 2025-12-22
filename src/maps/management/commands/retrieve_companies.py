@@ -2,7 +2,6 @@ import datetime as dt
 
 import pandas as pd
 from django.core.management.base import BaseCommand
-from django.db import IntegrityError
 
 from sheets.data_extraction import build_query
 
@@ -168,22 +167,11 @@ class Command(BaseCommand):
             companies_dicts_without_nan = [{k: clean_pd_val(v) for k, v in e.items()} for e in refined_companies_dicts]
             data = [CartoCompany(**c) for c in companies_dicts_without_nan]
 
-            try:
-                created = CartoCompany.objects.bulk_create(data)
-                # Update in-memory set with newly created companies
-                already_created_sirets.update(obj.siret for obj in created)
-                imported_count += len(created)
-                self.stdout.write(f"Imported {len(created)} companies (total: {imported_count}/{total_count})")
-            except IntegrityError as e:
-                attempted_sirets = {dct["siret"] for dct in companies_dicts_without_nan}
-                total_failed_count += len(attempted_sirets)
-                failed_sirets = sorted(attempted_sirets)
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Failed to create {len(failed_sirets)} companies due to constraint violation: {failed_sirets}"
-                    )
-                )
-                self.stdout.write(self.style.ERROR(f"Error details: {e}"))
+            created = CartoCompany.objects.bulk_create(data)
+            # Update in-memory set with newly created companies
+            already_created_sirets.update(obj.siret for obj in created)
+            imported_count += len(created)
+            self.stdout.write(f"Imported {len(created)} companies (total: {imported_count}/{total_count})")
 
             offset += chunk_size
 
