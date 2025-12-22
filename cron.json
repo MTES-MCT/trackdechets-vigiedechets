@@ -9,10 +9,6 @@
       "size": "M"
     },
     {
-      "command": "11 01 * * * python /app/src/manage.py retrieve_companies --settings=config.settings.production",
-      "size": "2XL"
-    },
-    {
       "command": "13 02 * * * python /app/src/manage.py  build_stats --settings=config.settings.production",
       "size": "2XL"
     }
