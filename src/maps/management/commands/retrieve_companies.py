@@ -133,6 +133,7 @@ class Command(BaseCommand):
         total_duplicate_count = 0
         total_existing_count = 0
         total_failed_count = 0
+        already_created_sirets = set()
 
         while offset < total_count:
             paginated_query = f"{BASE_QUERY} LIMIT {chunk_size} OFFSET {offset}"
@@ -150,12 +151,11 @@ class Command(BaseCommand):
                     self.style.WARNING(f"Skipped {len(duplicate_sirets)} duplicates: {sorted(duplicate_sirets)}")
                 )
 
-            already_existing_set = set(CartoCompany.objects.values_list("siret", flat=True))
             refined_companies_dicts = [
-                dct for dct in dedup_companies_dicts if dct["siret"] not in already_existing_set
+                dct for dct in dedup_companies_dicts if dct["siret"] not in already_created_sirets
             ]
 
-            skipped_existing = [dct["siret"] for dct in dedup_companies_dicts if dct["siret"] in already_existing_set]
+            skipped_existing = [dct["siret"] for dct in dedup_companies_dicts if dct["siret"] in already_created_sirets]
             total_existing_count += len(skipped_existing)
             if skipped_existing:
                 self.stdout.write(
@@ -165,6 +165,9 @@ class Command(BaseCommand):
             companies_dicts_without_nan = [{k: clean_pd_val(v) for k, v in e.items()} for e in refined_companies_dicts]
             data = [CartoCompany(**c) for c in companies_dicts_without_nan]
             created = CartoCompany.objects.bulk_create(data)
+
+            # Update in-memory set with newly created companies
+            already_created_sirets.update(obj.siret for obj in created)
 
             failed_sirets = []
             if len(created) < len(data):
