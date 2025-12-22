@@ -83,14 +83,17 @@ def cleanup_duplicate_sirets(may_have_duplicates):
     """Take a list of dicts and remove those whose siret is duplicated"""
     seen_sirets = set()
     deduplicated = []
+    duplicates = set()
 
     for item in may_have_duplicates:
         siret = item.get("siret")
         if siret not in seen_sirets:
             seen_sirets.add(siret)
             deduplicated.append(item)
+        else:
+            duplicates.add(siret)
 
-    return deduplicated
+    return deduplicated, duplicates
 
 
 def clean_pd_val(val):
@@ -127,6 +130,10 @@ class Command(BaseCommand):
 
         offset = 0
         imported_count = 0
+        total_duplicate_count = 0
+        total_existing_count = 0
+        total_failed_count = 0
+        already_created_sirets = set()
 
         while offset < total_count:
             paginated_query = f"{BASE_QUERY} LIMIT {chunk_size} OFFSET {offset}"
@@ -136,22 +143,40 @@ class Command(BaseCommand):
             companies_df = build_query(paginated_query)
 
             companies_dicts = companies_df.to_dicts()
-            dedup_companies_dicts = cleanup_duplicate_sirets(companies_dicts)
+            dedup_companies_dicts, duplicate_sirets = cleanup_duplicate_sirets(companies_dicts)
 
-            already_existing_sirets = CartoCompany.objects.all().values_list("siret", flat=True)
+            total_duplicate_count += len(duplicate_sirets)
+            if duplicate_sirets:
+                self.stdout.write(
+                    self.style.WARNING(f"Skipped {len(duplicate_sirets)} duplicates: {sorted(duplicate_sirets)}")
+                )
+
             refined_companies_dicts = [
-                dct for dct in dedup_companies_dicts if dct["siret"] not in already_existing_sirets
+                dct for dct in dedup_companies_dicts if dct["siret"] not in already_created_sirets
             ]
 
+            skipped_existing = [
+                dct["siret"] for dct in dedup_companies_dicts if dct["siret"] in already_created_sirets
+            ]
+            total_existing_count += len(skipped_existing)
+            if skipped_existing:
+                self.stdout.write(
+                    self.style.WARNING(f"Skipped {len(skipped_existing)} already existing: {sorted(skipped_existing)}")
+                )
+
             companies_dicts_without_nan = [{k: clean_pd_val(v) for k, v in e.items()} for e in refined_companies_dicts]
-
             data = [CartoCompany(**c) for c in companies_dicts_without_nan]
+
             created = CartoCompany.objects.bulk_create(data)
-
+            # Update in-memory set with newly created companies
+            already_created_sirets.update(obj.siret for obj in created)
             imported_count += len(created)
-
             self.stdout.write(f"Imported {len(created)} companies (total: {imported_count}/{total_count})")
 
             offset += chunk_size
 
+        self.stdout.write(
+            f"Summary — created: {imported_count}, skipped duplicates: {total_duplicate_count}, "
+            f"skipped existing: {total_existing_count}, failed: {total_failed_count}"
+        )
         self.stdout.write(self.style.SUCCESS(f"Successfully imported {imported_count} companies"))
