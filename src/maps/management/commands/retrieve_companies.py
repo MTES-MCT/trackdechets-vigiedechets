@@ -2,6 +2,7 @@ import datetime as dt
 
 import pandas as pd
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 
 from sheets.data_extraction import build_query
 
@@ -155,7 +156,9 @@ class Command(BaseCommand):
                 dct for dct in dedup_companies_dicts if dct["siret"] not in already_created_sirets
             ]
 
-            skipped_existing = [dct["siret"] for dct in dedup_companies_dicts if dct["siret"] in already_created_sirets]
+            skipped_existing = [
+                dct["siret"] for dct in dedup_companies_dicts if dct["siret"] in already_created_sirets
+            ]
             total_existing_count += len(skipped_existing)
             if skipped_existing:
                 self.stdout.write(
@@ -164,24 +167,23 @@ class Command(BaseCommand):
 
             companies_dicts_without_nan = [{k: clean_pd_val(v) for k, v in e.items()} for e in refined_companies_dicts]
             data = [CartoCompany(**c) for c in companies_dicts_without_nan]
-            created = CartoCompany.objects.bulk_create(data)
 
-            # Update in-memory set with newly created companies
-            already_created_sirets.update(obj.siret for obj in created)
-
-            failed_sirets = []
-            if len(created) < len(data):
+            try:
+                created = CartoCompany.objects.bulk_create(data)
+                # Update in-memory set with newly created companies
+                already_created_sirets.update(obj.siret for obj in created)
+                imported_count += len(created)
+                self.stdout.write(f"Imported {len(created)} companies (total: {imported_count}/{total_count})")
+            except IntegrityError as e:
                 attempted_sirets = {dct["siret"] for dct in companies_dicts_without_nan}
-                created_sirets = {obj.siret for obj in created}
-                failed_sirets = sorted(attempted_sirets - created_sirets)
-                total_failed_count += len(failed_sirets)
+                total_failed_count += len(attempted_sirets)
+                failed_sirets = sorted(attempted_sirets)
                 self.stdout.write(
-                    self.style.ERROR(f"Failed to create {len(failed_sirets)} companies: {failed_sirets}")
+                    self.style.ERROR(
+                        f"Failed to create {len(failed_sirets)} companies due to constraint violation: {failed_sirets}"
+                    )
                 )
-
-            imported_count += len(created)
-
-            self.stdout.write(f"Imported {len(created)} companies (total: {imported_count}/{total_count})")
+                self.stdout.write(self.style.ERROR(f"Error details: {e}"))
 
             offset += chunk_size
 
