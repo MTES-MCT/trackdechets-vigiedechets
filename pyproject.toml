@@ -34,7 +34,7 @@ dependencies = [
     "kaleido==0.2.1",
     "mozilla-django-oidc>=4.0.1",
     "numpy==1.26.4",
-    "pandas==1.5.3",
+    "pandas==2.3.3",
     "paramiko<5",
     "plotly==5.24",
     "polars==1.35.2",
