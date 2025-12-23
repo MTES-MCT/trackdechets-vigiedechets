@@ -27,7 +27,7 @@ def get_company_data(siret) -> CompanyData:
 
     wh_engine = get_wh_sqlachemy_engine()
     with wh_engine.connect() as con:
-        companies = con.execute(prepared_query, siret=siret).all()
+        companies = con.execute(prepared_query, {"siret": siret}).all()
 
     company = companies[0]
     return {

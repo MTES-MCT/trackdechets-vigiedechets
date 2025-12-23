@@ -271,7 +271,7 @@ class WasteFlowsTableProcessor:
         bs_grouped_data = self._preprocess_bs_data()
         registry_grouped_data = self._preprocess_registry_data()
 
-        df_grouped = pl.LazyFrame()
+        df_grouped = pl.DataFrame().lazy()
         match (bs_grouped_data, registry_grouped_data):
             case (None, None):
                 return

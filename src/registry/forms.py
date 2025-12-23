@@ -90,7 +90,7 @@ class RegistryV2PrepareForm(forms.ModelForm):
         with ssh_tunnel(settings):
             wh_engine = get_wh_sqlachemy_engine()
             with wh_engine.connect() as con:
-                companies = con.execute(prepared_query, siret=siret).all()
+                companies = con.execute(prepared_query, {"siret": siret}).all()
             if not companies:
                 raise ValidationError("Établissement non inscrit sur Trackdéchets.")
             return siret

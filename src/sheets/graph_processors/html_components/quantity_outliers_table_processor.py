@@ -61,7 +61,7 @@ class QuantityOutliersTableProcessor:
         LazyFrame
             LazyFrame with lines with received quantity outliers removed or None if no data.
         """
-        df_quantity_outliers = pl.LazyFrame()
+        df_quantity_outliers = pl.DataFrame().lazy()
         if bs_type in [BSDD, BSDD_NON_DANGEROUS, BSDA, BSFF] and (transporters_df is not None):
             # In this case we use transporter data
 

@@ -135,13 +135,15 @@ def build_query(
     date_columns=None,
     dtypes: dict[str, Any] | None = None,
 ):
-    query = text(query_str)
-
     wh_engine = get_wh_sqlachemy_engine()
 
-    df = pl.read_database(
-        query=query, connection=wh_engine, execute_options=query_params, schema_overrides=query_types
-    )
+    if query_params:
+        # Bind parameters directly to the query for SQLAlchemy 2.0+ compatibility
+        query = text(query_str).bindparams(**query_params)
+    else:
+        query = text(query_str)
+
+    df = pl.read_database(query=query, connection=wh_engine, schema_overrides=query_types)
 
     # if date_columns is not None:
     #     for col in date_columns:
