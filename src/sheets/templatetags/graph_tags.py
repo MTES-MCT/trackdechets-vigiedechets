@@ -1,5 +1,7 @@
 from django import template
 
+from sheets.data_extract import load_waste_code_data
+
 register = template.Library()
 
 
@@ -24,9 +26,27 @@ def stats_graph(computed, bsd_type):
 
 @register.inclusion_tag("sheets/components/waste_flows_table.html")
 def render_waste_flows_table(computed, graph_context="web"):
+    # Extract unique waste codes present in the data
+    waste_codes_in_data = set()
+    if computed.waste_flows_data:
+        for row in computed.waste_flows_data:
+            if row.get("waste_code"):
+                waste_codes_in_data.add(row["waste_code"].lower())
+
+    # Load all waste codes and filter to only those present in the data
+    waste_codes_df = load_waste_code_data().collect()
+    waste_codes = [
+        {"code": row["code"], "description": row["description"]}
+        for row in waste_codes_df.iter_rows(named=True)
+        if row["code"].lower() in waste_codes_in_data
+    ]
+    # Sort by code for better UX
+    waste_codes.sort(key=lambda x: x["description"])
+
     return {
         "waste_flows_data": computed.waste_flows_data,
         "graph_context": graph_context,
+        "waste_codes": waste_codes,
     }
 
 
