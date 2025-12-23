@@ -333,3 +333,14 @@ class HTMXClient:
 def htmx_client():
     """Factory that wraps any client with HTMX headers."""
     return lambda client: HTMXClient(client)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_chrome_for_kaleido():
+    """Ensure Chrome is available for Kaleido (Plotly image conversion). Required for PDF generation."""
+    try:
+        from plotly.io import _kaleido
+
+        _kaleido.get_chrome()
+    except Exception:
+        print("Chrome installation failed, make sure chrome is installed and in the PATH")

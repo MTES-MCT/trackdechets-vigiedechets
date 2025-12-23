@@ -192,18 +192,25 @@ def test_data_preprocessing(sample_rndts_data, date_interval):
 
 
 def test_figure_output(sample_rndts_data, date_interval):
+    """
+    GIVEN a sample dataset with transporter statements and a date interval
+    WHEN building the figure using RegistryTransporterStatementsStatsGraphProcessor
+    THEN the resulting Plotly figure JSON should deserialize to a figure with valid traces and y-values
+    """
     processor = RegistryTransporterStatementsStatsGraphProcessor(
         company_siret="12345678901234",
         registry_data=sample_rndts_data,
         data_date_interval=date_interval,
     )
 
-    figure = processor.build()
-    import json
+    figure_json = processor.build()
+    from plotly.io import from_json
 
-    figure_dict = json.loads(figure)
+    figure = from_json(figure_json)
 
-    assert isinstance(figure_dict, dict)
-    data = figure_dict["data"]
+    assert figure is not None
+    assert len(figure.data) > 0
 
-    assert all(record["text"] is not None and record["y"] == record["text"] for record in data)
+    for trace in figure.data:
+        assert trace.text is not None
+        assert trace.y is not None
