@@ -310,7 +310,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
             if df is None:
                 continue
 
-            df_filtered = pl.LazyFrame()
+            df_filtered = pl.DataFrame().lazy()
             if bs_type != BSFF:
                 df_filtered = df.filter(
                     (pl.col("recipient_company_siret") == siret)
@@ -348,7 +348,7 @@ class WasteProcessingWithoutICPERubriqueProcessor:
             df_filtered = df_filtered.with_columns(pl.lit(bs_type.upper()).alias("bs_type"))
             bs_dfs.append(df_filtered)
 
-        concat_df = pl.LazyFrame()
+        concat_df = pl.DataFrame().lazy()
         if len(bs_dfs) > 0:
             concat_df = pl.concat(bs_dfs, how="diagonal").sort(["bs_type", "processed_at"])
 

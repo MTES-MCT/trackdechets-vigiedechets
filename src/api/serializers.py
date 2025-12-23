@@ -40,7 +40,7 @@ class ComputedInspectionDataCreateSerializer(serializers.Serializer):
         wh_engine = get_wh_sqlachemy_engine()
 
         with wh_engine.connect() as con:
-            companies = con.execute(prepared_query, siret=siret).all()
+            companies = con.execute(prepared_query, {"siret": siret}).all()
         if not companies:
             raise serializers.ValidationError("Établissement non inscrit à Trackdéchets.")
         return siret
