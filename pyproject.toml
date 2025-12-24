@@ -29,7 +29,7 @@ dependencies = [
     "djangorestframework>=3.16.1",
     "geopandas==1.1.1",
     "gunicorn>=23.0.0",
-    "icalendar==6.3.1",
+    "icalendar==6.3.2",
     "httpx>=0.28.1",
     "kaleido==1.2.0",
     "mozilla-django-oidc>=4.0.1",
