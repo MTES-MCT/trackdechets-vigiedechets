@@ -33,7 +33,7 @@ dependencies = [
     "httpx>=0.28.1",
     "kaleido==1.2.0",
     "mozilla-django-oidc>=4.0.1",
-    "numpy==2.3.5",
+    "numpy==2.4.0",
     "pandas==2.3.3",
     "paramiko<5",
     "plotly==6.5.0",
