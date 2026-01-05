@@ -2,8 +2,25 @@
 <h3>Liste des déchets entrants, sortants et transportés</h3>
 <div {% if graph_context == "web" %}class="fr-table "{% endif %}>
     <p class="fr-tag fr-tag fr-icon-info-fill fr-tag--icon-left">Source : Trackdéchets</p>
+    {% if graph_context == "web" %}
+    <div class="fr-select-group" style="margin-bottom: 1rem;">
+        <label class="fr-label" for="waste-code-filter">
+            Filtrer par code déchet
+        </label>
+        <select
+            class="fr-select"
+            id="waste-code-filter"
+            aria-label="Filtrer le tableau par code déchet"
+        >
+            <option value="">Tous les codes déchets</option>
+            {% for waste_code in waste_codes %}
+            <option value="{{ waste_code.code|lower }}">{{ waste_code.description }} ({{ waste_code.code }}) </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
     <div {% if graph_context == "web" %}class="fr-table "{% endif %}>
-        <table {% if graph_context != "web" %}class="pdf-table"{% endif %}>
+        <table {% if graph_context != "web" %}class="pdf-table"{% endif %} id="waste-flows-table">
             <thead>
                 <tr>
                     <th scope="col">Code déchet</th>
@@ -14,7 +31,7 @@
             </thead>
             <tbody>
                 {% for row in waste_flows_data %}
-                    <tr>
+                    <tr data-waste-code="{{ row.waste_code|lower }}">
                         <td>{{ row.waste_code }}</td>
                         <td>{{ row.description }}</td>
                         <td>
@@ -39,3 +56,31 @@
         </table>
     </div>
 </div>
+
+{% if graph_context == "web" %}
+<script>
+(function() {
+    const filterSelect = document.getElementById('waste-code-filter');
+    const table = document.getElementById('waste-flows-table');
+    
+    if (!filterSelect || !table) return;
+    
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    
+    filterSelect.addEventListener('change', function(e) {
+        const filterValue = e.target.value.toLowerCase().trim();
+        const rows = tbody.querySelectorAll('tr');
+        
+        rows.forEach(function(row) {
+            const wasteCode = row.getAttribute('data-waste-code') || '';
+            if (filterValue === '' || wasteCode === filterValue) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+})();
+</script>
+{% endif %}
