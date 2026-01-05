@@ -45,13 +45,13 @@ class GistridStatsProcessor:
                 .str.join(", ")
                 .str.split(", ")
                 .list.unique()
-                .str.join(", ")
+                .list.join(", ")
                 .alias("codes_dechets"),  # To avoid duplicates in list
                 pl.col("code_d_r")
                 .str.join(", ")
                 .str.split(", ")
                 .list.unique()
-                .str.join(", ")
+                .list.join(", ")
                 .alias("codes_operations"),  # To avoid duplicates in list
             )
             .sort("annee_fin_autorisation")
@@ -81,13 +81,13 @@ class GistridStatsProcessor:
                 .str.join(", ")
                 .str.split(", ")
                 .list.unique()
-                .str.join(", ")
+                .list.join(", ")
                 .alias("codes_dechets"),  # To avoid duplicates in list
                 pl.col("code_d_r")
                 .str.join(", ")
                 .str.split(", ")
                 .list.unique()
-                .str.join(", ")
+                .list.join(", ")
                 .alias("codes_operations"),  # To avoid duplicates in list
             )
             .sort("annee_fin_autorisation")
