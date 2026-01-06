@@ -27,7 +27,7 @@ dependencies = [
     "django-template-partials>=25.2",
     "django-vite>=3.1.0",
     "djangorestframework>=3.16.1",
-    "geopandas==1.1.1",
+    "geopandas==1.1.2",
     "gunicorn>=23.0.0",
     "icalendar==6.3.1",
     "httpx>=0.28.1",
