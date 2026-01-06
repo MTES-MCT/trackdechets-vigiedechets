@@ -445,7 +445,7 @@ select
     quantite_totale as quantite,
     unite
 from
-    trusted_zone_icpe.installations_rubriques_2025
+    trusted_zone_icpe.installations_rubriques
 where siret = :siret
 and (
     libelle_etat_site not in ('A l’arrêt','Non construit','Projet abandonné','Sans titre')
