@@ -31,10 +31,10 @@ class RegistryTransporterQuantitiesGraphProcessor:
         self.data_date_interval = data_date_interval
 
         self.transported_quantities_stats = {
-            "ndw_incoming": {"T": None, "M3": None},
-            "ndw_outgoing": {"T": None, "M3": None},
-            "excavated_land_incoming": {"T": None, "M3": None},
-            "excavated_land_outgoing": {"T": None, "M3": None},
+            "ndw_incoming": {"weight_value": None, "volume": None},
+            "ndw_outgoing": {"weight_value": None, "volume": None},
+            "excavated_land_incoming": {"weight_value": None, "volume": None},
+            "excavated_land_outgoing": {"weight_value": None, "volume": None},
         }
 
         self.figure = None
@@ -55,13 +55,13 @@ class RegistryTransporterQuantitiesGraphProcessor:
                 continue
 
             for quantity_col in ["weight_value", "volume"]:  # Handle multiple units
-                df = df.filter(
+                filtered_df = df.filter(
                     pl.col(date_col).is_between(*self.data_date_interval)
                     & pl.col("transporters_org_ids").list.contains(pl.lit(self.company_siret))
                 ).filter(pl.col(quantity_col) > 0)
 
                 df_by_month = (
-                    df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date"))
+                    filtered_df.group_by(pl.col(date_col).dt.truncate("1mo").alias("date"))
                     .agg(pl.col(quantity_col).sum())
                     .collect()
                 )
