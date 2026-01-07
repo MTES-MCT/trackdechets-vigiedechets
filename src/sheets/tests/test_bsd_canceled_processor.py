@@ -9,6 +9,10 @@ from ..graph_processors.html_components import BsdCanceledTableProcessor
 def test_bsd_canceled_processor(
     sample_data_bsdd, sample_data_bsda, sample_data_bsdasri, sample_revised_data, data_date_interval
 ):
+    """GIVEN bordereaux data and revision requests marked as canceled
+    WHEN preprocessing and building the canceled bordereaux table
+    THEN it returns the expected normalized rows (including emitter normalization and date formatting).
+    """
     processor = BsdCanceledTableProcessor(
         company_siret="12345678900011",
         bs_data_dfs={

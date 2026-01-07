@@ -74,6 +74,7 @@ class StorageStatsProcessor:
                     .group_by("id")
                     .agg(*agg_exprs)
                 )
+                dfs_to_concat.append(df_to_concat)
 
             else:
                 # Keep only necessary columns for later processing
