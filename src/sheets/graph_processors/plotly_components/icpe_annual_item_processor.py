@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import plotly.graph_objects as go
 import polars as pl
@@ -21,9 +21,10 @@ class ICPEAnnualItemProcessor:
     def __init__(
         self,
         icpe_item_daily_data: pl.LazyFrame | None,
+        data_date_interval: tuple[datetime, datetime],
     ) -> None:
         self.icpe_item_daily_data = icpe_item_daily_data
-
+        self.data_date_interval = data_date_interval
         self.preprocessed_df = None
         self.authorized_quantity = None
         self.target_quantity = None
@@ -34,7 +35,9 @@ class ICPEAnnualItemProcessor:
         if self.icpe_item_daily_data is None:
             return
 
-        df = self.icpe_item_daily_data.sort("day_of_processing")
+        df = self.icpe_item_daily_data.filter(
+            pl.col("day_of_processing").is_between(*self.data_date_interval, closed="both")
+        ).sort("day_of_processing")
 
         final_df = df.group_by_dynamic(pl.col("day_of_processing"), every="1d").agg(
             pl.col("processed_quantity").max().fill_null(0)

@@ -410,9 +410,7 @@ class SheetProcessor:
             ("2760-2", ICPEAnnualItemProcessor),
         ]:
             icpe_rubrique_data = self.icpe_rubriques_data[rubrique]
-            icpe_rubrique_graph = processor(
-                icpe_rubrique_data,
-            )
+            icpe_rubrique_graph = processor(icpe_rubrique_data, data_date_interval)
             icpe_rubrique_graph_data = icpe_rubrique_graph.build()
             setattr(self.computed, f"icpe_{rubrique.replace('-', '_')}_data", icpe_rubrique_graph_data)
 
