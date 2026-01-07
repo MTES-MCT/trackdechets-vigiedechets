@@ -2,7 +2,7 @@ import polars as pl
 
 
 class LinkedCompaniesProcessor:
-    """Component that displays list of ICPE authorized items.
+    """Component that displays linked establishments (same SIREN).
 
     Parameters
     ----------
@@ -18,7 +18,7 @@ class LinkedCompaniesProcessor:
         linked_companies_data: pl.LazyFrame | None,
     ) -> None:
         self.company_siret = company_siret
-        self.linked_companies_data = linked_companies_data.collect()
+        self.linked_companies_data = linked_companies_data.collect() if linked_companies_data is not None else None
 
         self.preprocessed_df = None
 
