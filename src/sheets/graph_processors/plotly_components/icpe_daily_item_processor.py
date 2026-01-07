@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 import polars as pl
-
+from datetime import datetime
 from sheets.utils import format_number_str
 
 
@@ -17,9 +17,10 @@ class ICPEDailyItemProcessor:
     def __init__(
         self,
         icpe_item_daily_data: pl.LazyFrame,
+        data_date_interval: tuple[datetime, datetime],
     ) -> None:
         self.icpe_item_daily_data = icpe_item_daily_data
-
+        self.data_date_interval = data_date_interval
         self.preprocessed_df = None
         self.authorized_quantity = None
         self.mean_quantity = None
@@ -30,7 +31,9 @@ class ICPEDailyItemProcessor:
         if self.icpe_item_daily_data is None:
             return
 
-        df = self.icpe_item_daily_data.sort("day_of_processing")
+        df = self.icpe_item_daily_data.filter(
+            pl.col("day_of_processing").is_between(*self.data_date_interval, closed="both")
+        ).sort("day_of_processing")
 
         self.mean_quantity = df.select(pl.col("processed_quantity").mean()).collect().item()
 
