@@ -22,7 +22,7 @@
                         startDateInput.value = toisoStr(oneYearAgo)
                     }
                     if (period === "this_year") {
-                        endDateInput.value = toisoStr(new Date(new Date().getFullYear(), 11, 32))
+                        endDateInput.value = toisoStr(today)
                         startDateInput.value = toisoStr(new Date(new Date().getFullYear(), 0, 2))
                     }
                     if (period === "prev_year") {
