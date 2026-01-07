@@ -37,7 +37,14 @@ def sample_icpe_data():
 
 
 def test_preprocess_data(sample_icpe_data):
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data)
+    """
+    GIVE daily processed ICPE item data for multiple days between 2023-01-01 and 2023-01-10
+    WHEN the _preprocess_data method is called on ICPEAnnualItemProcessor with the data date interval (2023-01-01, 2023-01-09)
+    THEN the resulting preprocessed_df contains sorted, grouped, and cumulative quantities as expected, matching the target output DataFrame
+    """
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data, data_date_interval=data_date_interval)
 
     processor._preprocess_data()
 
@@ -55,10 +62,9 @@ def test_preprocess_data(sample_icpe_data):
                 datetime(2023, 1, 7, 0, 0, tzinfo=ZoneInfo(key="Europe/Paris")),
                 datetime(2023, 1, 8, 0, 0, tzinfo=ZoneInfo(key="Europe/Paris")),
                 datetime(2023, 1, 9, 0, 0, tzinfo=ZoneInfo(key="Europe/Paris")),
-                datetime(2023, 1, 10, 0, 0, tzinfo=ZoneInfo(key="Europe/Paris")),
             ],
-            "processed_quantity": [10, 20, 15, 0, 5, 0, 25, 30, 0, 5],
-            "quantity_cumsum": [10, 30, 45, 45, 50, 50, 75, 105, 105, 110],
+            "processed_quantity": [10, 20, 15, 0, 5, 0, 25, 30, 0],
+            "quantity_cumsum": [10, 30, 45, 45, 50, 50, 75, 105, 105],
         }
     )
 
@@ -66,9 +72,15 @@ def test_preprocess_data(sample_icpe_data):
 
 
 def test_only_one_data_point(sample_icpe_data):
+    """
+    GIVE a single data point for ICPE item daily data
+    WHEN the _preprocess_data method is called on ICPEAnnualItemProcessor with only one row of data
+    THEN the resulting preprocessed_df should return a DataFrame with this single entry and correct cumulative sum
+    """
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
     data = sample_icpe_data.head(1)
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=data)
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=data, data_date_interval=data_date_interval)
     processor._preprocess_data()
 
     preprocessed_df = processor.preprocessed_df
@@ -89,6 +101,12 @@ def test_only_one_data_point(sample_icpe_data):
 
 
 def test_empty_icpe_data():
+    """
+    GIVEN an empty ICPE item daily data DataFrame or None
+    WHEN the _preprocess_data and _check_data_empty methods are called on ICPEAnnualItemProcessor
+    THEN _check_data_empty should return True, indicating no meaningful data is present
+    """
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
     processor = ICPEAnnualItemProcessor(
         icpe_item_daily_data=pl.LazyFrame(
             {
@@ -103,14 +121,15 @@ def test_empty_icpe_data():
                 "authorized_quantity": pl.Float64,
                 "target_quantity": pl.Float64,
             },
-        )
+        ),
+        data_date_interval=data_date_interval,
     )
 
     processor._preprocess_data()
 
     assert processor._check_data_empty(), "Data should be considered empty when input DataFrame is empty."
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=None)
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=None, data_date_interval=data_date_interval)
 
     processor._preprocess_data()
 
@@ -118,7 +137,8 @@ def test_empty_icpe_data():
 
 
 def test_correct_figure_creation(sample_icpe_data):
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data, data_date_interval=data_date_interval)
 
     processor._preprocess_data()
     processor._create_figure()
@@ -130,7 +150,8 @@ def test_correct_figure_creation(sample_icpe_data):
 
 
 def test_process_build(sample_icpe_data):
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=sample_icpe_data, data_date_interval=data_date_interval)
 
     result = processor.build()
 
@@ -143,7 +164,8 @@ def test_missing_columns():
 
     icpe_data_df = pl.DataFrame(data).lazy()
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df, data_date_interval=data_date_interval)
 
     # Should raise a KeyError
     with pytest.raises(ColumnNotFoundError):
@@ -159,7 +181,8 @@ def test_incorrect_data_format():
 
     icpe_data_df = pl.LazyFrame(data)
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df, data_date_interval=data_date_interval)
 
     # Should raise a TypeError due to type column not being Timestamp
     with pytest.raises(InvalidOperationError):
@@ -180,7 +203,8 @@ def test_zero_processed_quantities():
 
     icpe_data_df = pl.LazyFrame(data)
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df, data_date_interval=data_date_interval)
 
     processor._preprocess_data()
 
@@ -203,7 +227,8 @@ def test_only_nan_processed_quantities():
 
     icpe_data_df = pl.LazyFrame(data)
 
-    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df)
+    data_date_interval = (datetime(2023, 1, 1, tzinfo=tz), datetime(2023, 1, 9, tzinfo=tz))
+    processor = ICPEAnnualItemProcessor(icpe_item_daily_data=icpe_data_df, data_date_interval=data_date_interval)
 
     processor._preprocess_data()
 
