@@ -1,6 +1,7 @@
 import datetime as dt
 
 import boto3
+from botocore.exceptions import EndpointConnectionError
 import pytest
 from django.conf import settings
 from django.test.client import Client
@@ -281,27 +282,32 @@ def cleanup_s3_after_tests():
 
     yield  # Run all tests
 
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-        aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-        region_name=settings.AWS_S3_REGION_NAME,
-    )
-    bucket = settings.AWS_S3_BUCKET_NAME  # Also: use AWS_STORAGE_BUCKET_NAME for django-storages
+    try:
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME,
+        )
+        bucket = settings.AWS_S3_BUCKET_NAME  # Also: use AWS_STORAGE_BUCKET_NAME for django-storages
 
-    paginator = s3.get_paginator("list_objects_v2")
-    objects_to_delete = []
+        paginator = s3.get_paginator("list_objects_v2")
+        objects_to_delete = []
 
-    for page in paginator.paginate(Bucket=bucket):
-        for obj in page.get("Contents", []):
-            if obj["LastModified"] >= test_start_time:
-                objects_to_delete.append({"Key": obj["Key"]})
+        for page in paginator.paginate(Bucket=bucket):
+            for obj in page.get("Contents", []):
+                if obj["LastModified"] >= test_start_time:
+                    objects_to_delete.append({"Key": obj["Key"]})
 
-    if objects_to_delete:
-        for i in range(0, len(objects_to_delete), 1000):
-            batch = objects_to_delete[i : i + 1000]
-            s3.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+        if objects_to_delete:
+            for i in range(0, len(objects_to_delete), 1000):
+                batch = objects_to_delete[i : i + 1000]
+                s3.delete_objects(Bucket=bucket, Delete={"Objects": batch})
+    except EndpointConnectionError:
+        # Some local/CI environments don't run an S3-compatible endpoint (eg MinIO).
+        # In that case, skip cleanup instead of failing the whole test suite at teardown.
+        return
 
 
 class HTMXClient:
