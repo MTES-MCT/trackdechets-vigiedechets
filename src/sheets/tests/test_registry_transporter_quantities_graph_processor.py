@@ -255,4 +255,3 @@ def test_all_registry_types(sample_registry_data, date_interval):
     assert processor.transported_quantities_stats["ndw_outgoing"]["weight_value"] is not None
     assert processor.transported_quantities_stats["excavated_land_incoming"]["weight_value"] is not None
     assert processor.transported_quantities_stats["excavated_land_outgoing"]["weight_value"] is not None
-

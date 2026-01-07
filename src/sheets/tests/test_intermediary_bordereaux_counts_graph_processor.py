@@ -280,4 +280,3 @@ def test_build_with_empty_data(date_interval):
     result = processor.build()
 
     assert result == {}
-

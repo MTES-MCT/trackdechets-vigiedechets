@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import polars as pl
 import pytest
 
-from sheets.constants import BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
+from sheets.constants import BSDA, BSDASRI, BSDD, BSFF, BSVHU
 
 from ..graph_processors.plotly_components import TransporterBordereauxGraphProcessor
 
@@ -257,4 +257,3 @@ def test_multiple_bordereau_types(sample_transporters_data, sample_bs_data_dfs, 
     assert processor.transported_bordereaux_stats[BSFF] is not None
     assert processor.transported_bordereaux_stats[BSDASRI] is not None
     assert processor.transported_bordereaux_stats[BSVHU] is not None
-

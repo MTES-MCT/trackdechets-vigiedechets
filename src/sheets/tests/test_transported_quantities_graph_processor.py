@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import polars as pl
 import pytest
 
-from sheets.constants import BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
+from sheets.constants import BSDA, BSDASRI, BSDD, BSFF, BSVHU
 
 from ..graph_processors.plotly_components import TransportedQuantitiesGraphProcessor
 
@@ -257,4 +257,3 @@ def test_multiple_bordereau_types_with_quantities(sample_transporters_data, samp
     # Verify quantities are summed correctly
     bsda_stats = processor.transported_quantities_stats[BSDA]
     assert bsda_stats["quantity_received"].sum() == pytest.approx(13.5, rel=1e-6)  # 5.0 + 8.5
-

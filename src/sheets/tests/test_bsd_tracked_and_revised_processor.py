@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 import plotly.graph_objects as go
 import polars as pl
 import pytest
-from polars.testing import assert_frame_equal
 
 from ..graph_processors.plotly_components import BsdTrackedAndRevisedProcessor
 
@@ -279,4 +278,3 @@ def test_build_with_revised_data(sample_bs_data, sample_revised_data, date_inter
     assert isinstance(result, str)
     assert len(result) > 0
     assert "data" in result
-
