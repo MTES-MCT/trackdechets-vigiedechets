@@ -83,4 +83,3 @@ def test_icpe_items_processor_handles_nan_quantities():
     assert isinstance(result, list)
     assert len(result) == 1
     assert result[0]["quantite"] is None
-

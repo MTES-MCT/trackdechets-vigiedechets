@@ -97,4 +97,3 @@ def test_receipt_agrements_processor_returns_empty_when_no_data():
     result = processor.build()
 
     assert result == []
-

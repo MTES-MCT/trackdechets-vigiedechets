@@ -116,5 +116,3 @@ def test_same_emitter_recipient_table_processor_build_returns_empty_dict_when_no
     )
 
     assert processor.build() == {}
-
-

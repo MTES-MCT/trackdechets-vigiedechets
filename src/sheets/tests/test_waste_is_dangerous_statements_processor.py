@@ -122,4 +122,3 @@ def test_waste_is_dangerous_statements_processor_returns_empty_when_no_match():
     result = processor.build()
 
     assert result == []
-

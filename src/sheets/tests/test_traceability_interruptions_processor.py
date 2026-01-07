@@ -101,4 +101,3 @@ def test_traceability_interruptions_processor_returns_empty_when_no_interruption
     result = processor.build()
 
     assert result == []
-

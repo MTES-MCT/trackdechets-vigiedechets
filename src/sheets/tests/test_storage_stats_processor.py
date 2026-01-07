@@ -172,4 +172,3 @@ def test_storage_stats_processor_returns_empty_when_no_positive_stock(sample_was
     result = processor.build()
 
     assert result == {}
-

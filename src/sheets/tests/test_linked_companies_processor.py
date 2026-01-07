@@ -93,4 +93,3 @@ def test_linked_companies_processor_returns_empty_when_no_data():
     result = processor.build()
 
     assert result == {}
-
