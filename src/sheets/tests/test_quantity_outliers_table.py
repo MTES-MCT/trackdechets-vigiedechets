@@ -122,8 +122,16 @@ def data_date_interval():
 
 
 def test_preprocess_data(bs_data_dfs, transporters_data_df, packagings_data_df, data_date_interval):
+    """
+    GIVEN: BSDD and BSFF with outlier quantities (>40t for road transport).
+    WHEN: Preprocessing quantity outliers.
+    THEN: Returns only bordereaux exceeding threshold with formatted dates.
+    """
     processor = QuantityOutliersTableProcessor(
-        bs_data_dfs, transporters_data_df, data_date_interval, packagings_data_df
+        bs_data_dfs=bs_data_dfs,
+        transporters_data_df=transporters_data_df,
+        data_date_interval=data_date_interval,
+        packagings_data_df=packagings_data_df,
     )
     processor._preprocess_data()
     preprocessed_data = processor.preprocessed_data
@@ -149,18 +157,31 @@ def test_preprocess_data(bs_data_dfs, transporters_data_df, packagings_data_df, 
 
 
 def test_check_data_empty(bs_data_dfs, transporters_data_df, packagings_data_df):
+    """
+    GIVEN: Date interval with no bordereaux sent.
+    WHEN: Checking if outliers data is empty.
+    THEN: Returns True (no outliers).
+    """
     processor = QuantityOutliersTableProcessor(
-        bs_data_dfs,
-        transporters_data_df,
-        (datetime(2024, 9, 10, tzinfo=tz), datetime(2024, 10, 10, tzinfo=tz)),
-        packagings_data_df,
+        bs_data_dfs=bs_data_dfs,
+        transporters_data_df=transporters_data_df,
+        data_date_interval=(datetime(2024, 9, 10, tzinfo=tz), datetime(2024, 10, 10, tzinfo=tz)),
+        packagings_data_df=packagings_data_df,
     )
     assert processor._check_data_empty() is True
 
 
 def test_build(bs_data_dfs, transporters_data_df, data_date_interval, packagings_data_df):
+    """
+    GIVEN: BSDD and BSFF with outlier quantities.
+    WHEN: Building final outliers list with formatted quantities.
+    THEN: Returns list of outlier records with all expected fields.
+    """
     processor = QuantityOutliersTableProcessor(
-        bs_data_dfs, transporters_data_df, data_date_interval, packagings_data_df
+        bs_data_dfs=bs_data_dfs,
+        transporters_data_df=transporters_data_df,
+        data_date_interval=data_date_interval,
+        packagings_data_df=packagings_data_df,
     )
     results = processor.build()
 
