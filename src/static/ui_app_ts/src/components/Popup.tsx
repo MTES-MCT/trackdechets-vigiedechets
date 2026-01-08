@@ -5,6 +5,7 @@ export function Popup({
   text,
   onClose,
   registeredOnTd,
+  isDormant,
   row1 = null,
   row2 = null,
   row3 = null,
@@ -27,6 +28,15 @@ export function Popup({
           ) : (
             <span className="fr-badge fr-badge--warning fr-badge--no-icon">
               Non inscrit sur Trackdéchets
+            </span>
+          )}
+          {isDormant? (
+            <span className="fr-badge fr-badge--warning">
+              Fermé/Inactif
+            </span>
+          ) : (
+            <span className="fr-badge fr-badge--success">
+              Actif
             </span>
           )}
         </p>
