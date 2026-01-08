@@ -30,14 +30,16 @@ export function Popup({
               Non inscrit sur Trackdéchets
             </span>
           )}
-          {isDormant? (
-            <span className="fr-badge fr-badge--warning">
-              Fermé/Inactif
-            </span>
-          ) : (
-            <span className="fr-badge fr-badge--success">
-              Actif
-            </span>
+          {isDormant !== undefined && (
+            isDormant ? (
+              <span className="fr-badge fr-badge--warning">
+                Fermé/Inactif
+              </span>
+            ) : (
+              <span className="fr-badge fr-badge--success">
+                Actif
+              </span>
+            )
           )}
         </p>
       )}
