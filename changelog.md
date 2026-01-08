@@ -5,6 +5,10 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## 08/01/2026
+
+- Ajout du statut "fermé/inactif" (is_dormant) dans la vue cartographie des établissements avec affichage d'un badge dans le popup
+
 ## 15/12/2025
 
 - Ajout nouveaux champs de profil pour les collecteurs et les processeurs de déchets à l'export de la carte des installations
