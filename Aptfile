@@ -1,3 +1,6 @@
 binutils
 libproj-dev
 gdal-bin
+libtiff5
+libgdal-dev
+libgeos-dev
