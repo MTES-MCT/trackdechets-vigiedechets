@@ -21,6 +21,7 @@ export interface Plot {
   siret?: string;
   profiles?: string;
   wastes?: string;
+  is_dormant?: boolean;
 }
 
 // Filter types
@@ -48,6 +49,7 @@ export interface PopupData {
   popupRow3?: [string, string];
   popupLink?: string;
   registeredOnTd?: boolean;
+  isDormant?: boolean;
 }
 
 // Options types
@@ -119,6 +121,7 @@ export interface PopupProps {
   row2?: [string, string] | null;
   row3?: [string, string] | null;
   link?: string | null;
+  isDormant?: boolean;
 }
 
 export interface SelectWithSubOptionsProps {

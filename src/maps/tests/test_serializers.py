@@ -27,6 +27,7 @@ def test_company_serializer():
             "CREMATORIUM",
             "WORKER",
         ],
+        is_dormant=False,
     )
     ser = CompanySerializer(company)
     serialized_profiles = [
@@ -53,4 +54,5 @@ def test_company_serializer():
         "wastes": "Déchets dangereux, Amiante, Fluides Frigorigènes, Dasri, Vehicules hors d'usage",
         "profiles": ", ".join(serialized_profiles),
         "registered_on_td": True,
+        "is_dormant": False,
     }

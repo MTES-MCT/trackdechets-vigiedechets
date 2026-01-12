@@ -32,6 +32,8 @@ type PlotProperties = GeoJsonProperties & {
   siret?: string;
   profiles?: string;
   wastes?: string;
+  registered_on_td?: boolean;
+  is_dormant?: boolean;
   lat: number;
   long: number;
 };
@@ -87,6 +89,7 @@ const mapPlotToPopup = (plot: Plot, zoom: number): PopupData | null => {
       popupRow2: ["Profil", plot.profiles || ""],
       popupRow3: ["Déchet", plot.wastes || ""],
       popupLink: `${PREPARE_SLUG}?siret=${plot.siret || ""}`,
+      isDormant: plot.is_dormant,
     };
   }
   return null;
@@ -125,6 +128,7 @@ export default function MapContainer({ mapRef, lat, lng }: MapContainerProps) {
     popupRow3,
     popupLink,
     registeredOnTd,
+    isDormant,
   } = useAppSelector((state: RootState) => state.mapPopup);
 
   const points = useMemo(() => {
@@ -230,6 +234,7 @@ export default function MapContainer({ mapRef, lat, lng }: MapContainerProps) {
             profiles: properties.profiles,
             wastes: properties.wastes,
             registered_on_td: properties.registered_on_td,
+            is_dormant: properties.is_dormant,
             count: 1,
           };
 
@@ -400,6 +405,7 @@ export default function MapContainer({ mapRef, lat, lng }: MapContainerProps) {
             row2={[popupRow2[0], popupRow2[1]]}
             row3={[popupRow3[0], popupRow3[1]]}
             registeredOnTd={registeredOnTd}
+            isDormant={isDormant}
             link={popupLink}
             onClose={() => dispatch(closePopup())}
           />

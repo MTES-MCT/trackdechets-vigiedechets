@@ -95,6 +95,7 @@ class CartoCompany(models.Model):
     adresse_insee = models.TextField(null=True, blank=True)
 
     date_inscription = models.DateTimeField(null=True, blank=True)
+    is_dormant = models.BooleanField(null=True, blank=True, db_index=True)
     coords = models.PointField(null=True, blank=True, spatial_index=True)
 
     class Meta:

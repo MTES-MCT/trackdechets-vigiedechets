@@ -248,17 +248,16 @@ def test_map_api_export_deny_get(verified_api):
 
 
 def test_map_api_export(verified_api):
-    CartoCompanyFactory(coords=Point(x=55.30, y=-21.22), siret="00035182679548", nom_etablissement="Mycompany")
+    CartoCompanyFactory(
+        coords=Point(x=55.30, y=-21.22), siret="00035182679548", nom_etablissement="Mycompany", is_dormant=True
+    )
     url = reverse("map_api_export")
     params = {"export_format": "csv"}
 
     res = verified_api.post(f"{url}?{urlencode(params)}", {})
-
+    expected_content = b"siret,nom_etablissement,adresse_td,profiles,collector_profiles,installation_profiles,vhu_installation_profiles,bsdd_roles,bsdnd_roles,bsda_roles,bsff_roles,bsdasri_roles,bsvhu_roles,texs_dd_roles,dnd_roles,texs_roles,processing_operations,is_dormant\r\n00035182679548,Mycompany,,,,,,,,,,,,,,,,True\r\n"
     assert res.status_code == 200
-    assert (
-        res.content
-        == b"siret,nom_etablissement,adresse_td,profiles,collector_profiles,installation_profiles,vhu_installation_profiles,bsdd_roles,bsdnd_roles,bsda_roles,bsff_roles,bsdasri_roles,bsvhu_roles,texs_dd_roles,dnd_roles,texs_roles,processing_operations\r\n00035182679548,Mycompany,,,,,,,,,,,,,,,\r\n"
-    )
+    assert res.content == expected_content
 
 
 def test_export_csv_format(verified_api, setup_export_test_data):

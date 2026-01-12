@@ -8,6 +8,7 @@ const initialState = {
   popupRow3: [],
   popupLink: "",
   registeredOnTd: false,
+  isDormant: undefined as boolean | undefined,
 };
 
 export const mapPopupSlice = createSlice({
@@ -23,6 +24,7 @@ export const mapPopupSlice = createSlice({
         popupRow3,
         popupLink,
         registeredOnTd,
+        isDormant,
       } = action.payload;
       state.popupTitle = popupTitle || "";
       state.popupText = popupText || "";
@@ -31,6 +33,7 @@ export const mapPopupSlice = createSlice({
       state.popupRow3 = popupRow3 || [];
       state.popupLink = popupLink || "";
       state.registeredOnTd = registeredOnTd;
+      state.isDormant = isDormant;
     },
     closePopup: (state) => {
       state.popupTitle = "";
@@ -39,6 +42,7 @@ export const mapPopupSlice = createSlice({
       state.popupRow2 = [];
       state.popupRow3 = [];
       state.popupLink = "";
+      state.isDormant = undefined;
     },
   },
 });
