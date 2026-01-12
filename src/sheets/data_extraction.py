@@ -126,6 +126,10 @@ query_types = {
     "destination_company_org_id": pl.String,
     "operation_date": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
     "acceptation_date": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
+    "worker_company_siret": pl.String,
+    "emitter_company_name": pl.String,
+    "emitter_waste_weight_is_estimate": pl.Boolean,
+    "refusal_reason": pl.String,
 }
 
 
