@@ -1,12 +1,7 @@
 #!/bin/sh
 bash bin/build_front.sh
 
-# Add apt-buildpack library path (for libtiff and other system libraries)
-APT_LIB_PATH=/build/${REQUEST_ID}/.apt/usr/lib/x86_64-linux-gnu
-# Add heroku-geo-buildpack library path (for GDAL/GEOS/PROJ)
-GEO_LIB_PATH=/app/.heroku/vendor/lib
-
-export LD_LIBRARY_PATH=${APT_LIB_PATH}:${APT_LIB_PATH}/blas/:${APT_LIB_PATH}/lapack/:${GEO_LIB_PATH}:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=/build/${REQUEST_ID}/.apt/usr/lib/x86_64-linux-gnu/blas/:/build/${REQUEST_ID}/.apt/usr/lib/x86_64-linux-gnu/lapack/:${LD_LIBRARY_PATH}
 export PROJ_LIB=/build/${REQUEST_ID}/.apt/usr/share/proj
 
 rm staticfiles -Rf
