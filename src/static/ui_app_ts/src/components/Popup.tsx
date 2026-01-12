@@ -30,7 +30,7 @@ export function Popup({
               Non inscrit sur Trackdéchets
             </span>
           )}
-          {isDormant !== undefined && (
+          {isDormant != null && (
             isDormant ? (
               <span className="fr-badge fr-badge--warning">
                 Fermé/Inactif
