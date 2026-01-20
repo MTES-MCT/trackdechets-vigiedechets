@@ -1,6 +1,7 @@
 import logging
 import os
 
+import kaleido
 from celery import Celery
 from celery.signals import celeryd_after_setup, worker_shutdown
 
@@ -27,10 +28,17 @@ app.autodiscover_tasks()
 def setup_connection(**kwargs):
     logger.info("Creating tunnel and DWH engine.")
     get_wh_sqlachemy_engine()
+    logger.info("Starting Kaleido sync server for persistent Chrome process.")
+    kaleido.start_sync_server()
 
 
 @worker_shutdown.connect
 def clean_connection(**kwargs):
+    logger.info("Stopping Kaleido sync server.")
+    try:
+        kaleido.stop_sync_server()
+    except Exception as e:
+        logger.warning(f"Error stopping Kaleido sync server: {e}")
     logger.info("Deleting tunnel and associated artifacts.")
     tunnel = get_tunnel()
     tunnel.stop()
