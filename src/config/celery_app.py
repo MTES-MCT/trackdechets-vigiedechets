@@ -33,6 +33,7 @@ def setup_connection(**kwargs):
     kaleido.get_chrome_sync()
     kaleido.start_sync_server()
 
+
 def stop_kaleido():
     try:
         kaleido.stop_sync_server()
