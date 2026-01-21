@@ -53,7 +53,8 @@ jobs:
       METABASE_SSH_KEY: ssh key
       METABASE_SSH_KEY_PASSPHRASE: passphrase
       METABASE_PORT: 3000
-      METABASE_SITE_URL: http://localhost:3000
+      METABASE_SITE_URL: http://localhost
+      METABASE_SECRET_KEY: secret key
     services:
       postgres:
         image: postgis/postgis
