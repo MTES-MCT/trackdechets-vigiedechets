@@ -85,6 +85,10 @@ PERMS_SENTINEL = [
     UserCategoryChoice.DOUANE,
 ]
 
+PERMS_DASHBOARD = [
+    UserCategoryChoice.STAFF_TD,
+    UserCategoryChoice.ADMINISTRATION_CENTRALE,
+]
 
 class UserTypeChoice(models.TextChoices):
     HUMAN = "HUMAN", _("Human")

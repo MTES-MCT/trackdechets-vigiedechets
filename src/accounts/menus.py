@@ -75,6 +75,11 @@ Menu.add_item(
     UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
 )
 
+Menu.add_item(
+    "main",
+    PermsItem("Tableau de bord", reverse("dashboard"), allowed_categories=settings.PERMS_DASHBOARD),
+)
+
 if not settings.HIDE_FAQ_NAV:
     Menu.add_item(
         "main",

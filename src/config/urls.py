@@ -45,6 +45,7 @@ urlpatterns = [
     path("data-exports/", include("data_exports.urls")),
     path("sentinelle/", include("sentinel.urls")),
     path("faq/", include("faq.urls")),
+    path("dashboard/", include("dashboard.urls")),
 ]
 
 if settings.DEBUG:
