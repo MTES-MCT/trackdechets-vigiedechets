@@ -5,6 +5,12 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## [Date à définir]
+
+- Ajout du tableau de bord avec intégration Metabase via tunnel SSH pour les utilisateurs STAFF_TD et ADMINISTRATION_CENTRALE
+- Migration du module SSH de `sheets` vers `common` pour une meilleure réutilisabilité
+- Support de plusieurs tunnels SSH (DataWarehouse et Metabase) via l'enum `SSHTarget`
+
 ## 08/01/2026
 
 - Ajout du statut "fermé/inactif" (is_dormant) dans la vue cartographie des établissements avec affichage d'un badge dans le popup
