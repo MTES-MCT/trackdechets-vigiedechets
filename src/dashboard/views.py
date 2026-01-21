@@ -1,11 +1,12 @@
 import logging
 
 import requests
+from django.conf import settings
 from django.http import HttpResponse, StreamingHttpResponse
 from django.urls import reverse
+from django.utils.http import urlquote
 from django.views import View
 from django.views.generic import TemplateView
-from django.conf import settings
 
 from common.mixins import FullyLoggedMixin
 from accounts.constants import PERMS_DASHBOARD
@@ -14,6 +15,17 @@ from common.ssh import ssh_tunnel, get_tunnel_port
 from .metabase import generate_metabase_token
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_path(path: str) -> str:
+    """Sanitize user-provided path to prevent SSRF/injection attacks."""
+    # Strip leading slashes to prevent //evil.com attacks
+    normalized_path = path.lstrip("/")
+    # Remove path traversal attempts
+    normalized_path = normalized_path.replace("../", "").replace("..\\", "")
+    # URL-encode to prevent breaking out into query/fragment components
+    return urlquote(normalized_path, safe="/")
+
 
 # Headers that should not be forwarded from the proxy response
 HOP_BY_HOP_HEADERS = {
@@ -58,8 +70,11 @@ class MetabaseProxyView(FullyLoggedMixin, View):
             logger.error("Metabase SSH tunnel is not active")
             return HttpResponse("Metabase connection unavailable", status=503)
 
+        # Sanitize user-provided path to prevent SSRF/injection attacks
+        safe_path = _sanitize_path(path)
+
         # Build the target URL
-        target_url = f"http://127.0.0.1:{tunnel_port}/{path}"
+        target_url = f"http://127.0.0.1:{tunnel_port}/{safe_path}"
         if request.GET:
             target_url += f"?{request.GET.urlencode()}"
 
@@ -139,7 +154,10 @@ class MetabaseStaticProxyView(View):
             logger.error("Metabase SSH tunnel is not active")
             return HttpResponse("Metabase connection unavailable", status=503)
 
-        target_url = f"http://127.0.0.1:{tunnel_port}/app/{path}"
+        # Sanitize user-provided path to prevent SSRF/injection attacks
+        safe_path = _sanitize_path(path)
+
+        target_url = f"http://127.0.0.1:{tunnel_port}/app/{safe_path}"
 
         try:
             resp = requests.get(url=target_url, stream=True, timeout=30)
