@@ -9,6 +9,7 @@ from accounts.constants import (
     PERMS_MAP_ICPE,
     PERMS_ROAD_CONTROL,
     PERMS_SHEET_AND_REGISTRY,
+    PERMS_DASHBOARD,
 )
 
 
@@ -77,7 +78,7 @@ Menu.add_item(
 
 Menu.add_item(
     "main",
-    PermsItem("Tableau de bord", reverse("dashboard"), allowed_categories=settings.PERMS_DASHBOARD),
+    PermsItem("Tableau de bord", reverse("dashboard"), allowed_categories=PERMS_DASHBOARD),
 )
 
 if not settings.HIDE_FAQ_NAV:

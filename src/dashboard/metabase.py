@@ -24,7 +24,7 @@ def generate_metabase_token(question_id: int = 192) -> str:
         raise
 
 
-def get_metabase_iframe_url(question_id: int = 192) -> str:
+def get_metabase_iframe_url(tunnel_port: int, question_id: int = 192) -> str:
     """Get the full iframe URL for a Metabase question."""
     token = generate_metabase_token(question_id)
-    return f"{settings.METABASE_SITE_URL}/embed/question/{token}#bordered=true&titled=true"
+    return f"http://{settings.METABASE_SITE_URL}:{tunnel_port}/embed/question/{token}#bordered=true&titled=true"

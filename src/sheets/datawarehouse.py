@@ -4,7 +4,7 @@ from typing import Any, Optional
 from django.conf import settings
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
-
+from common.constants import SSHTarget
 from common.ssh import get_tunnel_port, ssh_tunnel
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def get_wh_sqlachemy_engine() -> Engine:
     dwh_username = settings.DWH_USERNAME
     dwh_password = settings.DWH_PASSWORD
     dwh_ssh_local_bind_host = settings.DWH_SSH_LOCAL_BIND_HOST
-    ssh_tunnel(settings)
+    ssh_tunnel(settings, SSHTarget.DWH)
 
     tunnel_port = get_tunnel_port()
 
