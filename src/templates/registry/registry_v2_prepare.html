@@ -87,6 +87,11 @@
                 <div class="fr-col-6">{% include 'forms/_field.html' with field=form.end_date %}</div>
             </div>
             <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col">
+                    <div class="fr-alert fr-alert--info fr-alert--sm" id="registry-date-info" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="fr-grid-row fr-grid-row--gutters">
                 <div class="fr-col-6">{% include 'forms/_field.html' with field=form.export_format %}</div>
             </div>
             <div class="fr-mt-5v">
@@ -132,5 +137,33 @@
             noChoicesText: 'Pas de résultat',
             itemSelectText: 'Cliquer pour sélectionner'
         })
+
+        // Gestion de l'affichage du message selon le type de registre
+        const registryTypeSelect = document.querySelector('#id_registry_type');
+        const dateInfoAlert = document.querySelector('#registry-date-info');
+
+        const registryTypeMessages = {
+            'SSD': 'La date d\'utilisation ou d\'expédition est prise en compte.',
+            'INCOMING': 'La date de réception est prise en compte.',
+            'OUTGOING': 'La date d\'expédition est prise en compte.',
+            'TRANSPORTED': 'La date d\'expédition est prise en compte.',
+            'MANAGED': 'La date d\'expédition est prise en compte.'
+        };
+
+        function updateDateInfo() {
+            const selectedType = registryTypeSelect.value;
+            if (selectedType && registryTypeMessages[selectedType]) {
+                dateInfoAlert.textContent = registryTypeMessages[selectedType];
+                dateInfoAlert.style.display = 'block';
+            } else {
+                dateInfoAlert.style.display = 'none';
+            }
+        }
+
+        if (registryTypeSelect) {
+            registryTypeSelect.addEventListener('change', updateDateInfo);
+            // Appel initial pour afficher le message si une valeur est déjà sélectionnée
+            updateDateInfo();
+        }
     </script>
 {% endblock scripts %}
