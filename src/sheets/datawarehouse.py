@@ -5,7 +5,7 @@ from django.conf import settings
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from sheets.ssh import get_tunnel_port, ssh_tunnel
+from common.ssh import get_tunnel_port, ssh_tunnel
 
 logger = logging.getLogger(__name__)
 

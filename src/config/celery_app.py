@@ -4,8 +4,8 @@ import os
 from celery import Celery
 from celery.signals import celeryd_after_setup, worker_shutdown
 
+from common.ssh import get_tunnel
 from sheets.datawarehouse import get_wh_sqlachemy_engine
-from sheets.ssh import get_tunnel
 
 logger = logging.getLogger(__name__)
 

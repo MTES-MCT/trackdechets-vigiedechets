@@ -6,10 +6,10 @@ from django.core.exceptions import ImproperlyConfigured
 from django.forms import ValidationError
 from sqlalchemy.sql import text
 
+from common.ssh import ssh_tunnel
 from sheets.datawarehouse import get_wh_sqlachemy_engine
 from sheets.forms import TypedDateInput
 from sheets.queries import sql_company_query_exists_str
-from sheets.ssh import ssh_tunnel
 
 from .models import RegistryV2Export
 
