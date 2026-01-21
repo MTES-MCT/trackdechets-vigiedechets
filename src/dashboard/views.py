@@ -1,4 +1,5 @@
 import logging
+import os
 
 import requests
 from django.conf import settings
@@ -26,6 +27,23 @@ def _sanitize_path(path: str) -> str:
     # URL-encode to prevent breaking out into query/fragment components
     return urlquote(normalized_path, safe="/")
 
+
+# Allowed static asset extensions for MetabaseStaticProxyView
+ALLOWED_STATIC_EXTENSIONS = {
+    ".js",
+    ".css",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".ico",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".map",
+}
 
 # Headers that should not be forwarded from the proxy response
 HOP_BY_HOP_HEADERS = {
@@ -147,6 +165,17 @@ class MetabaseStaticProxyView(View):
 
     def get(self, request, path: str):
         """Forward static asset requests to Metabase through SSH tunnel."""
+        # Validate path: reject directory traversal and paths starting with /
+        if ".." in path or path.startswith("/"):
+            logger.warning(f"Rejected suspicious static asset path: {path}")
+            return HttpResponse("Not found", status=404)
+
+        # Validate file extension against allowlist to prevent XSS via dynamic content
+        _, ext = os.path.splitext(path)
+        if ext.lower() not in ALLOWED_STATIC_EXTENSIONS:
+            logger.warning(f"Rejected static asset with disallowed extension: {path}")
+            return HttpResponse("Not found", status=404)
+
         ssh_tunnel(settings, SSHTarget.METABASE)
 
         tunnel_port = get_tunnel_port()
