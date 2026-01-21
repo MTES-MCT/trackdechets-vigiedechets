@@ -90,6 +90,7 @@ PERMS_DASHBOARD = [
     UserCategoryChoice.ADMINISTRATION_CENTRALE,
 ]
 
+
 class UserTypeChoice(models.TextChoices):
     HUMAN = "HUMAN", _("Human")
     API = "API", _("api")
