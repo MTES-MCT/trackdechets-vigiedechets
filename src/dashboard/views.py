@@ -125,3 +125,44 @@ class MetabaseProxyView(FullyLoggedMixin, View):
 
     def post(self, request, path: str):
         return self._proxy_request(request, path, method="POST")
+
+
+class MetabaseStaticProxyView(View):
+    """Proxy view for Metabase static assets (/app/* paths)."""
+
+    def get(self, request, path: str):
+        """Forward static asset requests to Metabase through SSH tunnel."""
+        ssh_tunnel(settings, SSHTarget.METABASE)
+
+        tunnel_port = get_tunnel_port()
+        if not tunnel_port:
+            logger.error("Metabase SSH tunnel is not active")
+            return HttpResponse("Metabase connection unavailable", status=503)
+
+        target_url = f"http://127.0.0.1:{tunnel_port}/app/{path}"
+
+        try:
+            resp = requests.get(url=target_url, stream=True, timeout=30)
+            content_type = resp.headers.get("Content-Type", "application/octet-stream")
+
+            if int(resp.headers.get("Content-Length", 0)) > 1024 * 1024:
+                response = StreamingHttpResponse(
+                    resp.iter_content(chunk_size=8192),
+                    content_type=content_type,
+                    status=resp.status_code,
+                )
+            else:
+                response = HttpResponse(
+                    content=resp.content,
+                    content_type=content_type,
+                    status=resp.status_code,
+                )
+
+            if resp.status_code == 200:
+                response["Cache-Control"] = "public, max-age=31536000"
+
+            return response
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching Metabase static asset: {e}")
+            return HttpResponse("Asset unavailable", status=502)

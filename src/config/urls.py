@@ -4,10 +4,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.http import Http404
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from django_otp.admin import OTPAdminSite
 
+from dashboard.views import MetabaseStaticProxyView
 from sheets.views import PrivateHomeView, PublicHomeView
 
 # Admin config
@@ -46,6 +47,8 @@ urlpatterns = [
     path("sentinelle/", include("sentinel.urls")),
     path("faq/", include("faq.urls")),
     path("dashboard/", include("dashboard.urls")),
+    # Metabase static assets - these are requested with absolute /app/* paths by the embed
+    re_path(r"^app/(?P<path>.*)$", MetabaseStaticProxyView.as_view(), name="metabase_static"),
 ]
 
 if settings.DEBUG:
