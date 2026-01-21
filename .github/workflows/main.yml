@@ -47,6 +47,13 @@ jobs:
       ALLOWED_USER_FOR_SENTINEL: ""
       PARQUET_BUCKET_NAME: "donnees-test"
       SUPPORT_FORM_RECIPIENT: "test@test.com"
+      METABASE_SSH_HOST: 12.345.678.123
+      METABASE_SSH_PORT: 22
+      METABASE_SSH_USERNAME: user
+      METABASE_SSH_KEY: ssh key
+      METABASE_SSH_KEY_PASSPHRASE: passphrase
+      METABASE_PORT: 3000
+      METABASE_SITE_URL: http://localhost:3000
     services:
       postgres:
         image: postgis/postgis
