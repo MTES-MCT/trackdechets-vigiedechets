@@ -363,6 +363,11 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_RESULT_EXTENDED = True
 
+# Worker concurrency and resource management to prevent thread exhaustion
+CELERY_WORKER_CONCURRENCY = 4  # Limit concurrent tasks per worker
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # Don't pre-fetch tasks aggressively
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 50  # Restart worker after 50 tasks to cleanup leaked threads
+
 HIDE_FAQ_NAV = env.bool("HIDE_FAQ_NAV", False)
 
 SUPPORT_FORM_RECIPIENT = env("SUPPORT_FORM_RECIPIENT")
