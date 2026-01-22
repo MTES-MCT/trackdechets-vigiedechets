@@ -76,7 +76,7 @@ services:
     command: uv run celery -A config worker -l info --pool threads
     volumes:
       - .:/app
-
+    shm_size: '2gb'
     env_file:
       - .env.docker
     depends_on:

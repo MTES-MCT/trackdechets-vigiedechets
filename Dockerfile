@@ -6,7 +6,9 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     DJANGO_SUPERUSER_PASSWORD=pass \
     UV_SYSTEM_PYTHON=1 \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    BROWSER_PATH=/usr/bin/chromium
 
 ENV GUN_DATA_UPDATE_DATE_STRING="Février 2025" \
     GISTRID_DATA_UPDATE_DATE_STRING="Février 2025" \
@@ -32,6 +34,29 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     netcat-openbsd \
+    # Chromium dependencies for Kaleido 1.2+
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libxss1 \
+    libxkbcommon0 \
+    # Chromium browser
+    chromium \
     # Node.js et npm pour le frontend
     nodejs \
     npm
@@ -71,6 +96,19 @@ COPY --chown=apppuser:apppuser . .
 # Now install the project itself
 RUN uv sync --frozen
 
+# Verify Chrome is accessible for Kaleido
+RUN /usr/bin/chromium --version
+
+# Install Marianne font for Chromium/Kaleido (used in Plotly graphs)
+# Convert WOFF2 to TTF using woff2 tool
+RUN apt-get update && apt-get install -y fontconfig woff2 && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /usr/share/fonts/truetype/marianne \
+    && cd /app/src/static/css/fonts \
+    && woff2_decompress Marianne-Regular.woff2 \
+    && woff2_decompress Marianne-Bold.woff2 \
+    && woff2_decompress Marianne-Medium.woff2 \
+    && mv Marianne-Regular.ttf Marianne-Bold.ttf Marianne-Medium.ttf /usr/share/fonts/truetype/marianne/ \
+    && fc-cache -f -v
 
 COPY --chown=apppuser:apppuser docker-entrypoint.sh /usr/local/bin/
 USER root
