@@ -1,6 +1,6 @@
 import logging
 import os
-
+import kaleido
 from celery import Celery
 from celery.signals import celeryd_after_setup, worker_shutdown
 
@@ -27,6 +27,12 @@ app.autodiscover_tasks()
 def setup_connection(**kwargs):
     logger.info("Creating tunnel and DWH engine.")
     get_wh_sqlachemy_engine()
+    try:
+        kaleido.get_chrome_sync()
+        logger.info("Chrome initialized successfully for Kaleido")
+    except Exception as e:
+        logger.error(f"Failed to initialize Chrome for Kaleido: {e}")
+        raise
 
 
 @worker_shutdown.connect
