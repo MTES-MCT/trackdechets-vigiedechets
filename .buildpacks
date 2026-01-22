@@ -1,4 +1,5 @@
 https://github.com/Scalingo/apt-buildpack.git
+https://github.com/heroku/heroku-buildpack-chrome-for-testing.git
 https://github.com/Scalingo/nodejs-buildpack.git
 https://github.com/Scalingo/locale-buildpack.git
 https://github.com/mlvernay/heroku-geo-buildpack.git#heroku-22

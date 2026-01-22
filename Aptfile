@@ -3,9 +3,7 @@ gdal-bin
 libproj-dev
 libpango-1.0-0
 libcairo2
-# Chromium and dependencies for Kaleido 1.2+
-chromium
-chromium-sandbox
+# Chrome/Chromium dependencies for Kaleido 1.2+
 fontconfig
 fonts-liberation
 libasound2
