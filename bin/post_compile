@@ -4,5 +4,20 @@ bash bin/build_front.sh
 export LD_LIBRARY_PATH=/build/${REQUEST_ID}/.apt/usr/lib/x86_64-linux-gnu/blas/:/build/${REQUEST_ID}/.apt/usr/lib/x86_64-linux-gnu/lapack/:${LD_LIBRARY_PATH}
 export PROJ_LIB=/build/${REQUEST_ID}/.apt/usr/share/proj
 
+# Install Marianne font for Kaleido/Chromium (used in Plotly graphs)
+echo "Installing Marianne fonts..."
+FONT_DIR="${HOME}/.fonts"
+mkdir -p "${FONT_DIR}"
+cd src/static/css/fonts
+for font in Marianne-Regular.woff2 Marianne-Bold.woff2 Marianne-Medium.woff2; do
+    if [ -f "$font" ]; then
+        woff2_decompress "$font" 2>/dev/null || echo "Warning: could not decompress $font"
+    fi
+done
+mv *.ttf "${FONT_DIR}/" 2>/dev/null || true
+cd - > /dev/null
+fc-cache -f -v "${FONT_DIR}" 2>/dev/null || true
+echo "Marianne fonts installed."
+
 rm staticfiles -Rf
 python src/manage.py collectstatic --noinput --settings=config.settings.production
