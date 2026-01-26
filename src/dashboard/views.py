@@ -1,11 +1,11 @@
 import logging
 import os
+from urllib.parse import quote
 
 import requests
 from django.conf import settings
 from django.http import HttpResponse, StreamingHttpResponse
 from django.urls import reverse
-from django.utils.http import urlquote
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -25,7 +25,7 @@ def _sanitize_path(path: str) -> str:
     # Remove path traversal attempts
     normalized_path = normalized_path.replace("../", "").replace("..\\", "")
     # URL-encode to prevent breaking out into query/fragment components
-    return urlquote(normalized_path, safe="/")
+    return quote(normalized_path, safe="/")
 
 
 # Allowed static asset extensions for MetabaseStaticProxyView
@@ -65,9 +65,9 @@ class DashboardView(FullyLoggedMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Generate the token and build the proxy URL
-        token = generate_metabase_token()
-        proxy_path = f"embed/question/{token}"
-        context["iframe_url"] = f"{reverse('metabase_proxy', kwargs={'path': proxy_path})}?bordered=true&titled=true"
+        token = generate_metabase_token(resource_type="dashboard", resource_id=2)
+        proxy_path = f"embed/dashboard/{token}"
+        context["iframe_url"] = f"{reverse('metabase_proxy', kwargs={'path': proxy_path})}#bordered=true&titled=true"
         return context
 
 
@@ -155,10 +155,6 @@ class MetabaseProxyView(FullyLoggedMixin, View):
 
     def get(self, request, path: str):
         return self._proxy_request(request, path, method="GET")
-
-    def post(self, request, path: str):
-        return self._proxy_request(request, path, method="POST")
-
 
 class MetabaseStaticProxyView(View):
     """Proxy view for Metabase static assets (/app/* paths)."""
