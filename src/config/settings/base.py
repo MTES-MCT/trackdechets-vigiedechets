@@ -359,9 +359,13 @@ MATOMO_SITE_ID = env("MATOMO_SITE_ID", default=None)
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]
 
+# Doc available here: https://docs.celeryq.dev/en/latest/userguide/configuration.html
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_RESULT_EXTENDED = True
+CELERY_WORKER_CONCURRENCY = env.int("CELERY_WORKER_CONCURRENCY", default=None)
+CELERY_WORKER_PREFETCH_MULTIPLIER = env.int("CELERY_WORKER_PREFETCH_MULTIPLIER", default=4)
+CELERY_WORKER_MAX_TASKS_PER_CHILD = env.int("CELERY_WORKER_MAX_TASKS_PER_CHILD", default=None)
 
 HIDE_FAQ_NAV = env.bool("HIDE_FAQ_NAV", False)
 
