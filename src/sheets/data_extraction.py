@@ -20,6 +20,7 @@ from .queries import (
     sql_bsvhu_query_str,
     sql_company_query_str,
     sql_get_broker_receipt_id_data,
+    sql_get_eco_organisme_partners_data,
     sql_get_gistrid_data,
     sql_get_icpe_data,
     sql_get_icpe_item_data,
@@ -84,6 +85,7 @@ query_types = {
     "collector_types": pl.List(inner=pl.String),
     "waste_processor_types": pl.List(inner=pl.String),
     "has_enabled_registry_dnd_from_bsd_since": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
+    "eco_organisme_partners_ids": pl.List(inner=pl.String),
     "emitter_is_private_individual": pl.Boolean,
     "volume": pl.Float64,
     "bsff_id": pl.String,
@@ -496,3 +498,22 @@ def get_ssd_data(siret: str) -> Union[pl.LazyFrame, None]:
     if len(ssd_data):
         return ssd_data.lazy()
     return None
+
+
+def get_eco_organisme_partners_data(partner_ids: list[str]) -> list[dict]:
+    """Get eco-organisme partners data from their SIRETs.
+
+    Parameters
+    ----------
+    partner_ids : list[str]
+        List of company ids to look up.
+
+    Returns
+    -------
+    list[dict]
+        List of dicts with 'siret' and 'name' keys.
+    """
+
+    df = build_query(sql_get_eco_organisme_partners_data, query_params={"partner_ids": tuple(partner_ids)})
+
+    return [{"name": row["name"], "siret": row["siret"]} for row in df.iter_rows(named=True)]
