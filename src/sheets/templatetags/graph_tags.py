@@ -139,8 +139,16 @@ def render_bs_without_icpe_authorization_tables(computed, graph_context="web"):
 def render_agreements(computed):
     return {
         "agreement_data": computed.agreement_data,
+        "eco_organisme_partners_data": computed.eco_organisme_partners_data,
+        "is_vhu_company": computed.is_vhu_company,
     }
 
+@register.inclusion_tag("sheets/components/eco_organism_partners.html")
+def render_eco_organism_partners(computed):
+    return {
+        "eco_organisme_partners_data": computed.eco_organisme_partners_data,
+        "is_vhu_company": computed.is_vhu_company,
+    }
 
 @register.inclusion_tag("sheets/components/linked_companies.html")
 def render_linked_companies_data(computed, graph_context="web"):
