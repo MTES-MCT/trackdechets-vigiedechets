@@ -137,6 +137,8 @@ class ComputedInspectionData(models.Model):
 
     icpe_data = models.JSONField(default=dict)
     agreement_data = models.JSONField(default=dict)
+    eco_organisme_partners_data = models.JSONField(default=list)
+    is_vhu_company = models.BooleanField(default=False)
     traceability_interruptions_data = models.JSONField(default=dict)
     waste_is_dangerous_statements_data = models.JSONField(default=dict)
     bsd_canceled_data = models.JSONField(default=dict)
