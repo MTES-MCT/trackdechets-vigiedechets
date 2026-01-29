@@ -1,11 +1,14 @@
 import polars as pl
-
+import logging
 from maps.data.data_processing import create_icpe_installations_df, create_icpe_regional_df
 from maps.models import DepartementsComputation, FranceComputation, InstallationsComputation, RegionsComputation
 from maps.utils import get_data_date_interval_for_year
 
+logger = logging.getLogger(__name__)
+
 
 def build_stats_and_figs(year: int, clear_year: bool = False):
+    logger.info(f"Building stats and figs for year {year}")
     existing_computations = [
         DepartementsComputation.objects.filter(year=year),
         InstallationsComputation.objects.filter(year=year),
