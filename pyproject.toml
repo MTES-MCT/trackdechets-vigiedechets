@@ -49,6 +49,7 @@ dependencies = [
     "xlsxwriter>=3.2.9",
     "django-htmx>=1.26.0",
     "django-multiupload>=0.6.1",
+    "pandera>=0.29.0",
 ]
 
 [dependency-groups]

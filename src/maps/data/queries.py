@@ -21,8 +21,8 @@ from
 
 icpe_installations_schema_overrides = {
     "code_aiot": pl.String,
-    "siret": pl.String,
     "raison_sociale": pl.String,
+    "siret": pl.String,
     "rubrique": pl.String,
     "quantite_autorisee": pl.Float64,
     "unite": pl.String,
@@ -58,19 +58,20 @@ from
 
 icpe_installations_waste_processed_schema_overrides = {
     "code_aiot": pl.String,
-    "siret": pl.String,
-    "raison_sociale": pl.String,
     "rubrique": pl.String,
-    "quantite_autorisee": pl.Float64,
-    "quantite_objectif": pl.Float64,
-    "quantite_traitee": pl.Float64,
-    "unite": pl.String,
-    "latitude": pl.Float64,
-    "longitude": pl.Float64,
+    "raison_sociale": pl.String,
+    "siret": pl.String,
     "adresse1": pl.String,
     "adresse2": pl.String,
     "code_postal": pl.String,
     "commune": pl.String,
+    "latitude": pl.Float64,
+    "longitude": pl.Float64,
+    "quantite_autorisee": pl.Float64,
+    "unite": pl.String,
+    "quantite_traitee": pl.Float64,
+    "day_of_processing": pl.Date,
+    "quantite_objectif": pl.Float64,
 }
 
 icpe_departements_waste_processed_sql = """
