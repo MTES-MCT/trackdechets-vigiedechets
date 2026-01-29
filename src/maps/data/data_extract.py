@@ -2,11 +2,10 @@ import json
 import logging
 import time
 
+
 import polars as pl
-import polars.selectors as cs
 from django.conf import settings
 from sqlalchemy import create_engine
-
 from sheets.ssh import get_tunnel_port, ssh_tunnel
 
 from ..utils import format_waste_codes
@@ -62,9 +61,6 @@ def run_query_polars(sql_string: str, schema_overrides: dict = None) -> pl.DataF
 
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
     data_df = pl.read_database(sql_string, connection=engine, schema_overrides=schema_overrides)
-
-    # Convert Decimal to Float64 to avoid compatibility issues
-    data_df = data_df.cast({cs.decimal(): pl.Float64})
 
     logger.info(
         "Loading stats duration: %s (query : %s)",
