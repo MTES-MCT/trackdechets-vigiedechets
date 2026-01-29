@@ -110,7 +110,7 @@ def create_icpe_regional_df(
         The DataFrame after processing with additional columns for mean daily waste processed,
         rate of consumption, authorized quantity, number of installations and plotly graph.
     """
-    logger.info(f"Creating regional DataFrame.")
+    logger.info("Creating regional DataFrame.")
     df_list = []
     for rubrique in ICPE_RUBRIQUES:
         df_waste_processed_filtered = df_regional_waste_processed.filter(
