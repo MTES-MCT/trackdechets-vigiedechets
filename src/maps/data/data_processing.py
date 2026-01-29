@@ -4,12 +4,14 @@ Data gathering and processing
 
 from datetime import datetime
 from typing import Tuple
-
+import logging
 import polars as pl
 
 from maps.data.figures_factory import create_icpe_graph
 
 from ..constants import ANNUAL_ICPE_RUBRIQUES, DAILY_ICPE_RUBRIQUES, ICPE_RUBRIQUES
+
+logger = logging.getLogger(__name__)
 
 
 def create_icpe_installations_df(
@@ -17,8 +19,10 @@ def create_icpe_installations_df(
     df_installations_waste_processed: pl.DataFrame,
     date_interval: Tuple[datetime, datetime] | None = None,
 ) -> pl.DataFrame:
+    logger.info("Creating installations DataFrame.")
     df_list = []
     for rubrique in ICPE_RUBRIQUES:
+        logger.info(f"Creating installations DataFrame for rubrique {rubrique}")
         df_installations_filtered = df_installations.filter(pl.col("rubrique").str.contains(rubrique))
 
         if len(df_installations_filtered) == 0:
@@ -77,6 +81,7 @@ def create_icpe_installations_df(
         df_list.append(df_installations_final)
 
     gdf_final = pl.concat(df_list, how="diagonal")
+    logger.info("Installations DataFrame created.")
     return gdf_final
 
 
@@ -105,6 +110,7 @@ def create_icpe_regional_df(
         The DataFrame after processing with additional columns for mean daily waste processed,
         rate of consumption, authorized quantity, number of installations and plotly graph.
     """
+    logger.info("Creating regional DataFrame.")
     df_list = []
     for rubrique in ICPE_RUBRIQUES:
         df_waste_processed_filtered = df_regional_waste_processed.filter(
