@@ -2,11 +2,12 @@ import json
 import logging
 import time
 
+
 import polars as pl
 import polars.selectors as cs
 from django.conf import settings
 from sqlalchemy import create_engine
-
+import polars.selectors as cs
 from sheets.ssh import get_tunnel_port, ssh_tunnel
 
 from ..utils import format_waste_codes
