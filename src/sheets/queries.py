@@ -139,7 +139,8 @@ select id,
     vhu_agrement_broyeur_id,
     collector_types,
     waste_processor_types,
-    has_enabled_registry_dnd_from_bsd_since
+    has_enabled_registry_dnd_from_bsd_since,
+    eco_organisme_partners_ids
 from trusted_zone_trackdechets.company c
 where c.siret = :siret
 """
@@ -641,4 +642,12 @@ select
     trusted_zone_trackdechets.company
 where
     siret = :siret
+"""
+
+sql_get_eco_organisme_partners_data = """
+SELECT
+    siret,
+    name
+FROM trusted_zone_trackdechets.eco_organisme
+WHERE id IN :partner_ids
 """

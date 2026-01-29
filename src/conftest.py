@@ -1,8 +1,8 @@
 import datetime as dt
 
 import boto3
-from botocore.exceptions import EndpointConnectionError
 import pytest
+from botocore.exceptions import EndpointConnectionError
 from django.conf import settings
 from django.test.client import Client
 from django_otp import DEVICE_ID_SESSION_KEY

@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import plotly.graph_objects as go
 import polars as pl
