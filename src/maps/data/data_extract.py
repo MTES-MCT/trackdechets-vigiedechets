@@ -4,7 +4,6 @@ import time
 
 
 import polars as pl
-import polars.selectors as cs
 from django.conf import settings
 from sqlalchemy import create_engine
 from sheets.ssh import get_tunnel_port, ssh_tunnel

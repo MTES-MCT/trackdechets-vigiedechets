@@ -24,8 +24,7 @@ from .queries import (
 # Create a Pandera schema directly
 icpe_installations_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype, nullable=True)
-        for col_name, dtype in icpe_installations_schema_overrides.items()
+        col_name: pa.Column(dtype, nullable=True) for col_name, dtype in icpe_installations_schema_overrides.items()
     }
 )
 icpe_installations_waste_processed_pa_schema = pa.DataFrameSchema(
@@ -53,6 +52,7 @@ icpe_france_waste_processed_pa_schema = pa.DataFrameSchema(
     }
 )
 
+
 @dataclass
 class Computed:
     icpe_installations_data: pl.DataFrame
@@ -62,9 +62,7 @@ class Computed:
     icpe_france_waste_processed_data: pl.DataFrame
 
     def __post_init__(self):
-        self.icpe_installations_data = icpe_installations_pa_schema.validate(
-            self.icpe_installations_data
-        )
+        self.icpe_installations_data = icpe_installations_pa_schema.validate(self.icpe_installations_data)
         self.icpe_installations_waste_processed_data = icpe_installations_waste_processed_pa_schema.validate(
             self.icpe_installations_waste_processed_data
         )
