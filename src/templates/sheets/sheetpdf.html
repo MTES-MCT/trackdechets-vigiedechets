@@ -67,6 +67,48 @@
                 {% render_linked_companies_data sheet graph_context="pdf" %}
                 {# end linked companies table #}
             </div>
+            {# ICPE #}
+            <h2 class="section__title">Données installation classée pour la protection de l'Environnement (ICPE)</h2>
+            {% if sheet.icpe_data %}
+                <p>
+                    Vous trouverez ci-aprés les données GUN telles qu'elles sont enregistrées dans GUN.
+                    En cas de différence avec la réalité, merci de vérifier et mettre à jour GUN,
+                    de façon à pouvoir vous proposer une analyse plus fine en lien avec les rubriques.
+                </p>
+                <div class="row">
+                    {# Rubriques list #}
+                    {% render_icpe sheet graph_context="pdf" %}
+                    {# end Rubriques list #}
+                </div>
+                {% render_icpe_graphs sheet graph_context="pdf" %}
+                {% if sheet.bs_processed_without_icpe_authorization %}
+                    <div class="row">
+                        <div>
+                            <div class="fr-alert fr-alert--warning">
+                                <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
+                                <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
+                            </div>
+                            {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-data-section">PAS DE DONNÉES ICPE.</div>
+                <p>
+                    Les données GUN ne nous permettent pas de disposer des données ICPE et ainsi vous proposer une analyse plus fine en lien avec les rubriques.
+                    Pour disposer de ces données, merci de vous assurer que le SIRET de l'établissement est complété dans GUN et qu'il est bien à jour (à corroborer avec l'exploitant).
+                </p>
+                {% if sheet.bs_processed_without_icpe_authorization %}
+                    <div>
+                        <div class="fr-alert fr-alert--warning">
+                            <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
+                            <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
+                        </div>
+                        {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
+                    </div>
+                {% endif %}
+            {% endif %}
+            {# end ICPE #}
             <h2 class="section-title">Données des bordereaux de suivi dématérialisés issues de Trackdéchets</h2>
             {% if sheet.all_bsd_data_empty %}
                 <div class="no-data-section">PAS DE DONNÉES TRACKDÉCHETS À AFFICHER POUR LE SIRET {{ sheet.org_id }}.</div>
@@ -348,49 +390,7 @@
                 </div>
             </div>
             {# end on site #}
-            {# ICPE #}
-            <h2 class="section__title">Données installation classée pour la protection de l'Environnement (ICPE)</h2>
-            {% if sheet.icpe_data %}
-                <p>
-                    Vous trouverez ci-aprés les données GUN telles qu'elles sont enregistrées dans GUN.
-                    En cas de différence avec la réalité, merci de vérifier et mettre à jour GUN,
-                    de façon à pouvoir vous proposer une analyse plus fine en lien avec les rubriques.
-                </p>
-                {% render_icpe_graphs sheet graph_context="pdf" %}
-                {% if sheet.bs_processed_without_icpe_authorization %}
-                    <div class="row">
-                        <div>
-                            <div class="fr-alert fr-alert--warning">
-                                <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
-                                <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
-                            </div>
-                            {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
-                        </div>
-                    </div>
-                {% endif %}
-                <div class="row">
-                    {# Rubriques list #}
-                    {% render_icpe sheet graph_context="pdf" %}
-                    {# end Rubriques list #}
-                </div>
-            {% else %}
-                <div class="no-data-section">PAS DE DONNÉES ICPE.</div>
-                <p>
-                    Les données GUN ne nous permettent pas de disposer des données ICPE et ainsi vous proposer une analyse plus fine en lien avec les rubriques.
-                    Pour disposer de ces données, merci de vous assurer que le SIRET de l'établissement est complété dans GUN et qu'il est bien à jour (à corroborer avec l'exploitant).
-                </p>
-                {% if sheet.bs_processed_without_icpe_authorization %}
-                    <div>
-                        <div class="fr-alert fr-alert--warning">
-                            <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
-                            <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
-                        </div>
-                        {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
-                    </div>
-                {% endif %}
-            {% endif %}
             <div class="row">{% render_traceabilty_break sheet graph_context="pdf" %}</div>
-            {# end ICPE #}
             {# Transborder section #}
             <h2 class="section__title">Données relatives aux échanges transfrontaliers</h2>
             {% if sheet.followed_with_pnttd_data or sheet.gistrid_stats_data %}
