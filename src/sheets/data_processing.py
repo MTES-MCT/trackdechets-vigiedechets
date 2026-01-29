@@ -297,10 +297,11 @@ class SheetProcessor:
 
     def _process_company_data(self):
         company_data_df = self.company_data.collect()
+        company_types = company_data_df["company_types"].item()
+
         self.company_id = company_data_df["id"].item()
         self.computed.company_name = company_data_df["name"].item()
         self.computed.company_address = company_data_df["address"].item() or ""
-        company_types = company_data_df["company_types"].item()
         self.computed.company_profiles = to_verbose_company_types(company_types)
         self.computed.company_collector_profiles = to_verbose_collector_types(
             company_data_df["collector_types"].item()

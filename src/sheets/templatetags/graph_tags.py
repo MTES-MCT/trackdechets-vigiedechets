@@ -139,8 +139,6 @@ def render_bs_without_icpe_authorization_tables(computed, graph_context="web"):
 def render_agreements(computed):
     return {
         "agreement_data": computed.agreement_data,
-        "eco_organisme_partners_data": computed.eco_organisme_partners_data,
-        "is_vhu_company": computed.is_vhu_company,
     }
 
 

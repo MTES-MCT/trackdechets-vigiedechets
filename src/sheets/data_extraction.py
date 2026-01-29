@@ -132,6 +132,7 @@ query_types = {
     "emitter_company_name": pl.String,
     "emitter_waste_weight_is_estimate": pl.Boolean,
     "refusal_reason": pl.String,
+    "is_vhu_company": pl.Boolean,
 }
 
 
