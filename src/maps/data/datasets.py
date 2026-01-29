@@ -24,31 +24,31 @@ from .queries import (
 # Create a Pandera schema directly
 icpe_installations_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype)
+        col_name: pa.Column(dtype, nullable=True)
         for col_name, dtype in icpe_installations_schema_overrides.items()
     }
 )
 icpe_installations_waste_processed_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype)
+        col_name: pa.Column(dtype, nullable=True)
         for col_name, dtype in icpe_installations_waste_processed_schema_overrides.items()
     }
 )
 icpe_departements_waste_processed_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype)
+        col_name: pa.Column(dtype, nullable=True)
         for col_name, dtype in icpe_departements_waste_processed_schema_overrides.items()
     }
 )
 icpe_regions_waste_processed_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype)
+        col_name: pa.Column(dtype, nullable=True)
         for col_name, dtype in icpe_regions_waste_processed_schema_overrides.items()
     }
 )
 icpe_france_waste_processed_pa_schema = pa.DataFrameSchema(
     columns={
-        col_name: pa.Column(dtype)
+        col_name: pa.Column(dtype, nullable=True)
         for col_name, dtype in icpe_france_waste_processed_schema_overrides.items()
     }
 )
