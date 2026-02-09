@@ -5,6 +5,12 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## 09/02/2026
+
+- Ajout du suivi de la quantité cumulée (`cumul_quantite_traitee`) pour les rubriques ICPE journalières (2790, 2791, 2770, 2771) dans la cartographie ICPE
+- Ajout du support de la rubrique 2791 dans les rubriques journalières
+- Amélioration des graphiques ICPE : affichage de la quantité cumulée sur un axe Y secondaire pour les rubriques journalières
+
 ## 27/01/2026
 
 - Réorganisation de l'affichage : la section ICPE est maintenant affichée avant la section des bordereaux de suivi dématérialisés dans les fiches établissement
