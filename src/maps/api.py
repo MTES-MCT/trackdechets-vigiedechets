@@ -215,10 +215,6 @@ class ICPEViewMany(APIView):
     permission_classes = [UserIsVerifedPermission]
 
     def get(self, request, layer, year, rubrique):
-        metric_name = "moyenne_quantite_journaliere_traitee"
-        if rubrique in ANNUAL_ICPE_RUBRIQUES:
-            metric_name = "cumul_quantite_traitee"
-
         layers_configs = {
             "installations": {
                 "cls": InstallationsComputation,
@@ -237,7 +233,8 @@ class ICPEViewMany(APIView):
                     "unite",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                 ],
                 "layer_key": "code_aiot",
             },
@@ -248,7 +245,8 @@ class ICPEViewMany(APIView):
                     "nom_departement",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": "code_departement_insee",
@@ -260,7 +258,8 @@ class ICPEViewMany(APIView):
                     "nom_region",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": "code_region_insee",
@@ -272,7 +271,8 @@ class ICPEViewMany(APIView):
                     "nom_region",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": None,
@@ -337,12 +337,10 @@ class ICPEFrance(APIView):
     permission_classes = [UserIsVerifedPermission]
 
     def get(self, request, year, rubrique):
-        metric_name = "moyenne_quantite_journaliere_traitee"
-        if rubrique in ANNUAL_ICPE_RUBRIQUES:
-            metric_name = "cumul_quantite_traitee"
         fields = [
             "quantite_autorisee",
-            metric_name,
+            "moyenne_quantite_journaliere_traitee",
+            "cumul_quantite_traitee",
             "taux_consommation",
             "nombre_installations",
             "graph",
