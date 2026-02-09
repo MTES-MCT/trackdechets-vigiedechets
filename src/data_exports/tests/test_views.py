@@ -44,3 +44,12 @@ def test_data_export_list_is_denied(get_profile):
     url = reverse("data_export_list")
     res = get_profile.get(url)
     assert res.status_code == 403
+
+
+def test_data_export_list_is_allowed_for_douane_with_allowed_email(verified_douane):
+    verified_douane.user.email = "allowed_for_data_export@mail.test"
+    verified_douane.user.save()
+
+    url = reverse("data_export_list")
+    res = verified_douane.get(url)
+    assert res.status_code == 200

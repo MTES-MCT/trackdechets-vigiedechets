@@ -27,6 +27,19 @@ class PermsItem(MenuItem):
         self.visible = request.user.is_staff or request.user.user_category in allowed_categories
 
 
+class PermsOrEmailItem(MenuItem):
+    """User is staff or belongs to the allowed categories or allowed emails"""
+
+    def check(self, request):
+        allowed_categories = getattr(self, "allowed_categories", [])
+        allowed_emails = getattr(self, "allowed_emails", [])
+        self.visible = (
+            request.user.is_staff
+            or request.user.user_category in allowed_categories
+            or request.user.email.lower() in allowed_emails
+        )
+
+
 class UserEmailItem(MenuItem):
     """User is staff or belongs to the allowed emails"""
 
@@ -68,7 +81,12 @@ Menu.add_item(
 
 Menu.add_item(
     "main",
-    PermsItem("Observatoires", reverse("data_export_list"), allowed_categories=PERMS_DATA_EXPORT),
+    PermsOrEmailItem(
+        "Observatoires",
+        reverse("data_export_list"),
+        allowed_categories=PERMS_DATA_EXPORT,
+        allowed_emails=settings.ALLOWED_EMAILS_FOR_DATA_EXPORT,
+    ),
 )
 Menu.add_item(
     "main",
