@@ -4,7 +4,7 @@ from datetime import datetime
 
 from django import forms
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -275,31 +275,38 @@ class RegistryV2ExportSiren(models.Model):
 
     def update_aggregated_state(self):
         """Recalculate state based on child exports"""
-        children = self.siret_exports.all()
-        if not children.exists():
-            return
+        with transaction.atomic():
+            # Lock parent and children to prevent concurrent updates
+            # Refresh self with select_for_update to get a locked instance
+            locked_self = RegistryV2ExportSiren.objects.select_for_update().get(pk=self.pk)
+            children = locked_self.siret_exports.select_for_update().all()
+            
+            if not children.exists():
+                return
 
-        completed = children.filter(state=RegistryV2ExportState.SUCCESSFUL).count()
-        failed = children.filter(state=RegistryV2ExportState.FAILED).count()
-        in_progress = children.filter(
-            state__in=[RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED]
-        ).exists()
+            completed = children.filter(state=RegistryV2ExportState.SUCCESSFUL).count()
+            failed = children.filter(state=RegistryV2ExportState.FAILED).count()
+            in_progress = children.filter(
+                state__in=[RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED]
+            ).exists()
 
-        self.completed_sirets = completed
-        self.failed_sirets = failed
-        self.total_sirets = children.count()
+            locked_self.completed_sirets = completed
+            locked_self.failed_sirets = failed
+            locked_self.total_sirets = children.count()
 
-        if completed == self.total_sirets:
-            self.state = RegistryV2ExportState.SUCCESSFUL
-        elif failed == self.total_sirets:
-            self.state = RegistryV2ExportState.FAILED
-        elif in_progress:
-            self.state = RegistryV2ExportState.STARTED
-        elif completed > 0:
-            # Partial success - keep as STARTED or add PARTIAL_SUCCESS state
-            self.state = RegistryV2ExportState.STARTED
+            if completed == locked_self.total_sirets:
+                locked_self.state = RegistryV2ExportState.SUCCESSFUL
+            elif failed == locked_self.total_sirets:
+                locked_self.state = RegistryV2ExportState.FAILED
+            elif in_progress:
+                locked_self.state = RegistryV2ExportState.STARTED
+            elif completed > 0:
+                # Partial success - keep as STARTED or add PARTIAL_SUCCESS state
+                locked_self.state = RegistryV2ExportState.STARTED
 
-        self.save()
+            locked_self.save()
+            # Refresh self to reflect changes
+            self.refresh_from_db()
 
 
 class RegistryV2ExportSiret(models.Model):
