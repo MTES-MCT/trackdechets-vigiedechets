@@ -1,6 +1,7 @@
+import logging
 import os
 import shutil
-import logging
+
 from ..data.datasets import get_data_df
 
 logger = logging.getLogger(__name__)

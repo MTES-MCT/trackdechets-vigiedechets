@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import polars as pl
 
-from ..constants import ANNUAL_ICPE_RUBRIQUES, MIN_TGAP_INFO_YEAR
+from ..constants import ANNUAL_ICPE_RUBRIQUES, DAILY_ICPE_RUBRIQUES, MIN_TGAP_INFO_YEAR
 
 gridcolor = "#ccc"
 
@@ -21,19 +21,11 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
     if len(df_waste) == 0:
         return None
 
-    trace_hover_template = "Le %{x|%d-%m-%Y} : <b>%{y:.2f}t</b> traitées<extra></extra>"
-    trace_name = "Quantité journalière traitée"
-    trace_x_axis_margin = 7
-    trace_xaxis_tickformat = None
-    trace_dtick = None
-    gaph_class = go.Scatter
-    authorized_quantity_unit = "t/j"
-
     if rubrique in ANNUAL_ICPE_RUBRIQUES:
         group_by_expr = pl.col("day_of_processing").dt.truncate("1mo")
         df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
         df_waste = df_waste.sort(pl.col("day_of_processing")).with_columns(
-            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cummulee")
+            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cumulee")
         )
 
         trace_hover_template = "En %{x|%B} : <b>%{y:.2f}t</b> traitées<extra></extra>"
@@ -44,6 +36,22 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         gaph_class = go.Bar
         authorized_quantity_unit = "t/an"
 
+    elif rubrique in DAILY_ICPE_RUBRIQUES:
+        group_by_expr = pl.col("day_of_processing").dt.truncate("1d")
+        df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
+        df_waste = df_waste.sort(pl.col("day_of_processing")).with_columns(
+            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cumulee")
+        )
+
+        trace_hover_template = "Le %{x|%d-%m-%Y} : <b>%{y:.2f}t</b> traitées<extra></extra>"
+        trace_name = "Quantité journalière traitée"
+        trace_x_axis_margin = 7
+        trace_xaxis_tickformat = None
+        trace_dtick = None
+        gaph_class = go.Scatter
+        authorized_quantity_unit = "t/j"
+
+    is_daily = rubrique in DAILY_ICPE_RUBRIQUES
     data = df_waste.to_dict(as_series=False)
 
     traces = []
@@ -56,24 +64,46 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
             marker_color="#8D533E",
         )
     )
-    max_y = max(e for e in data["quantite_traitee"] if e is not None)
-    if rubrique in ANNUAL_ICPE_RUBRIQUES:
-        traces.append(
-            go.Scatter(
-                x=data["day_of_processing"],
-                y=data["quantite_traitee_cummulee"],
-                texttemplate="%{y:.2s}t",
-                textposition="top center",
-                hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>",
-                line_width=2,
-                name="Quantité traitée cummulée",
-                line_color="#272747",
-                mode="lines+text+markers",
-            )
+
+    cumulative_trace_kwargs = {}
+    if is_daily:
+        cumulative_trace_kwargs["yaxis"] = "y2"
+
+    traces.append(
+        go.Scatter(
+            x=data["day_of_processing"],
+            y=data["quantite_traitee_cumulee"],
+            texttemplate="%{y:.2s}t",
+            textposition="top center",
+            hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>"
+            if not is_daily
+            else "Le %{x|%d-%m-%Y} : %{y:.2f}t",
+            line_width=2 if not is_daily else 1.5,
+            name="Quantité traitée cummulée",
+            line_color="#272747",
+            mode="lines+text+markers" if not is_daily else "lines",
+            **cumulative_trace_kwargs,
         )
-        max_y = max(e for e in data["quantite_traitee_cummulee"] if e is not None)
+    )
+
+    max_y = max(e for e in data["quantite_traitee"] if e is not None)
+    max_y_cumulative = max(e for e in data["quantite_traitee_cumulee"] if e is not None)
+
+    if not is_daily:
+        max_y = max(max_y, max_y_cumulative)
 
     fig = go.Figure(traces)
+
+    layout_kwargs = {}
+    if is_daily:
+        layout_kwargs["yaxis2"] = dict(
+            title="tonnes (cumulé)",
+            overlaying="y",
+            side="right",
+            gridcolor="#ccc",
+            tick0=0,
+            range=[0, max_y_cumulative * 1.3],
+        )
 
     fig.update_layout(
         margin={"t": 30, "l": 35, "r": 80},
@@ -89,6 +119,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         plot_bgcolor="rgba(0,0,0,0)",
         autosize=True,
         height=400,
+        **layout_kwargs,
     )
 
     if authorized_quantity:
@@ -133,7 +164,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
             )
             max_y = max(max_y, target_quantity)
 
-    fig.update_yaxes(gridcolor="#ccc", title="tonnes", tick0=0, range=[0, max_y * 1.3])
+    fig.update_yaxes(gridcolor="#ccc", title="tonnes", tick0=0, range=[0, max_y * 1.3], selector=dict(overlaying=None))
 
     fig.update_xaxes(
         range=[
