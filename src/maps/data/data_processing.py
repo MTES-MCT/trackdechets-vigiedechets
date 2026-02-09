@@ -2,14 +2,15 @@
 Data gathering and processing
 """
 
+import logging
 from datetime import datetime
 from typing import Tuple
-import logging
+
 import polars as pl
 
 from maps.data.figures_factory import create_icpe_graph
 
-from ..constants import ANNUAL_ICPE_RUBRIQUES, DAILY_ICPE_RUBRIQUES, ICPE_RUBRIQUES
+from ..constants import DAILY_ICPE_RUBRIQUES, ICPE_RUBRIQUES
 
 logger = logging.getLogger(__name__)
 
@@ -52,16 +53,22 @@ def create_icpe_installations_df(
         if len(df_waste_processed_filtered) == 0:
             continue
 
-        agg_expr = pl.col("quantite_traitee").sum().alias("cumul_quantite_traitee").fill_null(0)
-        metric_expr = (pl.col("cumul_quantite_traitee") / pl.col("quantite_autorisee")).alias("taux_consommation")
 
-        if rubrique in DAILY_ICPE_RUBRIQUES:
-            agg_expr = pl.col("quantite_traitee").mean().alias("moyenne_quantite_journaliere_traitee").fill_null(0)
-            metric_expr = (pl.col("moyenne_quantite_journaliere_traitee") / pl.col("quantite_autorisee")).alias(
-                "taux_consommation"
-            )
+        # Compute daily or annual consumption rate
+        daily_consumption_rate_expr = (
+            pl.col("moyenne_quantite_journaliere_traitee") / pl.col("quantite_autorisee")
+        ).alias("taux_consommation")
+        annual_consumption_rate_expr = (pl.col("cumul_quantite_traitee") / pl.col("quantite_autorisee")).alias(
+            "taux_consommation"
+        )
+        consumption_rate_expr = (
+            daily_consumption_rate_expr if rubrique in DAILY_ICPE_RUBRIQUES else annual_consumption_rate_expr
+        )
 
-        df_stats = df_waste_processed_filtered.group_by("code_aiot").agg(agg_expr)
+        df_stats = df_waste_processed_filtered.group_by("code_aiot").agg(
+            pl.col("quantite_traitee").sum().alias("cumul_quantite_traitee").fill_null(0),
+            pl.col("quantite_traitee").mean().alias("moyenne_quantite_journaliere_traitee").fill_null(0),
+        )
 
         df_graphs = (
             df_waste_processed_filtered.filter(pl.col("day_of_processing").is_not_null())
@@ -75,7 +82,7 @@ def create_icpe_installations_df(
         ).join(df_graphs, on="code_aiot", how="left", validate="1:1")
 
         df_installations_final = df_installations_final.with_columns(
-            pl.lit(rubrique).alias("rubrique"), pl.lit(date_interval[0].year).alias("year"), metric_expr
+            pl.lit(rubrique).alias("rubrique"), pl.lit(date_interval[0].year).alias("year"), consumption_rate_expr
         )
 
         df_list.append(df_installations_final)
@@ -126,20 +133,26 @@ def create_icpe_regional_df(
                 pl.col(regional_key_column).cast(pl.String)
             )
 
-        # Add annual stats and authorized quantity by departement/region
-        agg_expr = pl.col("quantite_traitee").mean().alias("moyenne_quantite_journaliere_traitee").fill_null(0)
-        metric_expr = (pl.col("moyenne_quantite_journaliere_traitee") / pl.col("quantite_autorisee")).alias(
+        # Compute daily or annual consumption rate
+        daily_consumption_rate_expr = (
+            pl.col("moyenne_quantite_journaliere_traitee") / pl.col("quantite_autorisee")
+        ).alias("taux_consommation")
+        annual_consumption_rate_expr = (pl.col("cumul_quantite_traitee") / pl.col("quantite_autorisee")).alias(
             "taux_consommation"
         )
-        if rubrique in ANNUAL_ICPE_RUBRIQUES:
-            agg_expr = pl.col("quantite_traitee").sum().alias("cumul_quantite_traitee").fill_null(0)
-            metric_expr = (pl.col("cumul_quantite_traitee") / pl.col("quantite_autorisee")).alias("taux_consommation")
 
-        agg_exprs = [agg_expr, pl.col("quantite_autorisee").max(), pl.col("nombre_installations").max()]
+        consumption_rate_expr = (
+            daily_consumption_rate_expr if rubrique in DAILY_ICPE_RUBRIQUES else annual_consumption_rate_expr
+        )
 
         if regional_key_column is None:
-            annual_stats = df_waste_processed_filtered.group_by("rubrique").agg(*agg_exprs)
-            annual_stats = annual_stats.with_columns(metric_expr)
+            annual_stats = df_waste_processed_filtered.group_by("rubrique").agg(
+                pl.col("quantite_traitee").mean().alias("moyenne_quantite_journaliere_traitee").fill_null(0),
+                pl.col("quantite_traitee").sum().alias("cumul_quantite_traitee").fill_null(0),
+                pl.col("quantite_autorisee").max(),
+                pl.col("nombre_installations").max(),
+            )
+            annual_stats = annual_stats.with_columns(consumption_rate_expr)
             df = annual_stats
             df = df.with_columns(
                 pl.lit(create_icpe_graph(df_waste_processed_filtered, key_column=None, rubrique=rubrique)).alias(
@@ -153,9 +166,16 @@ def create_icpe_regional_df(
             if regional_key_column == "code_region_insee":
                 layer_name = "nom_region"
 
-            agg_exprs.append(pl.col(layer_name).max())
             annual_stats = (
-                df_waste_processed_filtered.group_by(regional_key_column).agg(agg_exprs).with_columns(metric_expr)
+                df_waste_processed_filtered.group_by(regional_key_column)
+                .agg(
+                    pl.col("quantite_traitee").mean().alias("moyenne_quantite_journaliere_traitee").fill_null(0),
+                    pl.col("quantite_traitee").sum().alias("cumul_quantite_traitee").fill_null(0),
+                    pl.col("quantite_autorisee").max(),
+                    pl.col("nombre_installations").max(),
+                    pl.col(layer_name).max(),
+                )
+                .with_columns(consumption_rate_expr)
             )
 
             # Create plotly graphs adding to daily waste processed the authorized quantity for each departement/region
