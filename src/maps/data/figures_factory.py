@@ -35,7 +35,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         trace_dtick = "M1"
         gaph_class = go.Bar
         authorized_quantity_unit = "t/an"
-    
+
     elif rubrique in DAILY_ICPE_RUBRIQUES:
         group_by_expr = pl.col("day_of_processing").dt.truncate("1d")
         df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
@@ -75,7 +75,9 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
             y=data["quantite_traitee_cumulee"],
             texttemplate="%{y:.2s}t",
             textposition="top center",
-            hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>" if not is_daily else "Le %{x|%d-%m-%Y} : %{y:.2f}t",
+            hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>"
+            if not is_daily
+            else "Le %{x|%d-%m-%Y} : %{y:.2f}t",
             line_width=2 if not is_daily else 1.5,
             name="Quantité traitée cummulée",
             line_color="#272747",

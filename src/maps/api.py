@@ -15,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .centroids import DEPARTMENTS_CENTROIDS, REGIONS_CENTROIDS
-from .constants import ANNUAL_ICPE_RUBRIQUES
 from .filters import CartoCompanyFilter
 from .models import (
     CartoCompany,

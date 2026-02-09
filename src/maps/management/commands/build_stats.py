@@ -1,10 +1,11 @@
+import logging
+
 from django.core.management.base import BaseCommand
 
 from maps.processors.stats_processor import build_stats_and_figs
 
 from ...processors.clear import clear_figs
 from ...processors.create_df import build_dataframes
-import logging
 
 logger = logging.getLogger(__name__)
 

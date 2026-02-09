@@ -53,7 +53,6 @@ def create_icpe_installations_df(
         if len(df_waste_processed_filtered) == 0:
             continue
 
-
         # Compute daily or annual consumption rate
         daily_consumption_rate_expr = (
             pl.col("moyenne_quantite_journaliere_traitee") / pl.col("quantite_autorisee")

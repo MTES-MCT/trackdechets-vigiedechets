@@ -1,5 +1,7 @@
-import polars as pl
 import logging
+
+import polars as pl
+
 from maps.data.data_processing import create_icpe_installations_df, create_icpe_regional_df
 from maps.models import DepartementsComputation, FranceComputation, InstallationsComputation, RegionsComputation
 from maps.utils import get_data_date_interval_for_year

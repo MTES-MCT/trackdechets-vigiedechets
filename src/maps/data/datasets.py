@@ -3,23 +3,23 @@ The datasets are loaded in memory to be reusable by other functions.
 """
 
 from dataclasses import dataclass
+
 import pandera.polars as pa
 import polars as pl
 
 from .data_extract import extract_dataset
 from .queries import (
-    icpe_departements_waste_processed_sql,
-    icpe_france_waste_processed_sql,
-    icpe_installations_sql,
-    icpe_installations_waste_processed_sql,
-    icpe_regions_waste_processed_sql,
-    icpe_installations_schema_overrides,
-    icpe_installations_waste_processed_schema_overrides,
     icpe_departements_waste_processed_schema_overrides,
-    icpe_regions_waste_processed_schema_overrides,
+    icpe_departements_waste_processed_sql,
     icpe_france_waste_processed_schema_overrides,
+    icpe_france_waste_processed_sql,
+    icpe_installations_schema_overrides,
+    icpe_installations_sql,
+    icpe_installations_waste_processed_schema_overrides,
+    icpe_installations_waste_processed_sql,
+    icpe_regions_waste_processed_schema_overrides,
+    icpe_regions_waste_processed_sql,
 )
-
 
 # Create a Pandera schema directly
 icpe_installations_pa_schema = pa.DataFrameSchema(
