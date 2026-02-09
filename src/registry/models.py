@@ -178,3 +178,207 @@ class RegistryV2Export(models.Model):
         if where:
             variables.update({"where": where})
         return variables
+
+
+class RegistryV2ExportSiren(models.Model):
+    """Parent export model for SIREN-based exports"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    siren = models.CharField(_("SIREN"), max_length=9, db_index=True)
+    registry_type = models.CharField(
+        _("Type de registre"),
+        max_length=20,
+        choices=RegistryV2ExportType.choices,
+        default=RegistryV2ExportType.INCOMING,
+    )
+    declaration_type = models.CharField(
+        _("Type de déclaration"),
+        max_length=20,
+        choices=RegistryV2DeclarationType.choices,
+        default=RegistryV2DeclarationType.ALL,
+    )
+    waste_types_dnd = models.BooleanField(_("Déchets non dangereux"), default=False, blank=True)
+    waste_types_dd = models.BooleanField(_("Déchets dangereux"), default=False, blank=True)
+    waste_types_texs = models.BooleanField(_("Terres et sédiments"), default=False, blank=True)
+
+    waste_codes = ChoiceArrayField(
+        models.CharField(max_length=32, blank=True, choices=RegistryV2WasteCode),
+        verbose_name=_("Codes déchets"),
+        default=list,
+        blank=True,
+    )
+    start_date = models.DateTimeField(_("Data Start Date"), default=datetime(2022, 1, 1))
+    end_date = models.DateTimeField(_("End Date"), default=timezone.now)
+    export_format = models.CharField(
+        _("Format d'export"),
+        max_length=20,
+        choices=RegistryV2Format.choices,
+        default=RegistryV2Format.CSV,
+    )
+
+    state = models.CharField(
+        _("State"),
+        max_length=20,
+        choices=RegistryV2ExportState.choices,
+        default=RegistryV2ExportState.PENDING,
+    )
+
+    total_sirets = models.IntegerField(_("Total SIRETs"), default=0)
+    completed_sirets = models.IntegerField(_("Completed SIRETs"), default=0)
+    failed_sirets = models.IntegerField(_("Failed SIRETs"), default=0)
+
+    created_at = models.DateTimeField(_("Created"), default=timezone.now)
+    created_by = models.ForeignKey(
+        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True
+    )
+    created_by_email = models.EmailField(
+        verbose_name=_("Created by email"), blank=True
+    )  # keep history if user is deleted
+
+    objects = RegistryV2ExportQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("Téléchargement de registre V2 (SIREN)")
+        verbose_name_plural = _("Téléchargements de registre V2 (SIREN)")
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["siren"]),
+            models.Index(fields=["state"]),
+        ]
+
+    def __str__(self):
+        return f"Export SIREN {self.siren} ({self.completed_sirets}/{self.total_sirets})"
+
+    @property
+    def successful(self):
+        return self.state == RegistryV2ExportState.SUCCESSFUL
+
+    @property
+    def is_timeout(self):
+        return timezone.now() - self.created_at > dt.timedelta(minutes=MAX_PROCESSING_DELAY)
+
+    @property
+    def in_progress(self):
+        return self.state in [RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED] and not self.is_timeout
+
+    @property
+    def waste_types(self):
+        WASTE_TYPES = ["DND", "DD", "TEXS"]
+        bool_vector = [self.waste_types_dnd, self.waste_types_dd, self.waste_types_texs]
+
+        return [item for item, keep in zip(WASTE_TYPES, bool_vector) if keep]
+
+    @property
+    def all_sirets_completed(self):
+        return self.completed_sirets == self.total_sirets and self.total_sirets > 0
+
+    def update_aggregated_state(self):
+        """Recalculate state based on child exports"""
+        children = self.siret_exports.all()
+        if not children.exists():
+            return
+
+        completed = children.filter(state=RegistryV2ExportState.SUCCESSFUL).count()
+        failed = children.filter(state=RegistryV2ExportState.FAILED).count()
+        in_progress = children.filter(
+            state__in=[RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED]
+        ).exists()
+
+        self.completed_sirets = completed
+        self.failed_sirets = failed
+        self.total_sirets = children.count()
+
+        if completed == self.total_sirets:
+            self.state = RegistryV2ExportState.SUCCESSFUL
+        elif failed == self.total_sirets:
+            self.state = RegistryV2ExportState.FAILED
+        elif in_progress:
+            self.state = RegistryV2ExportState.STARTED
+        elif completed > 0:
+            # Partial success - keep as STARTED or add PARTIAL_SUCCESS state
+            self.state = RegistryV2ExportState.STARTED
+
+        self.save()
+
+
+class RegistryV2ExportSiret(models.Model):
+    """Child export model for individual SIRET within a SIREN export"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    parent = models.ForeignKey(
+        RegistryV2ExportSiren,
+        related_name="siret_exports",
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
+    siret = models.CharField(_("SIRET"), max_length=14, db_index=True)
+
+    state = models.CharField(
+        _("State"),
+        max_length=20,
+        choices=RegistryV2ExportState.choices,
+        default=RegistryV2ExportState.PENDING,
+    )
+    registry_export_id = models.CharField(_("Trackdéchets Export id"), blank=True)
+
+    created_at = models.DateTimeField(_("Created"), default=timezone.now)
+
+    class Meta:
+        verbose_name = _("Export SIRET (enfant)")
+        verbose_name_plural = _("Exports SIRET (enfants)")
+        ordering = ("siret",)
+        indexes = [
+            models.Index(fields=["parent", "state"]),
+            models.Index(fields=["siret"]),
+        ]
+
+    def __str__(self):
+        return f"{self.siret} (parent: {self.parent.siren})"
+
+    @property
+    def successful(self):
+        return self.state == RegistryV2ExportState.SUCCESSFUL
+
+    @property
+    def is_timeout(self):
+        return timezone.now() - self.created_at > dt.timedelta(minutes=MAX_PROCESSING_DELAY)
+
+    @property
+    def in_progress(self):
+        return self.state in [RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED] and not self.is_timeout
+
+    def mark_as_failed(self):
+        self.state = RegistryV2ExportState.FAILED
+        self.save()
+
+    def get_gql_variables(self):
+        """Build GraphQL variables using parent's parameters and this SIRET"""
+        parent = self.parent
+        variables = {
+            "siret": self.siret,
+            "registryType": parent.registry_type,
+            "format": parent.export_format,
+            "dateRange": {
+                "_gte": parent.start_date.isoformat(),
+                "_lte": parent.end_date.isoformat(),
+            },
+        }
+        where = {"declarationType": {"_eq": parent.declaration_type}}
+
+        waste_types = []
+        if parent.waste_types_dnd:
+            waste_types.append("DND")
+        if parent.waste_types_dd:
+            waste_types.append("DD")
+        if parent.waste_types_texs:
+            waste_types.append("TEXS")
+
+        if waste_types:
+            where.update({"wasteType": {"_in": waste_types}})
+        if parent.waste_codes:
+            where.update({"wasteCode": {"_in": parent.waste_codes}})
+
+        if where:
+            variables.update({"where": where})
+        return variables
