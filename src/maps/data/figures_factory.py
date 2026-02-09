@@ -25,7 +25,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         group_by_expr = pl.col("day_of_processing").dt.truncate("1mo")
         df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
         df_waste = df_waste.sort(pl.col("day_of_processing")).with_columns(
-            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cummulee")
+            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cumulee")
         )
 
         trace_hover_template = "En %{x|%B} : <b>%{y:.2f}t</b> traitées<extra></extra>"
@@ -40,7 +40,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         group_by_expr = pl.col("day_of_processing").dt.truncate("1d")
         df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
         df_waste = df_waste.sort(pl.col("day_of_processing")).with_columns(
-            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cummulee")
+            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cumulee")
         )
 
         trace_hover_template = "Le %{x|%d-%m-%Y} : <b>%{y:.2f}t</b> traitées<extra></extra>"
@@ -67,7 +67,7 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
     traces.append(
         go.Scatter(
             x=data["day_of_processing"],
-            y=data["quantite_traitee_cummulee"],
+            y=data["quantite_traitee_cumulee"],
             texttemplate="%{y:.2s}t",
             textposition="top center",
             hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>",
@@ -77,9 +77,9 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
             mode="lines+text+markers",
         )
     )
-    
+
     max_y = max(e for e in data["quantite_traitee"] if e is not None)
-    max_y = max(e for e in data["quantite_traitee_cummulee"] if e is not None)
+    max_y = max(e for e in data["quantite_traitee_cumulee"] if e is not None)
 
     fig = go.Figure(traces)
 
