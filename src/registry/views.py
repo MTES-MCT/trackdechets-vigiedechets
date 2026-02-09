@@ -16,7 +16,11 @@ from .forms import RegistryV2PrepareForm
 from .gql import graphql_registry_V2_export_download_signed_url
 from .models import RegistryV2Export, RegistryV2ExportSiren
 from .task import process_export
-from .constants import RegistryV2ExportState
+from .constants import (
+    RegistryV2DeclarationType,
+    RegistryV2ExportState,
+    RegistryV2ExportType,
+)
 
 
 class RegistryDownloadException(Exception):
@@ -81,16 +85,24 @@ class RegistryV2ListContent(FullyLoggedMixin, ListView):
             'total_sirets', 'completed_sirets'
         )
         
+        # Create lookup dictionaries for display labels
+        registry_type_labels = {choice[0]: choice[1] for choice in RegistryV2ExportType.choices}
+        declaration_type_labels = {choice[0]: choice[1] for choice in RegistryV2DeclarationType.choices}
+        
         # Combine and mark with type indicator
         combined = []
         for export in siret_exports:
             export['type'] = 'SIRET'
             export['identifier'] = export['siret']
+            export['registry_type_display'] = registry_type_labels.get(export['registry_type'], export['registry_type'])
+            export['declaration_type_display'] = declaration_type_labels.get(export['declaration_type'], export['declaration_type'])
             combined.append(export)
         
         for export in siren_exports:
             export['type'] = 'SIREN'
             export['identifier'] = export['siren']
+            export['registry_type_display'] = registry_type_labels.get(export['registry_type'], export['registry_type'])
+            export['declaration_type_display'] = declaration_type_labels.get(export['declaration_type'], export['declaration_type'])
             combined.append(export)
         
         # Sort by created_at descending and limit to HISTORY_SIZE
