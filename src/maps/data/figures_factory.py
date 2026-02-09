@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import polars as pl
 
-from ..constants import ANNUAL_ICPE_RUBRIQUES, MIN_TGAP_INFO_YEAR
+from ..constants import ANNUAL_ICPE_RUBRIQUES, DAILY_ICPE_RUBRIQUES, MIN_TGAP_INFO_YEAR
 
 gridcolor = "#ccc"
 
@@ -21,14 +21,6 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
     if len(df_waste) == 0:
         return None
 
-    trace_hover_template = "Le %{x|%d-%m-%Y} : <b>%{y:.2f}t</b> traitées<extra></extra>"
-    trace_name = "Quantité journalière traitée"
-    trace_x_axis_margin = 7
-    trace_xaxis_tickformat = None
-    trace_dtick = None
-    gaph_class = go.Scatter
-    authorized_quantity_unit = "t/j"
-
     if rubrique in ANNUAL_ICPE_RUBRIQUES:
         group_by_expr = pl.col("day_of_processing").dt.truncate("1mo")
         df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
@@ -43,6 +35,21 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
         trace_dtick = "M1"
         gaph_class = go.Bar
         authorized_quantity_unit = "t/an"
+    
+    elif rubrique in DAILY_ICPE_RUBRIQUES:
+        group_by_expr = pl.col("day_of_processing").dt.truncate("1d")
+        df_waste = df_waste.group_by(group_by_expr).agg(pl.col("quantite_traitee").sum())
+        df_waste = df_waste.sort(pl.col("day_of_processing")).with_columns(
+            pl.col("quantite_traitee").cum_sum().alias("quantite_traitee_cummulee")
+        )
+
+        trace_hover_template = "Le %{x|%d-%m-%Y} : <b>%{y:.2f}t</b> traitées<extra></extra>"
+        trace_name = "Quantité journalière traitée"
+        trace_x_axis_margin = 7
+        trace_xaxis_tickformat = None
+        trace_dtick = None
+        gaph_class = go.Scatter
+        authorized_quantity_unit = "t/j"
 
     data = df_waste.to_dict(as_series=False)
 
@@ -56,22 +63,23 @@ def create_icpe_graph(df: pl.DataFrame, key_column: str | None, rubrique: str) -
             marker_color="#8D533E",
         )
     )
-    max_y = max(e for e in data["quantite_traitee"] if e is not None)
-    if rubrique in ANNUAL_ICPE_RUBRIQUES:
-        traces.append(
-            go.Scatter(
-                x=data["day_of_processing"],
-                y=data["quantite_traitee_cummulee"],
-                texttemplate="%{y:.2s}t",
-                textposition="top center",
-                hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>",
-                line_width=2,
-                name="Quantité traitée cummulée",
-                line_color="#272747",
-                mode="lines+text+markers",
-            )
+    
+    traces.append(
+        go.Scatter(
+            x=data["day_of_processing"],
+            y=data["quantite_traitee_cummulee"],
+            texttemplate="%{y:.2s}t",
+            textposition="top center",
+            hovertemplate="En %{x|%B} : <b>%{y:.2f}t</b> traitées en cummulé sur l'année<extra></extra>",
+            line_width=2,
+            name="Quantité traitée cummulée",
+            line_color="#272747",
+            mode="lines+text+markers",
         )
-        max_y = max(e for e in data["quantite_traitee_cummulee"] if e is not None)
+    )
+    
+    max_y = max(e for e in data["quantite_traitee"] if e is not None)
+    max_y = max(e for e in data["quantite_traitee_cummulee"] if e is not None)
 
     fig = go.Figure(traces)
 
