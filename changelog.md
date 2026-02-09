@@ -10,6 +10,7 @@ et le projet suit un schéma de versioning inspiré de [Calendar Versioning](htt
 - Ajout du suivi de la quantité cumulée (`cumul_quantite_traitee`) pour les rubriques ICPE journalières (2790, 2791, 2770, 2771) dans la cartographie ICPE
 - Ajout du support de la rubrique 2791 dans les rubriques journalières
 - Amélioration des graphiques ICPE : affichage de la quantité cumulée sur un axe Y secondaire pour les rubriques journalières
+- Ajout du contrôle d'accès par email pour les exports de données (Observatoires) via la variable d'environnement `ALLOWED_EMAILS_FOR_DATA_EXPORT`
 
 ## 27/01/2026
 
