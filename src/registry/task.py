@@ -44,7 +44,7 @@ def process_export(registry_v2_export_pk):
                 task_chain = chain(
                     generate_registry_export.s(siret_export.pk),
                     refresh_registry_export.s(siret_export.pk),
-                    update_siren_export_state.s(registry_v2_export_pk)
+                    update_siren_export_state.s(registry_v2_export_pk),
                 )
                 task_chain()
         return
@@ -60,8 +60,8 @@ MAX__GENERATE_DELAY = dt.timedelta(minutes=15)
 def generate_registry_export(self, registry_v2_export_pk):
     """Create a registry export on TD api"""
     geo_retry_delay = min(10 * self.request.retries, 300)
-    max_retries = getattr(self, 'max_retries', 3)  # Default to 3 if not set
-    
+    max_retries = getattr(self, "max_retries", 3)  # Default to 3 if not set
+
     try:
         export = RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
     except RegistryV2ExportSiret.DoesNotExist:
@@ -227,6 +227,7 @@ def refresh_registry_export(self, registry_v2_export_pk):
         logger.info("Api error")
         raise self.retry(countdown=geo_retry_delay)
 
+
 @app.task
 def update_siren_export_state(registry_v2_export_siren_pk):
     """Update parent SIREN export state based on children"""
@@ -235,7 +236,4 @@ def update_siren_export_state(registry_v2_export_siren_pk):
 
     # If not all completed, schedule another check
     if siren_export.state in [RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED]:
-        update_siren_export_state.apply_async(
-            args=[registry_v2_export_siren_pk],
-            countdown=10
-        )
+        update_siren_export_state.apply_async(args=[registry_v2_export_siren_pk], countdown=10)

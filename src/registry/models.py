@@ -280,7 +280,7 @@ class RegistryV2ExportSiren(models.Model):
             # Refresh self with select_for_update to get a locked instance
             locked_self = RegistryV2ExportSiren.objects.select_for_update().get(pk=self.pk)
             children = locked_self.siret_exports.select_for_update().all()
-            
+
             if not children.exists():
                 return
 

@@ -40,6 +40,7 @@ class RegistryV2ExportAdmin(admin.ModelAdmin):
 
 class RegistryV2ExportSiretInline(admin.TabularInline):
     """Inline admin for viewing child SIRET exports"""
+
     model = RegistryV2ExportSiret
     extra = 0
     readonly_fields = ["id", "siret", "state", "registry_export_id", "created_at"]
