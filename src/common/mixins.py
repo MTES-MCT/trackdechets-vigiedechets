@@ -51,10 +51,6 @@ class FullyLoggedMixin(AccessMixin):
         allowed_user_categories = self.get_allowed_user_categories()
         allowed_user_emails = self.get_allowed_user_emails()
 
-        if allowed_user_categories and allowed_user_emails:
-            raise ImproperlyConfigured(
-                f"{self.__class__.__name__} do not allow `allowed_user_categories` and `allowed_user_emails` attribute to be set"
-            )
         if not allowed_user_categories and not allowed_user_emails:
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} requires the `allowed_user_categories` or `allowed_user_emails` attribute to be set"
@@ -107,21 +103,24 @@ class FullyLoggedMixin(AccessMixin):
         return self.request.user.email.lower() in allowed_user_emails
 
     def dispatch(self, request, *args, **kwargs):
-        """Check if user is fully logged, then if has appropriate categories"""
+        """Check if user is fully logged, then if has appropriate categories or email"""
         user_test_result = self.test_is_fully_logged(request.user)
         allowed_user_categories = self.get_allowed_user_categories()
         allowed_user_emails = self.get_allowed_user_emails()
         if not user_test_result:
             return self.handle_no_permission(request)
 
-        if allowed_user_categories:
+        if allowed_user_categories and allowed_user_emails:
+            # OR logic: allow if user matches categories OR email
             in_category = self.check_has_right_categories()
-            if not in_category:
-                raise PermissionDenied()
-
-        if allowed_user_emails:
             email_is_allowed = self.check_email_is_allowed()
-            if not email_is_allowed:
+            if not in_category and not email_is_allowed:
+                raise PermissionDenied()
+        elif allowed_user_categories:
+            if not self.check_has_right_categories():
+                raise PermissionDenied()
+        elif allowed_user_emails:
+            if not self.check_email_is_allowed():
                 raise PermissionDenied()
 
         return super().dispatch(request, *args, **kwargs)
