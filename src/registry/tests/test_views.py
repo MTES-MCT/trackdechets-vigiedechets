@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from ..constants import RegistryV2ExportState
 from ..factories import RegistryV2ExportFactory
 from ..models import RegistryV2Export
 
@@ -60,21 +59,12 @@ def test_registry_v2_prepare_v2(get_client):
     "get_client", ["verified_client", "logged_monaiot_client", "logged_proconnect_client"], indirect=True
 )
 def test_registry_prepare_v2_post(get_client):
-    mock_response = {
-        "data": {
-            "generateRegistryV2Export": {
-                "id": "mock-export-id-123",
-                "status": RegistryV2ExportState.STARTED,
-            }
-        }
-    }
     url = reverse("registry_v2_prepare")
-    with patch("httpx.Client.post") as mock_post:
-        mock_post.return_value.json.return_value = mock_response
-
+    with patch("registry.views.process_export"):
         res = get_client.post(
             url,
             data={
+                "identifier_type": "SIRET",
                 "siret": "51212357100030",
                 "registry_type": "INCOMING",
                 "export_format": "CSV",
@@ -92,18 +82,17 @@ def test_registry_prepare_v2_post(get_client):
     reg = RegistryV2Export.objects.first()
     assert reg.pk
     assert reg.siret == "51212357100030"
-    assert reg.state == "STARTED"
+    assert reg.state == "PENDING"
 
 
 def test_registry_v2_prepare_form_valid_calls_task(verified_user):
-    """Test that form_valid method calls generate_registry_export.delay with correct args."""
+    """Test that form_valid method calls process_export with correct args."""
 
-    # Mock the delay method of the task
-    with patch("registry.task.generate_registry_export.delay") as mock_delay:
-        # Get the form submission URL
+    with patch("registry.views.process_export") as mock_process:
         url = reverse("registry_v2_prepare")
 
         form_data = {
+            "identifier_type": "SIRET",
             "siret": "12345678900000",
             "registry_type": "INCOMING",
             "declaration_type": "ALL",
@@ -128,8 +117,8 @@ def test_registry_v2_prepare_form_valid_calls_task(verified_user):
         assert export.registry_type == form_data["registry_type"]
         assert export.state == "PENDING"
 
-        # Assert that the task was called with the correct argument
-        mock_delay.assert_called_once_with(export.pk)
+        # Assert that process_export was called with the correct argument
+        mock_process.assert_called_once_with(export.pk)
 
 
 def test_registry_v2_list_content_deny_anon(anon_client):
@@ -174,7 +163,7 @@ def test_registry_v2_retrieve_deny_observatoire(verified_observatoire):
 def test_registry_v2_retrieve_success(verified_user):
     """Test successful retrieval of signed URL."""
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     # Mock API response with a signed URL
     mock_response = {
         "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://test-signed-url.example.com/download"}}
@@ -209,7 +198,7 @@ def test_registry_v2_retrieve_success(verified_user):
 def test_registry_v2_retrieve_api_error(verified_user):
     """Test handling of API error response."""
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     # Mock API error response
     mock_response = {"errors": [{"message": "Error retrieving download URL"}]}
 
@@ -237,7 +226,7 @@ def test_registry_v2_retrieve_missing_data(
     """Test handling of missing data in API response."""
     # Mock response with missing data structure
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     mock_response = {
         "data": {}  # Empty data without the expected fields
     }
@@ -265,7 +254,7 @@ def test_registry_v2_retrieve_missing_data(
     ):
         """Test handling of HTTP request exceptions."""
 
-        registry_export = RegistryV2ExportFactory()
+        registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
         with patch("httpx.Client.post") as mock_post:
             # Configure the mock to raise an exception
             mock_post.side_effect = Exception("Network error")
