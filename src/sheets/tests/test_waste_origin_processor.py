@@ -13,11 +13,11 @@ tz = ZoneInfo("Europe/Paris")
 
 @pytest.fixture
 def departements_regions_df():
-    """Fixture for départements and regions data."""
+    """Fixture for departements and regions data."""
     return pl.LazyFrame(
         {
             "DEP": ["75", "13", "69", "33"],
-            "LIBELLE": ["Paris", "Bouches-du-Rhône", "Rhône", "Gironde"],
+            "LIBELLE": ["Paris", "Bouches-du-Rhone", "Rhone", "Gironde"],
             "REG": ["11", "93", "84", "75"],
         }
     )
@@ -102,16 +102,16 @@ def test_bsff_with_packagings_quantities_summed_correctly(
 
     GIVEN: BSFF data with packagings data containing quantities at container level
            (bsff-1: 10.0, bsff-2: 20.0+30.0=50.0, bsff-3: 40.0+50.0=90.0, total=150.0)
-    WHEN: _preprocess_data is called
+    WHEN: _preprocess_data is called with bs_type=BSFF
     THEN: BSFF quantities are correctly summed from packagings, aggregated by department,
           and total quantity in preprocessed_serie equals 150.0
     """
     company_siret = "43210987654321"
-    bs_data_dfs = {BSFF: sample_bsff_data}
 
     processor = WasteOriginProcessor(
         company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
+        bs_type=BSFF,
+        bs_data_df=sample_bsff_data,
         departements_regions_df=departements_regions_df,
         data_date_interval=data_date_interval,
         packagings_data=sample_packagings_data,
@@ -119,11 +119,9 @@ def test_bsff_with_packagings_quantities_summed_correctly(
 
     processor._preprocess_data()
 
-    # Verify that BSFF data was processed correctly
     assert processor.preprocessed_serie is not None
     assert len(processor.preprocessed_serie) > 0
 
-    # Verify quantities are aggregated correctly by department
     total_quantity = processor.preprocessed_serie["quantity_received"].sum()
     assert total_quantity == pytest.approx(150.0, rel=1e-6)
 
@@ -142,10 +140,8 @@ def test_bsff_process_bsff_data_method(
         packagings_data=sample_packagings_data, bsff_df=sample_bsff_data
     )
 
-    # Verify BSFF data was processed correctly
     assert processed_bsff_df is not None
 
-    # Verify the processed dataframe has the correct structure
     processed_df = processed_bsff_df.collect()
     expected_columns = {
         "id",
@@ -157,7 +153,6 @@ def test_bsff_process_bsff_data_method(
     }
     assert set(processed_df.columns) == expected_columns
 
-    # Verify quantities are summed correctly
     quantities = processed_df["quantity_received"].to_list()
     assert sum(quantities) == pytest.approx(150.0, rel=1e-6)
 
@@ -171,7 +166,6 @@ def test_bsff_process_bsff_data_without_packagings(sample_bsff_data, departement
     """
     processed_bsff_df = WasteOriginProcessor._process_bsff_data(packagings_data=None, bsff_df=sample_bsff_data)
 
-    # Should return None when packagings_data is None
     assert processed_bsff_df is None
 
 
@@ -184,53 +178,47 @@ def test_bsff_process_bsff_data_not_in_dictionary(departements_regions_df, data_
     """
     processed_bsff_df = WasteOriginProcessor._process_bsff_data(packagings_data=None, bsff_df=None)
 
-    # Should return None when bsff_df is None
     assert processed_bsff_df is None
 
 
-def test_bsff_absent_from_dictionary_no_error(sample_bsdd_data, departements_regions_df, data_date_interval):
-    """Test that no error occurs when BSFF is not in bs_data_dfs during full preprocessing.
+def test_bsdd_single_bs_type(sample_bsdd_data, departements_regions_df, data_date_interval):
+    """Test that BSDD data is processed correctly as a single BS type.
 
-    GIVEN: BSFF is not present in bs_data_dfs but other bordereau types (BSDD) are present
-    WHEN: _preprocess_data is called
-    THEN: No error is raised, processing completes gracefully,
-          and only BSDD data is processed (BSFF absence is handled correctly)
+    GIVEN: BSDD data with two bordereaux (25.0 + 35.0 = 60.0)
+    WHEN: _preprocess_data is called with bs_type=BSDD
+    THEN: Only BSDD data is processed, total quantity = 60.0
     """
     company_siret = "43210987654321"
-    bs_data_dfs = {BSDD: sample_bsdd_data}  # No BSFF in dictionary
 
     processor = WasteOriginProcessor(
         company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
+        bs_type=BSDD,
+        bs_data_df=sample_bsdd_data,
         departements_regions_df=departements_regions_df,
         data_date_interval=data_date_interval,
-        packagings_data=None,
     )
 
     processor._preprocess_data()
 
-    # Should handle gracefully and process BSDD
     assert processor.preprocessed_serie is not None
     assert len(processor.preprocessed_serie) > 0
-    # Total quantity should only include BSDD (25.0 + 35.0 = 60.0)
     total_quantity = processor.preprocessed_serie["quantity_received"].sum()
     assert total_quantity == pytest.approx(60.0, rel=1e-6)
 
 
-def test_bsff_without_packagings_ignored(sample_bsff_data, departements_regions_df, data_date_interval):
-    """Test that BSFF is ignored when packagings_data is None.
+def test_bsff_without_packagings_returns_empty(sample_bsff_data, departements_regions_df, data_date_interval):
+    """Test that BSFF is handled gracefully when packagings_data is None.
 
     GIVEN: BSFF data exists but packagings_data is None
-    WHEN: _preprocess_data is called
-    THEN: BSFF is excluded from processing (returns None from _process_bsff_data),
-          resulting in empty preprocessed_serie
+    WHEN: _preprocess_data is called with bs_type=BSFF
+    THEN: BSFF is excluded from processing, resulting in empty preprocessed_serie
     """
     company_siret = "43210987654321"
-    bs_data_dfs = {BSFF: sample_bsff_data}
 
     processor = WasteOriginProcessor(
         company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
+        bs_type=BSFF,
+        bs_data_df=sample_bsff_data,
         departements_regions_df=departements_regions_df,
         data_date_interval=data_date_interval,
         packagings_data=None,
@@ -238,52 +226,7 @@ def test_bsff_without_packagings_ignored(sample_bsff_data, departements_regions_
 
     processor._preprocess_data()
 
-    # BSFF should not be in the local copy used for processing
-    # Original bs_data_dfs should remain unchanged (not mutated)
-    assert BSFF in processor.bs_data_dfs
-    assert processor.bs_data_dfs[BSFF] is sample_bsff_data  # Original reference preserved
-
-    # No data should be in preprocessed_serie since BSFF was the only data and was excluded
     assert processor.preprocessed_serie is None or len(processor.preprocessed_serie) == 0
-
-
-def test_mix_bsff_and_other_bordereaux(
-    sample_bsff_data,
-    sample_packagings_data,
-    sample_bsdd_data,
-    departements_regions_df,
-    data_date_interval,
-):
-    """Test that BSFF and other bordereau types work together correctly.
-
-    GIVEN: BSFF data with packagings and BSDD data in bs_data_dfs
-    WHEN: _preprocess_data is called
-    THEN: Both BSFF and BSDD are processed correctly, quantities are summed,
-          and the total quantity includes both BSFF (150.0) and BSDD (60.0) = 210.0
-    """
-    company_siret = "43210987654321"
-    bs_data_dfs = {
-        BSFF: sample_bsff_data,
-        BSDD: sample_bsdd_data,
-    }
-
-    processor = WasteOriginProcessor(
-        company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
-        departements_regions_df=departements_regions_df,
-        data_date_interval=data_date_interval,
-        packagings_data=sample_packagings_data,
-    )
-
-    processor._preprocess_data()
-
-    # Both BSFF and BSDD should be processed
-    assert processor.preprocessed_serie is not None
-    assert len(processor.preprocessed_serie) > 0
-
-    # Total quantity should include both BSFF (150.0) and BSDD (25.0 + 35.0 = 60.0)
-    total_quantity = processor.preprocessed_serie["quantity_received"].sum()
-    assert total_quantity == pytest.approx(210.0, rel=1e-6)
 
 
 def test_departments_calculated_correctly_with_bsff_quantities(
@@ -292,16 +235,16 @@ def test_departments_calculated_correctly_with_bsff_quantities(
     """Test that departments are correctly calculated with BSFF quantities.
 
     GIVEN: BSFF data with packagings containing addresses with postal codes (75001, 13001, 69001)
-    WHEN: _preprocess_data is called
+    WHEN: _preprocess_data is called with bs_type=BSFF
     THEN: Departments are correctly extracted from addresses, quantities are aggregated by department,
           and preprocessed_serie contains cp_formatted column with department information
     """
     company_siret = "43210987654321"
-    bs_data_dfs = {BSFF: sample_bsff_data}
 
     processor = WasteOriginProcessor(
         company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
+        bs_type=BSFF,
+        bs_data_df=sample_bsff_data,
         departements_regions_df=departements_regions_df,
         data_date_interval=data_date_interval,
         packagings_data=sample_packagings_data,
@@ -312,12 +255,6 @@ def test_departments_calculated_correctly_with_bsff_quantities(
     assert processor.preprocessed_serie is not None
     assert len(processor.preprocessed_serie) > 0
 
-    # Verify that departments are correctly identified from addresses
-    # bsff-1: 75001 -> 75 (Paris) -> 10.0
-    # bsff-2: 13001 -> 13 (Bouches-du-Rhône) -> 50.0
-    # bsff-3: 69001 -> 69 (Rhône) -> 90.0
-
-    # Check that cp_formatted contains department information
     for row in processor.preprocessed_serie.iter_rows(named=True):
         assert "cp_formatted" in row
         assert row["quantity_received"] > 0
@@ -329,12 +266,11 @@ def test_acceptation_date_used_for_received_at(
     """Test that acceptation_date is used for received_at when filtering.
 
     GIVEN: BSFF data with received_at outside the date interval but packagings have acceptation_date within interval
-    WHEN: _preprocess_data is called
+    WHEN: _preprocess_data is called with bs_type=BSFF
     THEN: acceptation_date is used for filtering (via pl.coalesce), BSFF is processed,
           and preprocessed_serie contains the data because acceptation_date is within the interval
     """
     company_siret = "43210987654321"
-    # Create BSFF data with received_at outside the date interval
     bsff_data_outside_interval = pl.LazyFrame(
         {
             "id": ["bsff-1"],
@@ -348,7 +284,6 @@ def test_acceptation_date_used_for_received_at(
         }
     )
 
-    # But acceptation_date is within the interval
     packagings_within_interval = pl.LazyFrame(
         {
             "bsff_id": ["bsff-1"],
@@ -359,11 +294,10 @@ def test_acceptation_date_used_for_received_at(
         }
     )
 
-    bs_data_dfs = {BSFF: bsff_data_outside_interval}
-
     processor = WasteOriginProcessor(
         company_siret=company_siret,
-        bs_data_dfs=bs_data_dfs,
+        bs_type=BSFF,
+        bs_data_df=bsff_data_outside_interval,
         departements_regions_df=departements_regions_df,
         data_date_interval=data_date_interval,
         packagings_data=packagings_within_interval,
@@ -371,6 +305,55 @@ def test_acceptation_date_used_for_received_at(
 
     processor._preprocess_data()
 
-    # Should be processed because acceptation_date is within interval
     assert processor.preprocessed_serie is not None
     assert len(processor.preprocessed_serie) > 0
+
+
+def test_top_10_departments_kept(departements_regions_df, data_date_interval):
+    """Test that only top 10 departments are kept, rest grouped as 'Autres origines'.
+
+    GIVEN: BSDD data with 12 different departments
+    WHEN: _preprocess_data is called
+    THEN: Only top 10 departments are kept individually,
+          remaining departments are grouped under 'Autres origines'
+    """
+    company_siret = "43210987654321"
+
+    departements_df = pl.LazyFrame(
+        {
+            "DEP": [f"{i:02d}" for i in range(1, 13)],
+            "LIBELLE": [f"Dep{i}" for i in range(1, 13)],
+            "REG": ["01"] * 12,
+        }
+    )
+
+    addresses = [f"1 Rue, {i:02d}000 Ville" for i in range(1, 13)]
+    quantities = [float(i * 10) for i in range(1, 13)]
+
+    bsdd_data = pl.LazyFrame(
+        {
+            "id": [f"bsdd-{i}" for i in range(1, 13)],
+            "emitter_company_siret": ["11111111111111"] * 12,
+            "emitter_company_address": addresses,
+            "recipient_company_siret": [company_siret] * 12,
+            "received_at": [datetime(2024, 1, 15, tzinfo=tz)] * 12,
+            "quantity_received": quantities,
+            "waste_code": ["01 01 01*"] * 12,
+        }
+    )
+
+    processor = WasteOriginProcessor(
+        company_siret=company_siret,
+        bs_type=BSDD,
+        bs_data_df=bsdd_data,
+        departements_regions_df=departements_df,
+        data_date_interval=data_date_interval,
+    )
+
+    processor._preprocess_data()
+
+    assert processor.preprocessed_serie is not None
+    departments = processor.preprocessed_serie["cp_formatted"].to_list()
+    assert "Autres origines" in departments
+    # 10 individual departments + 1 "Autres origines" = 11
+    assert len(departments) == 11

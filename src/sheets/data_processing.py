@@ -390,14 +390,20 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        waste_origin = WasteOriginProcessor(
-            self.siret,
-            self.bs_dfs,
-            DEPARTEMENTS_REGION_DATA,
-            data_date_interval,
-            packagings_data=self.bsff_packagings_df,
-        )
-        self.computed.waste_origin_data = waste_origin.build()
+        for bs_type, df in self.bs_dfs.items():
+            packaging_data = None
+            if bs_type == BSFF:
+                packaging_data = self.bsff_packagings_df
+
+            waste_origin = WasteOriginProcessor(
+                self.siret,
+                bs_type,
+                df,
+                DEPARTEMENTS_REGION_DATA,
+                data_date_interval,
+                packagings_data=packaging_data,
+            )
+            setattr(self.computed, f"{bs_type}_waste_origin_data", waste_origin.build())
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),

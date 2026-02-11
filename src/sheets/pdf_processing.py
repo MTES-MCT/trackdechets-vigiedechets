@@ -17,8 +17,6 @@ def render_pdf_fn(computed_pk):
         stock_data = getattr(computed, f"{bsd_type}_stock_data")
         setattr(computed, f"{bsd_type}_stock_graph", data_to_bs64_plot(stock_data))
 
-    computed.waste_origin_graph = data_to_bs64_plot(computed.waste_origin_data)
-
     for icpe_graph in ["icpe_2770", "icpe_2790", "icpe_2760_1", "icpe_2771", "icpe_2791", "icpe_2760_2"]:
         icpe_graph_data = getattr(computed, f"{icpe_graph}_data")
         if icpe_graph_data:

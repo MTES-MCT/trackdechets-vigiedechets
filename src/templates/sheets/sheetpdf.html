@@ -368,20 +368,62 @@
             {# on site #}
             <h2 class="section__title">Déchets sur site (théorique)</h2>
             <div class="row">
-                <div class="cell cell--bordered cell--third">
+                <div class="cell cell--bordered cell--half">
                     {% include "sheets/components/on_site_wastes.html" with storage_data=sheet.storage_data %}
-                </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Départements</h3>
-                    {% if waste_origin_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
                 </div>
             </div>
             {# end on site #}
+            {# waste origin per BS type #}
+            <h2 class="section__title">Origine des déchets par type de bordereau - Top 10 départements</h2>
+            {% if bsdd_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSD Dangereux - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsdd_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {% if bsdd_non_dangerous_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSD Non Dangereux - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsdd_non_dangerous_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {% if bsda_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSD Amiante - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsda_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {% if bsdasri_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BS DASRI - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsdasri_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {% if bsff_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BS Fluides Frigorigènes - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsff_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {% if bsvhu_waste_origin_graph %}
+                <div class="row">
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BS VHU - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsvhu_waste_origin_graph }}" class="cell__img">
+                    </div>
+                </div>
+            {% endif %}
+            {# end waste origin per BS type #}
             <div class="row">{% render_traceabilty_break sheet graph_context="pdf" %}</div>
             {# Transborder section #}
             <h2 class="section__title">Données relatives aux échanges transfrontaliers</h2>
