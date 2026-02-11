@@ -556,7 +556,7 @@ SELECT
     reception_date,
     operation_code,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_incoming_waste
+FROM trusted_zone_trackdechets.latest_registry_incoming_waste
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -575,7 +575,7 @@ SELECT
     destination_company_org_id,
     destination_company_name,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_outgoing_waste
+FROM trusted_zone_trackdechets.latest_registry_outgoing_waste
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -593,7 +593,7 @@ SELECT
     reception_date,
     operation_code,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_incoming_texs
+FROM trusted_zone_trackdechets.latest_registry_incoming_texs
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -612,7 +612,7 @@ SELECT
     destination_company_org_id,
     destination_company_name,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_outgoing_texs
+FROM trusted_zone_trackdechets.latest_registry_outgoing_texs
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -630,7 +630,7 @@ SELECT
     dispatch_date,
     destination_company_org_id,
     destination_company_name
-FROM trusted_zone_trackdechets.registry_ssd
+FROM trusted_zone_trackdechets.latest_registry_ssd
 where
     report_for_company_siret = :siret
 """
