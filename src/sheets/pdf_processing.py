@@ -19,8 +19,6 @@ def render_pdf_fn(computed_pk):
 
     computed.waste_origin_graph = data_to_bs64_plot(computed.waste_origin_data)
 
-    computed.waste_origin_map_graph = data_to_bs64_plot(computed.waste_origin_map_data)
-
     for icpe_graph in ["icpe_2770", "icpe_2790", "icpe_2760_1", "icpe_2771", "icpe_2791", "icpe_2760_2"]:
         icpe_graph_data = getattr(computed, f"{icpe_graph}_data")
         if icpe_graph_data:

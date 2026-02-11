@@ -380,15 +380,6 @@
                         <div class="no-data">Pas de données à afficher.</div>
                     {% endif %}
                 </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Régions</h3>
-                    {% if waste_origin_map_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_map_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
-                </div>
             </div>
             {# end on site #}
             <div class="row">{% render_traceabilty_break sheet graph_context="pdf" %}</div>

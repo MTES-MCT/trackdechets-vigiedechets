@@ -81,7 +81,6 @@ def render_pdf_sheet_fn(computed_pk: str):
         "bsvhu_created_rectified_graph": sheet.bsvhu_created_rectified_graph,
         "bsvhu_stock_graph": sheet.bsvhu_stock_graph,
         "waste_origin_graph": sheet.waste_origin_graph,
-        "waste_origin_map_graph": sheet.waste_origin_map_graph,
         "icpe_2770_graph": sheet.icpe_2770_graph,
         "icpe_2790_graph": sheet.icpe_2790_graph,
         "icpe_2760_1_graph": sheet.icpe_2760_1_graph,

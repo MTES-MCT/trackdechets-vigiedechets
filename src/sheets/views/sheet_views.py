@@ -212,7 +212,6 @@ class SheetPdfHtml(FullyLoggedMixin, DetailView):
                 "bsvhu_created_rectified_graph": self.object.bsvhu_created_rectified_graph,
                 "bsvhu_stock_graph": self.object.bsvhu_stock_graph,
                 "waste_origin_graph": self.object.waste_origin_graph,
-                "waste_origin_map_graph": self.object.waste_origin_map_graph,
                 "icpe_2770_graph": self.object.icpe_2770_graph,
                 "icpe_2790_graph": self.object.icpe_2790_graph,
                 "icpe_2760_1_graph": self.object.icpe_2760_1_graph,

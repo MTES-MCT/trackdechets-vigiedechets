@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from .constants import BS_TYPES_WITH_MULTIMODAL_TRANSPORT, BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
 from .data_extract import (
-    load_and_preprocess_regions_geographical_data,
     load_departements_regions_data,
     load_waste_code_data,
 )
@@ -80,7 +79,6 @@ from .graph_processors.plotly_components import (
     TransportedQuantitiesGraphProcessor,
     TransporterBordereauxGraphProcessor,
     WasteOriginProcessor,
-    WasteOriginsMapProcessor,
 )
 from .models import ComputedInspectionData
 from .utils import (
@@ -92,7 +90,6 @@ from .utils import (
 
 WASTE_CODES_DATA = load_waste_code_data()
 DEPARTEMENTS_REGION_DATA = load_departements_regions_data()
-REGIONS_GEODATA = load_and_preprocess_regions_geographical_data()
 
 logger = logging.getLogger(__name__)
 
@@ -401,16 +398,6 @@ class SheetProcessor:
             packagings_data=self.bsff_packagings_df,
         )
         self.computed.waste_origin_data = waste_origin.build()
-
-        waste_origin_map = WasteOriginsMapProcessor(
-            self.siret,
-            self.bs_dfs,
-            DEPARTEMENTS_REGION_DATA,
-            REGIONS_GEODATA,
-            data_date_interval,
-            packagings_data=self.bsff_packagings_df,
-        )
-        self.computed.waste_origin_map_data = waste_origin_map.build()
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),

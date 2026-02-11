@@ -131,7 +131,6 @@ class ComputedInspectionData(models.Model):
     storage_data = models.JSONField(default=dict)
 
     waste_origin_data = models.JSONField(default=dict)
-    waste_origin_map_data = models.JSONField(default=dict)
 
     waste_flows_data = models.JSONField(default=dict)
 
@@ -168,7 +167,6 @@ class ComputedInspectionData(models.Model):
     bsvhu_stock_graph = models.TextField(blank=True)
 
     waste_origin_graph = models.TextField(blank=True)
-    waste_origin_map_graph = models.TextField(blank=True)
 
     icpe_2770_data = models.TextField(blank=True)
     icpe_2770_graph = models.TextField(blank=True)

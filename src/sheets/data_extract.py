@@ -1,4 +1,3 @@
-import geopandas as gpd
 import polars as pl
 from django.conf import settings
 
@@ -59,36 +58,3 @@ def load_waste_code_data() -> pl.LazyFrame:
     assert df["code"].is_unique().all()  # nosec
 
     return df.lazy()
-
-
-def load_and_preprocess_regions_geographical_data() -> gpd.GeoDataFrame:
-    """Load the geojson of french regions, transform it to group overseas territories near metropolitan territory
-    and returns it as a DataFrame.
-
-    Columns included are :
-    - code région
-    - geometry
-
-    Returns
-    -------
-    DataFrame
-        GeoDataFrame with the the nomenclature of waste.
-    """
-
-    gdf = gpd.read_file(CSV_FILES_DIR / "regions.geojson")
-
-    translations = {
-        "Guadeloupe": {"x": 55, "y": 30, "scale": 1.5},
-        "Martinique": {"x": 56, "y": 31, "scale": 1.5},
-        "La Réunion": {"x": -62, "y": 63, "scale": 1.5},
-        "Mayotte": {"x": -50.5, "y": 54, "scale": 1.5},
-        "Guyane": {"x": 47, "y": 40, "scale": 0.5},
-    }
-    for region, translation in translations.items():
-        gdf.loc[gdf["nom"] == region, "geometry"] = (
-            gdf.loc[gdf["nom"] == region, "geometry"]
-            .translate(xoff=translation["x"], yoff=translation["y"], zoff=0.0)
-            .scale(*(translation["scale"],) * 3)
-        )
-
-    return gdf
