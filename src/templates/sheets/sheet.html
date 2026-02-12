@@ -410,30 +410,24 @@
         </div>
         <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
         <div class="row">
-            {% if sheet.dangerous_waste_origin_data %}
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Déchets Dangereux - Origine des déchets</h3>
-                    <div id="dangerous_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
+            <div class="cell cell--bordered cell--third">
+                <h3 class="cell__title">Déchets Dangereux - Origine des déchets</h3>
+                <div id="dangerous_waste_origin_graph">
+                    <div class="no-data">Pas de données à afficher.</div>
                 </div>
-            {% endif %}
-            {% if sheet.non_dangerous_waste_origin_data %}
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Déchets Non Dangereux - Origine des déchets</h3>
-                    <div id="non_dangerous_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
+            </div>
+            <div class="cell cell--bordered cell--third">
+                <h3 class="cell__title">Déchets Non Dangereux - Origine des déchets</h3>
+                <div id="non_dangerous_waste_origin_graph">
+                    <div class="no-data">Pas de données à afficher.</div>
                 </div>
-            {% endif %}
-            {% if sheet.amiante_waste_origin_data %}
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Amiante - Origine des déchets</h3>
-                    <div id="amiante_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
+            </div>
+            <div class="cell cell--bordered cell--third">
+                <h3 class="cell__title">Amiante - Origine des déchets</h3>
+                <div id="amiante_waste_origin_graph">
+                    <div class="no-data">Pas de données à afficher.</div>
                 </div>
-            {% endif %}
+            </div>
         </div>
         {# start traceability break #}
         <div class="row">{% render_traceabilty_break sheet %}</div>
