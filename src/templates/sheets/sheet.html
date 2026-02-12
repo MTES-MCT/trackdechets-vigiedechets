@@ -408,67 +408,33 @@
                 {% include "sheets/components/on_site_wastes.html" with storage_data=sheet.storage_data %}
             </div>
         </div>
-        <h2 class="section__title">Origine des déchets par type de bordereau - Top 10 départements</h2>
-        {% if sheet.bsdd_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BSD Dangereux - Origine des déchets</h3>
-                    <div id="bsdd_waste_origin_graph">
+        <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
+        <div class="row">
+            {% if sheet.dangerous_waste_origin_data %}
+                <div class="cell cell--bordered cell--third">
+                    <h3 class="cell__title">Déchets Dangereux - Origine des déchets</h3>
+                    <div id="dangerous_waste_origin_graph">
                         <div class="no-data">Pas de données à afficher.</div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-        {% if sheet.bsdd_non_dangerous_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BSD Non Dangereux - Origine des déchets</h3>
-                    <div id="bsdd_non_dangerous_waste_origin_graph">
+            {% endif %}
+            {% if sheet.non_dangerous_waste_origin_data %}
+                <div class="cell cell--bordered cell--third">
+                    <h3 class="cell__title">Déchets Non Dangereux - Origine des déchets</h3>
+                    <div id="non_dangerous_waste_origin_graph">
                         <div class="no-data">Pas de données à afficher.</div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-        {% if sheet.bsda_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BSD Amiante - Origine des déchets</h3>
-                    <div id="bsda_waste_origin_graph">
+            {% endif %}
+            {% if sheet.amiante_waste_origin_data %}
+                <div class="cell cell--bordered cell--third">
+                    <h3 class="cell__title">Amiante - Origine des déchets</h3>
+                    <div id="amiante_waste_origin_graph">
                         <div class="no-data">Pas de données à afficher.</div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-        {% if sheet.bsdasri_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BS DASRI - Origine des déchets</h3>
-                    <div id="bsdasri_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-        {% if sheet.bsff_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BS Fluides Frigorigènes - Origine des déchets</h3>
-                    <div id="bsff_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-        {% if sheet.bsvhu_waste_origin_data %}
-            <div class="row">
-                <div class="cell cell--bordered cell--half">
-                    <h3 class="cell__title">BS VHU - Origine des déchets</h3>
-                    <div id="bsvhu_waste_origin_graph">
-                        <div class="no-data">Pas de données à afficher.</div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
         {# start traceability break #}
         <div class="row">{% render_traceabilty_break sheet %}</div>
         {# end traceability break #}
@@ -533,12 +499,9 @@
             const bsff_stock_data = {{ sheet.bsff_stock_data }};
             const bsvhu_created_rectified_data = {{ sheet.bsvhu_created_rectified_data }};
             const bsvhu_stock_data = {{ sheet.bsvhu_stock_data }};
-            const bsdd_waste_origin_data = {{ sheet.bsdd_waste_origin_data }};
-            const bsdd_non_dangerous_waste_origin_data = {{ sheet.bsdd_non_dangerous_waste_origin_data }};
-            const bsda_waste_origin_data = {{ sheet.bsda_waste_origin_data }};
-            const bsdasri_waste_origin_data = {{ sheet.bsdasri_waste_origin_data }};
-            const bsff_waste_origin_data = {{ sheet.bsff_waste_origin_data }};
-            const bsvhu_waste_origin_data = {{ sheet.bsvhu_waste_origin_data }};
+            const dangerous_waste_origin_data = {{ sheet.dangerous_waste_origin_data }};
+            const non_dangerous_waste_origin_data = {{ sheet.non_dangerous_waste_origin_data }};
+            const amiante_waste_origin_data = {{ sheet.amiante_waste_origin_data }};
             const bsda_worker_quantity_data = {{ sheet.bsda_worker_quantity_data }};
             const transporter_bordereaux_stats_graph_data = {{ sheet.transporter_bordereaux_stats_graph_data }};
             const quantities_transported_stats_graph_data = {{ sheet.quantities_transported_stats_graph_data }};
@@ -620,28 +583,16 @@
                 "target": "bsvhu_quantity_graph"
             },
             {
-                "data": bsdd_waste_origin_data,
-                "target": "bsdd_waste_origin_graph"
+                "data": dangerous_waste_origin_data,
+                "target": "dangerous_waste_origin_graph"
             },
             {
-                "data": bsdd_non_dangerous_waste_origin_data,
-                "target": "bsdd_non_dangerous_waste_origin_graph"
+                "data": non_dangerous_waste_origin_data,
+                "target": "non_dangerous_waste_origin_graph"
             },
             {
-                "data": bsda_waste_origin_data,
-                "target": "bsda_waste_origin_graph"
-            },
-            {
-                "data": bsdasri_waste_origin_data,
-                "target": "bsdasri_waste_origin_graph"
-            },
-            {
-                "data": bsff_waste_origin_data,
-                "target": "bsff_waste_origin_graph"
-            },
-            {
-                "data": bsvhu_waste_origin_data,
-                "target": "bsvhu_waste_origin_graph"
+                "data": amiante_waste_origin_data,
+                "target": "amiante_waste_origin_graph"
             },
             {
                 "data": bsda_worker_quantity_data,
