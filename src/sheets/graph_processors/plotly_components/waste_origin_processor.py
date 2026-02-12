@@ -5,59 +5,48 @@ import polars as pl
 
 from sheets.utils import format_number_str
 
-from ...constants import BSFF
 from .waste_origin_base_processor import WasteOriginBaseProcessor
 
 
 class WasteOriginProcessor(WasteOriginBaseProcessor):
-    """Component with a bar figure representing the quantity of waste received by departements (TOP 10) for a single BS type.
+    """Component with a bar figure representing the quantity of waste received by departements (TOP 10) for a waste type.
 
     Parameters
     ----------
     company_siret: str
         SIRET number of the establishment for which the data is displayed (used for data preprocessing).
-    bs_type: str
-        The type of bordereau being processed (e.g., "bsdd", "bsda", "bsdasri", "bsff", "bsvhu").
+    waste_type: str
+        The type of waste being processed (e.g., "dangerous", "non_dangerous", "amiante").
     bs_data_df: LazyFrame
-        LazyFrame containing the bordereau data for the given BS type.
+        LazyFrame containing the bordereau data for the given waste type.
     departements_regions_df: LazyFrame
         Static data about regions and departements with their codes.
     data_date_interval: tuple
         Date interval to filter data.
-    packagings_data: LazyFrame, optional
-        For BSFF data, packagings dataset to be able to compute the quantities.
-        Quantities are stored at packaging level for BSFF, not at bordereau level.
     """
 
     def __init__(
         self,
         company_siret: str,
-        bs_type: str,
+        waste_type: str,
         bs_data_df: pl.LazyFrame,
         departements_regions_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
-        packagings_data: pl.LazyFrame | None = None,
     ) -> None:
         super().__init__(
             company_siret,
-            {bs_type: bs_data_df},
+            {waste_type: bs_data_df},
             departements_regions_df,
             data_date_interval,
-            packagings_data,
         )
-        self.bs_type = bs_type
+        self.waste_type = waste_type
         self.preprocessed_serie = None
 
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
             return
 
-        bs_data_df = self.bs_data_dfs[self.bs_type]
-
-        if self.bs_type == BSFF:
-            bs_data_df = self._process_bsff_data(
-                packagings_data=self.packagings_data, bsff_df=bs_data_df
-            )
+        bs_data_df = self.bs_data_dfs[self.waste_type]
 
         if bs_data_df is None:
             return
@@ -174,18 +163,22 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
             y=y_cats,
             orientation="h",
             text=texts,
-            textfont_size=20,
+            textfont_size=14,
             textposition="outside",
             width=[tup_e for e in values for tup_e in (0.7, 1)],
             hovertext=hovertexts,
             hoverinfo="text",
         )
 
+        # num_items = len(serie)
+        # fig_height = max(200, num_items * 50)
+
         fig = go.Figure([bar_trace])
         fig.update_xaxes(visible=False)
         fig.update_yaxes(visible=False, type="category")
         fig.update_layout(
-            margin={"t": 20, "b": 0, "l": 0, "r": 0},
+            # height=fig_height,
+            margin={"t": 10, "b": 0, "l": 0, "r": 0},
             paper_bgcolor="#fff",
             plot_bgcolor="rgba(0,0,0,0)",
         )

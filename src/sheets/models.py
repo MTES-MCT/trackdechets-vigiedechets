@@ -130,12 +130,9 @@ class ComputedInspectionData(models.Model):
 
     storage_data = models.JSONField(default=dict)
 
-    bsdd_waste_origin_data = models.JSONField(default=dict)
-    bsdd_non_dangerous_waste_origin_data = models.JSONField(default=dict)
-    bsda_waste_origin_data = models.JSONField(default=dict)
-    bsdasri_waste_origin_data = models.JSONField(default=dict)
-    bsff_waste_origin_data = models.JSONField(default=dict)
-    bsvhu_waste_origin_data = models.JSONField(default=dict)
+    dangerous_waste_origin_data = models.JSONField(default=dict)
+    non_dangerous_waste_origin_data = models.JSONField(default=dict)
+    amiante_waste_origin_data = models.JSONField(default=dict)
 
     waste_flows_data = models.JSONField(default=dict)
 
@@ -171,12 +168,9 @@ class ComputedInspectionData(models.Model):
     bsvhu_created_rectified_graph = models.TextField(blank=True)
     bsvhu_stock_graph = models.TextField(blank=True)
 
-    bsdd_waste_origin_graph = models.TextField(blank=True)
-    bsdd_non_dangerous_waste_origin_graph = models.TextField(blank=True)
-    bsda_waste_origin_graph = models.TextField(blank=True)
-    bsdasri_waste_origin_graph = models.TextField(blank=True)
-    bsff_waste_origin_graph = models.TextField(blank=True)
-    bsvhu_waste_origin_graph = models.TextField(blank=True)
+    dangerous_waste_origin_graph = models.TextField(blank=True)
+    non_dangerous_waste_origin_graph = models.TextField(blank=True)
+    amiante_waste_origin_graph = models.TextField(blank=True)
 
     icpe_2770_data = models.TextField(blank=True)
     icpe_2770_graph = models.TextField(blank=True)

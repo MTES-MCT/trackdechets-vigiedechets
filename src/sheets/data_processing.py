@@ -8,7 +8,16 @@ import pandas as pd
 import polars as pl
 from django.utils import timezone
 
-from .constants import BS_TYPES_WITH_MULTIMODAL_TRANSPORT, BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
+from .constants import (
+    BS_TYPES_WITH_MULTIMODAL_TRANSPORT,
+    BSDA,
+    BSDASRI,
+    BSDD,
+    BSDD_NON_DANGEROUS,
+    BSFF,
+    BSVHU,
+    WASTE_TYPE_BS_TYPE_MAPPING,
+)
 from .data_extract import (
     load_departements_regions_data,
     load_waste_code_data,
@@ -390,20 +399,19 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        for bs_type, df in self.bs_dfs.items():
-            packaging_data = None
-            if bs_type == BSFF:
-                packaging_data = self.bsff_packagings_df
+        for waste_type, bs_type in WASTE_TYPE_BS_TYPE_MAPPING.items():
+            df = self.bs_dfs.get(bs_type)
+            if df is None:
+                continue
 
             waste_origin = WasteOriginProcessor(
                 self.siret,
-                bs_type,
+                waste_type,
                 df,
                 DEPARTEMENTS_REGION_DATA,
                 data_date_interval,
-                packagings_data=packaging_data,
             )
-            setattr(self.computed, f"{bs_type}_waste_origin_data", waste_origin.build())
+            setattr(self.computed, f"{waste_type}_waste_origin_data", waste_origin.build())
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),

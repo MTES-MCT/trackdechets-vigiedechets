@@ -50,6 +50,16 @@ BSVHU = "bsvhu"
 
 BS_TYPES_WITH_MULTIMODAL_TRANSPORT = [BSDD, BSDD_NON_DANGEROUS, BSDA, BSFF]
 
+DANGEROUS_WASTE = "dangerous"
+NON_DANGEROUS_WASTE = "non_dangerous"
+AMIANTE_WASTE = "amiante"
+
+WASTE_TYPE_BS_TYPE_MAPPING = {
+    DANGEROUS_WASTE: BSDD,
+    NON_DANGEROUS_WASTE: BSDD_NON_DANGEROUS,
+    AMIANTE_WASTE: BSDA,
+}
+
 
 PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
     "bsdd_created_rectified",
@@ -64,12 +74,9 @@ PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
     "bsff_stock",
     "bsvhu_created_rectified",
     "bsvhu_stock",
-    "bsdd_waste_origin",
-    "bsdd_non_dangerous_waste_origin",
-    "bsda_waste_origin",
-    "bsdasri_waste_origin",
-    "bsff_waste_origin",
-    "bsvhu_waste_origin",
+    "dangerous_waste_origin",
+    "non_dangerous_waste_origin",
+    "amiante_waste_origin",
     "icpe_2770",
     "icpe_2790",
     "icpe_2760_1",
