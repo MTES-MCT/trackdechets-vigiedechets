@@ -54,9 +54,7 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         df = bs_data_df.filter(pl.col("received_at").is_between(*self.data_date_interval))
 
         # The postal code is extracted from the address field using a simple regex
-        df = df.with_columns(
-            pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")
-        ).with_columns(
+        df = df.with_columns(pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")).with_columns(
             pl.when(pl.col("cp").cast(pl.Int32).is_between(20000, 20190))  # Corse
             .then(pl.lit("2A"))
             .when(pl.col("cp").cast(pl.Int32).is_between(20190, 21000, closed="none"))  # Corse
