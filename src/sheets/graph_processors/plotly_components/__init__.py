@@ -32,7 +32,6 @@ from .registry_transporter_statements_stats_graph_processor import RegistryTrans
 from .transported_quantities_graph_processor import TransportedQuantitiesGraphProcessor
 from .transporter_bordereaux_graph_processor import TransporterBordereauxGraphProcessor
 from .waste_origin_processor import WasteOriginProcessor
-from .waste_origins_map_processor import WasteOriginsMapProcessor
 
 __all__ = [
     "BsdaWorkerQuantityProcessor",
@@ -49,5 +48,4 @@ __all__ = [
     "TransportedQuantitiesGraphProcessor",
     "TransporterBordereauxGraphProcessor",
     "WasteOriginProcessor",
-    "WasteOriginsMapProcessor",
 ]

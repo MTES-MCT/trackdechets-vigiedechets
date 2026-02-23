@@ -368,29 +368,34 @@
             {# on site #}
             <h2 class="section__title">Déchets sur site (théorique)</h2>
             <div class="row">
-                <div class="cell cell--bordered cell--third">
+                <div class="cell cell--bordered cell--half">
                     {% include "sheets/components/on_site_wastes.html" with storage_data=sheet.storage_data %}
-                </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Départements</h3>
-                    {% if waste_origin_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
-                </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Régions</h3>
-                    {% if waste_origin_map_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_map_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
                 </div>
             </div>
             {# end on site #}
+            {# waste origin per waste type #}
+            <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
+            <div class="row">
+                {% if dangerous_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--third">
+                        <h3 class="cell__title">Déchets Dangereux - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ dangerous_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+                {% if non_dangerous_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--third">
+                        <h3 class="cell__title">Déchets Non Dangereux - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ non_dangerous_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+                {% if amiante_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--third">
+                        <h3 class="cell__title">Amiante - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ amiante_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+            </div>
+            {# end waste origin per waste type #}
             <div class="row">{% render_traceabilty_break sheet graph_context="pdf" %}</div>
             {# Transborder section #}
             <h2 class="section__title">Données relatives aux échanges transfrontaliers</h2>

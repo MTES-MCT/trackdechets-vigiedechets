@@ -1,69 +1,60 @@
 from datetime import datetime
-from typing import Dict
 
 import plotly.graph_objects as go
 import polars as pl
 
 from sheets.utils import format_number_str
 
-from ...constants import BSFF
 from .waste_origin_base_processor import WasteOriginBaseProcessor
 
 
 class WasteOriginProcessor(WasteOriginBaseProcessor):
-    """Component with a bar figure representing the quantity of waste received by départements (only TOP 6).
+    """Component with a bar figure representing the quantity of waste received by departements (TOP 10) for a waste type.
 
     Parameters
     ----------
     company_siret: str
         SIRET number of the establishment for which the data is displayed (used for data preprocessing).
-    bs_data_dfs: dict
-        Dict with key being the 'bordereau' type and values the LazyFrame containing the bordereau data.
+    waste_type: str
+        The type of waste being processed (e.g., "dangerous", "non_dangerous", "amiante").
+    bs_data_df: LazyFrame
+        LazyFrame containing the bordereau data for the given waste type.
     departements_regions_df: LazyFrame
-        Static data about regions and départements with their codes.
+        Static data about regions and departements with their codes.
     data_date_interval: tuple
         Date interval to filter data.
-    packagings_data: LazyFrame, optional
-        For BSFF data, packagings dataset to be able to compute the quantities.
-        Quantities are stored at packaging level for BSFF, not at bordereau level.
     """
 
     def __init__(
         self,
         company_siret: str,
-        bs_data_dfs: Dict[str, pl.LazyFrame],
+        waste_type: str,
+        bs_data_df: pl.LazyFrame,
         departements_regions_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
-        packagings_data: pl.LazyFrame | None = None,
     ) -> None:
-        super().__init__(company_siret, bs_data_dfs, departements_regions_df, data_date_interval, packagings_data)
+        super().__init__(
+            company_siret,
+            {waste_type: bs_data_df},
+            departements_regions_df,
+            data_date_interval,
+        )
+        self.waste_type = waste_type
         self.preprocessed_serie = None
 
     def _preprocess_data(self) -> None:
         if len(self.bs_data_dfs) == 0:
             return
 
-        # Work on a copy to avoid mutating shared dictionary
-        local_bs_data_dfs = dict(self.bs_data_dfs)
-        local_bs_data_dfs[BSFF] = self._process_bsff_data(
-            packagings_data=self.packagings_data, bsff_df=local_bs_data_dfs.get(BSFF)
-        )
+        bs_data_df = self.bs_data_dfs[self.waste_type]
 
-        # Filter out None values (e.g., BSFF when packagings_data is None)
-        dfs_to_concat = [
-            df.filter(pl.col("received_at").is_between(*self.data_date_interval))
-            for df in local_bs_data_dfs.values()
-            if df is not None
-        ]
-
-        if len(dfs_to_concat) == 0:
+        if bs_data_df is None:
             return
 
-        concat_df = pl.concat(dfs_to_concat, how="diagonal")
+        df = bs_data_df.filter(pl.col("received_at").is_between(*self.data_date_interval))
+
         # The postal code is extracted from the address field using a simple regex
-        concat_df = concat_df.with_columns(
-            pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")
-        ).with_columns(
+        df = df.with_columns(pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")).with_columns(
             pl.when(pl.col("cp").cast(pl.Int32).is_between(20000, 20190))  # Corse
             .then(pl.lit("2A"))
             .when(pl.col("cp").cast(pl.Int32).is_between(20190, 21000, closed="none"))  # Corse
@@ -75,7 +66,7 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         )
 
         # 'Bordereau' data is merged with INSEE geographical data
-        concat_df = concat_df.join(
+        df = df.join(
             self.departements_regions_df,
             left_on="code_dep",
             right_on="DEP",
@@ -85,7 +76,7 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
 
         # We create the column `cp_formatted` that will hold the two first digit
         # (three in the case of DOM/TOM) of the postal code
-        concat_df = concat_df.with_columns(
+        df = df.with_columns(
             pl.when(pl.col("code_dep").is_not_null())
             .then(
                 pl.concat_str(
@@ -100,24 +91,24 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         )
 
         # Handle quantity refused
-        if "quantity_refused" in concat_df.collect_schema().names():
-            concat_df = concat_df.with_columns(
+        if "quantity_refused" in df.collect_schema().names():
+            df = df.with_columns(
                 (pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0)).alias(
                     "quantity_received"
                 )
             )
 
         serie = (
-            concat_df.filter(pl.col("recipient_company_siret") == self.company_siret)
+            df.filter(pl.col("recipient_company_siret") == self.company_siret)
             .group_by("cp_formatted")
             .agg(pl.col("quantity_received").sum())
             .filter(pl.col("quantity_received") > 0)
             .with_columns(pl.col("quantity_received").rank(descending=True).alias("rank"))
             .with_columns(
-                pl.when(pl.col("rank") <= 5)
+                pl.when(pl.col("rank") <= 10)
                 .then("cp_formatted")
                 .otherwise(pl.lit("Autres origines"))
-                .alias("cp_formatted")  # Only TOP 5 'départements' are kept
+                .alias("cp_formatted")  # Only TOP 10 'departements' are kept
             )
             .group_by("cp_formatted")
             .agg(pl.col("quantity_received").sum().round(2))
@@ -170,18 +161,22 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
             y=y_cats,
             orientation="h",
             text=texts,
-            textfont_size=20,
+            textfont_size=14,
             textposition="outside",
             width=[tup_e for e in values for tup_e in (0.7, 1)],
             hovertext=hovertexts,
             hoverinfo="text",
         )
 
+        # num_items = len(serie)
+        # fig_height = max(200, num_items * 50)
+
         fig = go.Figure([bar_trace])
         fig.update_xaxes(visible=False)
         fig.update_yaxes(visible=False, type="category")
         fig.update_layout(
-            margin={"t": 20, "b": 0, "l": 0, "r": 0},
+            # height=fig_height,
+            margin={"t": 10, "b": 0, "l": 0, "r": 0},
             paper_bgcolor="#fff",
             plot_bgcolor="rgba(0,0,0,0)",
         )
