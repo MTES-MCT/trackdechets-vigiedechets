@@ -1,10 +1,12 @@
 import datetime as dt
+import io
 from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
 
-from ..factories import RegistryV2ExportFactory
+from ..constants import RegistryV2ExportState
+from ..factories import RegistryV2ExportFactory, RegistryV2ExportSirenFactory, RegistryV2ExportSiretFactory
 from ..models import RegistryV2Export
 
 pytestmark = pytest.mark.django_db
@@ -266,3 +268,103 @@ def test_registry_v2_retrieve_missing_data(
         registry_export.refresh_from_db()
 
         assert registry_export.state == "PENDING"
+
+
+def test_registry_v2_retrieve_siren_success(verified_user):
+    """SIREN download returns a ZIP with one file per SIRET."""
+    import zipfile as zf
+
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, export_format="CSV")
+    siret1 = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="11111111111111", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="exp-1"
+    )
+    siret2 = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="22222222222222", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="exp-2"
+    )
+
+    mock_graphql_response = {
+        "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://s3.example.com/file"}}
+    }
+    fake_file_content = b"col1,col2\nval1,val2"
+
+    with patch("httpx.Client.post") as mock_post, patch("httpx.get") as mock_get:
+        mock_post.return_value.json.return_value = mock_graphql_response
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.content = fake_file_content
+        mock_get.return_value.raise_for_status = lambda: None
+
+        url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+        response = verified_user.post(url)
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/zip"
+    assert f"{siren_export.siren}_registre.zip" in response["Content-Disposition"]
+
+    zip_bytes = io.BytesIO(response.content)
+    with zf.ZipFile(zip_bytes) as z:
+        names = z.namelist()
+        assert f"{siret1.siret}.csv" in names
+        assert f"{siret2.siret}.csv" in names
+        assert z.read(f"{siret1.siret}.csv") == fake_file_content
+        assert z.read(f"{siret2.siret}.csv") == fake_file_content
+
+
+def test_registry_v2_retrieve_siren_no_completed_exports(verified_user):
+    """SIREN download with no SUCCESSFUL children redirects with error message."""
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, total_sirets=2, completed_sirets=0)
+    RegistryV2ExportSiretFactory(parent=siren_export, state=RegistryV2ExportState.PENDING)
+
+    url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+    response = verified_user.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("registry_v2_prepare")
+    messages_list = list(response.context["messages"])
+    assert any("Aucun export disponible" in str(m) for m in messages_list)
+
+
+def test_registry_v2_retrieve_siren_partial_failure(verified_user):
+    """SIREN download with some failed child downloads still returns a ZIP with successes."""
+    import zipfile as zf
+
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, export_format="CSV")
+    siret_ok = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="33333333333333", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="ok"
+    )
+    RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="44444444444444", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="fail"
+    )
+
+    fake_file_content = b"ok_data"
+
+    # Return a signed URL only for the "ok" export_id; return an error response for "fail"
+    def fake_post(url, **kwargs):
+        export_id = kwargs["json"]["variables"]["exportId"]
+        mock = type("R", (), {})()
+        if export_id == "ok":
+            mock.json = lambda: {
+                "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://s3.example.com/file"}}
+            }
+        else:
+            mock.json = lambda: {"errors": [{"message": "not found"}]}
+        return mock
+
+    def fake_get(url, **kwargs):
+        mock = type("R", (), {})()
+        mock.status_code = 200
+        mock.content = fake_file_content
+        mock.raise_for_status = lambda: None
+        return mock
+
+    with patch("httpx.Client.post", side_effect=fake_post), patch("httpx.get", side_effect=fake_get):
+        url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+        response = verified_user.post(url)
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/zip"
+
+    zip_bytes = io.BytesIO(response.content)
+    with zf.ZipFile(zip_bytes) as z:
+        names = z.namelist()
+        assert f"{siret_ok.siret}.csv" in names
+        assert len(names) == 1
