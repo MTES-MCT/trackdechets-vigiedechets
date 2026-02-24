@@ -134,15 +134,6 @@ class RegistryV2PrepareForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        identifier_type = cleaned_data.get("identifier_type")
-        siret = cleaned_data.get("siret")
-        siren = cleaned_data.get("siren")
-
-        # Ensure at least one identifier is provided based on type
-        if identifier_type == RegistryV2IdentifierType.SIRET and not siret:
-            raise ValidationError({"siret": "Le SIRET est requis"})
-        if identifier_type == RegistryV2IdentifierType.SIREN and not siren:
-            raise ValidationError({"siren": "Le SIREN est requis"})
 
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
@@ -228,11 +219,15 @@ class RegistryV2PrepareForm(forms.ModelForm):
                 siren_export.total_sirets = len(sirets)
                 siren_export.save()
 
+                siret_exports = []
                 for siret in sirets:
-                    RegistryV2ExportSiret.objects.create(
-                        parent=siren_export,
-                        siret=siret,
+                    siret_exports.append(
+                        RegistryV2ExportSiret(
+                            parent=siren_export,
+                            siret=siret,
+                        )
                     )
+                RegistryV2ExportSiret.objects.bulk_create(siret_exports)
 
             return siren_export
         else:

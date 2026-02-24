@@ -15,8 +15,6 @@
     </div>
     <div class="fr-grid-row fr-grid-row--gutters">
     <div class="fr-col-4">
-
-
         <form method="post"
               action="{% url "registry_v2_prepare" %}"
               id="id_registry_prepare_form">
@@ -35,10 +33,10 @@
                 <div class="fr-col">{% include 'forms/_radio.html' with field=form.identifier_type %}</div>
             </div>
             <div class="fr-grid-row fr-grid-row--gutters" id="siret-field-container">
-                <div class="fr-col">{% include 'forms/_field.html' with field=form.siret %}</div>
+                <div class="fr-col">{% include 'forms/_field.html' with field=form.siret skip_optional=True %}</div>
             </div>
             <div class="fr-grid-row fr-grid-row--gutters" id="siren-field-container" style="display: none;">
-                <div class="fr-col">{% include 'forms/_field.html' with field=form.siren %}</div>
+                <div class="fr-col">{% include 'forms/_field.html' with field=form.siren skip_optional=True %}</div>
             </div>
             <div class="fr-grid-row fr-grid-row--gutters">
                 <div class="fr-col">{% include 'forms/_field.html' with field=form.registry_type %}</div>

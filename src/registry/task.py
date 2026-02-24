@@ -11,16 +11,28 @@ from config.celery_app import app
 
 from .constants import RegistryV2ExportState
 from .gql import graphql_generate_registry_export, graphql_read_registry_export
-from .models import RegistryV2ExportSiren, RegistryV2ExportSiret
+from .models import RegistryV2Export, RegistryV2ExportSiren, RegistryV2ExportSiret
 
 logger = logging.getLogger(__name__)
+
+
+def get_siret_export(registry_v2_export_pk):
+    try:
+        return RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
+    except RegistryV2ExportSiret.DoesNotExist:
+        try:
+            return RegistryV2Export.objects.get(pk=registry_v2_export_pk)
+        except RegistryV2Export.DoesNotExist:
+            return None
+    except RegistryV2ExportSiren.DoesNotExist:
+        return None
 
 
 def process_export(registry_v2_export_pk):
     """Process export - handles both SIRET and SIREN exports"""
     # Try to get as SIRET export first (backward compatibility)
     try:
-        RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
+        RegistryV2Export.objects.get(pk=registry_v2_export_pk)
         # Existing SIRET export logic
         if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
             generate_registry_export.delay(registry_v2_export_pk)
@@ -29,7 +41,7 @@ def process_export(registry_v2_export_pk):
         task_chain = chain(generate_registry_export.s(registry_v2_export_pk), refresh_registry_export.s())
         task_chain()
         return
-    except RegistryV2ExportSiret.DoesNotExist:
+    except RegistryV2Export.DoesNotExist:
         pass
 
     # Try as SIREN export
@@ -43,8 +55,8 @@ def process_export(registry_v2_export_pk):
             else:
                 task_chain = chain(
                     generate_registry_export.s(siret_export.pk),
-                    refresh_registry_export.s(siret_export.pk),
-                    update_siren_export_state.s(registry_v2_export_pk),
+                    refresh_registry_export.s(),
+                    update_siren_export_state.si(registry_v2_export_pk),
                 )
                 task_chain()
         return
@@ -62,9 +74,8 @@ def generate_registry_export(self, registry_v2_export_pk):
     geo_retry_delay = min(10 * self.request.retries, 300)
     max_retries = getattr(self, "max_retries", 3)  # Default to 3 if not set
 
-    try:
-        export = RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
-    except RegistryV2ExportSiret.DoesNotExist:
+    export = get_siret_export(registry_v2_export_pk)
+    if not export:
         logger.error(f"Export {registry_v2_export_pk} not found")
         return None
 
@@ -165,9 +176,8 @@ def refresh_registry_export(self, registry_v2_export_pk):
     static_retry_delay = 10
     geo_retry_delay = min(10 * self.request.retries, 300)
 
-    try:
-        export = RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
-    except RegistryV2ExportSiret.DoesNotExist:
+    export = get_siret_export(registry_v2_export_pk)
+    if not export:
         if self.request.retries < 3:
             # retry 2 times with a 1s delay
             raise self.retry(countdown=1)
@@ -176,7 +186,6 @@ def refresh_registry_export(self, registry_v2_export_pk):
 
     if export.state in [
         RegistryV2ExportState.CANCELED,
-        RegistryV2ExportState.SUCCESSFUL,
         RegistryV2ExportState.SUCCESSFUL,
     ]:
         return None
