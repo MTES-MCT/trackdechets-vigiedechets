@@ -16,7 +16,7 @@ from .constants import (
     BSDD_NON_DANGEROUS,
     BSFF,
     BSVHU,
-    WASTE_TYPE_BS_TYPE_MAPPING,
+    WASTE_TYPE_DATA_DF_MAPPING,
 )
 from .data_extract import (
     load_departements_regions_data,
@@ -399,8 +399,15 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        for waste_type, bs_type in WASTE_TYPE_BS_TYPE_MAPPING.items():
-            df = self.bs_dfs.get(bs_type)
+        for waste_type in WASTE_TYPE_DATA_DF_MAPPING:
+            if waste_type == "registry_texs":
+                df = self.registry_data["excavated_land_incoming"]
+            elif waste_type == "non_dangerous_from_registry":
+                df = self.registry_data["ndw_incoming"]
+            elif waste_type == "non_dangerous_from_bsd":
+                df = self.bs_dfs["bsdd_non_dangerous"]
+            elif waste_type == "dangerous":
+                df = self.bs_dfs["bsdd"]
             if df is None:
                 continue
 
@@ -411,7 +418,7 @@ class SheetProcessor:
                 DEPARTEMENTS_REGION_DATA,
                 data_date_interval,
             )
-            setattr(self.computed, f"{waste_type}_waste_origin_data", waste_origin.build())
+            setattr(self.computed, f"{waste_type}_origin_data", waste_origin.build())
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),

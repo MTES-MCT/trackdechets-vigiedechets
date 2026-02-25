@@ -549,6 +549,7 @@ sql_get_incoming_ndw_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,
@@ -566,6 +567,7 @@ sql_get_outgoing_ndw_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,
@@ -586,6 +588,7 @@ sql_get_incoming_excavated_land_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,

@@ -17,8 +17,9 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         SIRET number of the establishment for which the data is displayed (used for data preprocessing).
     waste_type: str
         The type of waste being processed (e.g., "dangerous", "non_dangerous", "amiante").
-    bs_data_df: LazyFrame
-        LazyFrame containing the bordereau data for the given waste type.
+    data_df: LazyFrame
+        LazyFrame containing the data for the given waste type.
+        From registry or bs data.
     departements_regions_df: LazyFrame
         Static data about regions and departements with their codes.
     data_date_interval: tuple
@@ -29,13 +30,13 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         self,
         company_siret: str,
         waste_type: str,
-        bs_data_df: pl.LazyFrame,
+        data_df: pl.LazyFrame,
         departements_regions_df: pl.LazyFrame,
         data_date_interval: tuple[datetime, datetime],
     ) -> None:
         super().__init__(
             company_siret,
-            {waste_type: bs_data_df},
+            {waste_type: data_df},
             departements_regions_df,
             data_date_interval,
         )
@@ -46,23 +47,45 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
         if len(self.bs_data_dfs) == 0:
             return
 
-        bs_data_df = self.bs_data_dfs[self.waste_type]
+        data_df = self.bs_data_dfs[self.waste_type]
+        if self.waste_type in ("non_dangerous_from_registry", "registry_texs"):
+            df = data_df.with_columns(
+                pl.col("reception_date").alias("date"),
+                pl.col("postal_code").alias("cp"),
+                pl.col("siret"),
+                pl.col("weight_value").alias("quantity_received"),
+            )
+        elif self.waste_type in ("non_dangerous_from_bsd", "dangerous"):
+            df = data_df.with_columns(
+                pl.col("received_at").alias("date"),
+                pl.col("emitter_company_address")
+                .str.extract(r"([0-9]{5})")
+                .alias("cp"),
+                pl.col("recipient_company_siret").alias("siret"),
+                pl.col("quantity_received"),
+            )
 
-        if bs_data_df is None:
+        if df is None:
             return
 
-        df = bs_data_df.filter(pl.col("received_at").is_between(*self.data_date_interval))
+        df = df.filter(pl.col("date").is_between(*self.data_date_interval))
 
         # The postal code is extracted from the address field using a simple regex
-        df = df.with_columns(pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp")).with_columns(
-            pl.when(pl.col("cp").cast(pl.Int32).is_between(20000, 20190))  # Corse
-            .then(pl.lit("2A"))
-            .when(pl.col("cp").cast(pl.Int32).is_between(20190, 21000, closed="none"))  # Corse
-            .then(pl.lit("2B"))
-            .when(pl.col("cp").cast(pl.Int32) > 97000)  # DROM-COM
-            .then(pl.col("cp").str.head(3))
-            .otherwise(pl.col("cp").str.head(2))  # Metropole
-            .alias("code_dep")
+        df = (
+            df.with_columns(pl.col("cp").cast(pl.Int32, strict=False).alias("cp_int"))
+            .with_columns(
+                pl.when(pl.col("cp_int").is_null())
+                .then(pl.lit(None))
+                .when(pl.col("cp_int").is_between(20000, 20190)) # Corse
+                .then(pl.lit("2A"))
+                .when(pl.col("cp_int").is_between(20190, 21000, closed="none")) 
+                .then(pl.lit("2B"))
+                .when(pl.col("cp_int") > 97000)  # DROM-COM
+                .then(pl.col("cp").str.head(3))
+                .otherwise(pl.col("cp").str.head(2))  # Metropole
+                .alias("code_dep")
+            )
+            .drop("cp_int")
         )
 
         # 'Bordereau' data is merged with INSEE geographical data
@@ -86,24 +109,29 @@ class WasteOriginProcessor(WasteOriginBaseProcessor):
                     pl.lit(")"),
                 )
             )
-            .otherwise(pl.lit("Origine inconnue"))  # We handle the case of failed postal code extraction
+            .otherwise(
+                pl.lit("Origine inconnue")
+            )  # We handle the case of failed postal code extraction
             .alias("cp_formatted")
         )
 
         # Handle quantity refused
         if "quantity_refused" in df.collect_schema().names():
             df = df.with_columns(
-                (pl.col("quantity_received") - pl.col("quantity_refused").fill_nan(0).fill_null(0)).alias(
-                    "quantity_received"
-                )
+                (
+                    pl.col("quantity_received")
+                    - pl.col("quantity_refused").fill_nan(0).fill_null(0)
+                ).alias("quantity_received")
             )
 
         serie = (
-            df.filter(pl.col("recipient_company_siret") == self.company_siret)
+            df.filter(pl.col("siret") == self.company_siret)
             .group_by("cp_formatted")
             .agg(pl.col("quantity_received").sum())
             .filter(pl.col("quantity_received") > 0)
-            .with_columns(pl.col("quantity_received").rank(descending=True).alias("rank"))
+            .with_columns(
+                pl.col("quantity_received").rank(descending=True).alias("rank")
+            )
             .with_columns(
                 pl.when(pl.col("rank") <= 10)
                 .then("cp_formatted")
