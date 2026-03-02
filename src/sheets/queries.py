@@ -556,7 +556,10 @@ SELECT
     volume,
     reception_date,
     operation_code,
-    transporters_org_ids
+    transporters_org_ids,
+    (match(waste_code,'(?i).*\*$')
+        OR coalesce(waste_pop,false)
+        OR coalesce(waste_is_dangerous,false)) as is_dangerous
 FROM trusted_zone_trackdechets.latest_registry_incoming_waste
 where
     report_for_company_siret = :siret
