@@ -60,12 +60,7 @@ REGISTRY_TEXS = "registry_texs"
 REGISTRY_NON_DANGEROUS_WASTE = "non_dangerous_from_registry"
 BSD_NON_DANGEROUS_WASTE = "non_dangerous_from_bsd"
 
-WASTE_TYPE_DATA_DF_MAPPING = [
-    DANGEROUS_WASTE,
-    BSD_NON_DANGEROUS_WASTE,
-    REGISTRY_NON_DANGEROUS_WASTE,
-    REGISTRY_TEXS,
-]
+WASTE_ORIGIN_TYPES = ["bsdd", "bsda", "texs", "dnd"]
 
 
 PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
@@ -81,9 +76,10 @@ PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
     "bsff_stock",
     "bsvhu_created_rectified",
     "bsvhu_stock",
-    "dangerous_waste_origin",
-    "non_dangerous_waste_origin",
-    "amiante_waste_origin",
+    "bsdd_waste_origin",
+    "bsda_waste_origin",
+    "texs_waste_origin",
+    "dnd_waste_origin",
     "icpe_2770",
     "icpe_2790",
     "icpe_2760_1",

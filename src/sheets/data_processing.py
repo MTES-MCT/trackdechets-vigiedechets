@@ -16,12 +16,9 @@ from .constants import (
     BSDD_NON_DANGEROUS,
     BSFF,
     BSVHU,
-    WASTE_TYPE_DATA_DF_MAPPING,
+    WASTE_ORIGIN_TYPES,
 )
-from .data_extract import (
-    load_departements_regions_data,
-    load_waste_code_data,
-)
+from .data_extract import load_departements_regions_data, load_waste_code_data
 from .data_extraction import (
     build_bsda_query,
     build_bsda_transporter_query,
@@ -47,6 +44,7 @@ from .data_extraction import (
     get_registries_excavated_land_data,
     get_registries_ndw_data,
     get_ssd_data,
+    get_waste_origin_texs_data,
 )
 from .graph_processors.html_components import (
     BsdaWorkerStatsProcessor,
@@ -399,26 +397,24 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        for waste_type in WASTE_TYPE_DATA_DF_MAPPING:
-            if waste_type == "registry_texs":
-                df = self.registry_data["excavated_land_incoming"]
-            elif waste_type == "non_dangerous_from_registry":
-                df = self.registry_data["ndw_incoming"]
-            elif waste_type == "non_dangerous_from_bsd":
-                df = self.bs_dfs["bsdd_non_dangerous"]
-            elif waste_type == "dangerous":
-                df = self.bs_dfs["bsdd"]
-            if df is None:
-                continue
+        waste_origin_texs_df = get_waste_origin_texs_data(self.siret)
 
+        waste_origin_sources = {
+            "bsdd": self.bs_dfs.get(BSDD),
+            "bsda": self.bs_dfs.get(BSDA),
+            "texs": waste_origin_texs_df,
+            "dnd": self.registry_data.get("excavated_land_incoming"),
+        }
+
+        for waste_type in WASTE_ORIGIN_TYPES:
             waste_origin = WasteOriginProcessor(
-                self.siret,
-                waste_type,
-                df,
-                DEPARTEMENTS_REGION_DATA,
-                data_date_interval,
+                company_siret=self.siret,
+                waste_type=waste_type,
+                data_df=waste_origin_sources[waste_type],
+                departements_regions_df=DEPARTEMENTS_REGION_DATA,
+                data_date_interval=data_date_interval,
             )
-            setattr(self.computed, f"{waste_type}_origin_data", waste_origin.build())
+            setattr(self.computed, f"{waste_type}_waste_origin_data", waste_origin.build())
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),

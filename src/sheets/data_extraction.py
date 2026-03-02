@@ -501,6 +501,13 @@ def get_ssd_data(siret: str) -> Union[pl.LazyFrame, None]:
     return None
 
 
+def get_waste_origin_texs_data(siret: str) -> pl.LazyFrame | None:
+    df = build_query(sql_get_incoming_excavated_land_data, {"siret": siret})
+    if len(df) == 0:
+        return None
+    return df.lazy()
+
+
 def get_eco_organisme_partners_data(partner_ids: list[str]) -> list[dict]:
     """Get eco-organisme partners data from their SIRETs.
 
