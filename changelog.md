@@ -5,6 +5,10 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## 02/03/2026
+
+- Refonte des graphiques "Origine des déchets" des fiches établissement : affichage par source (BSDD, BSDA, TEXS, DND) au lieu de "déchets dangereux / non dangereux / amiante"
+
 ## 09/02/2026
 
 - Ajout du suivi de la quantité cumulée (`cumul_quantite_traitee`) pour les rubriques ICPE journalières (2790, 2791, 2770, 2771) dans la cartographie ICPE
