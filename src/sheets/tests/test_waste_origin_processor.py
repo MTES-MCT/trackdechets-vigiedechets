@@ -452,9 +452,7 @@ def test_data_df_none_returns_empty_figure(departements_regions_df, data_date_in
     )
     result = processor.build()
 
-    assert result is not None
-    assert isinstance(result, str)
-    assert len(result) > 0
+    assert result == "{}"
 
 
 def test_empty_postal_code_mapped_to_origine_inconnue(departements_regions_df, data_date_interval):

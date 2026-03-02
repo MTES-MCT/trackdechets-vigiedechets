@@ -44,7 +44,6 @@ from .data_extraction import (
     get_registries_excavated_land_data,
     get_registries_ndw_data,
     get_ssd_data,
-    get_waste_origin_texs_data,
 )
 from .graph_processors.html_components import (
     BsdaWorkerStatsProcessor,
@@ -397,13 +396,11 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        waste_origin_texs_df = get_waste_origin_texs_data(self.siret)
-
         waste_origin_sources = {
             "bsdd": self.bs_dfs.get(BSDD),
             "bsda": self.bs_dfs.get(BSDA),
-            "texs": waste_origin_texs_df,
-            "dnd": self.registry_data.get("excavated_land_incoming"),
+            "texs": self.registry_data.get("excavated_land_incoming"),
+            "dnd": self.registry_data.get("ndw_incoming"),
         }
 
         for waste_type in WASTE_ORIGIN_TYPES:

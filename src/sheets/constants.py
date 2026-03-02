@@ -47,20 +47,9 @@ BSDA = "bsda"
 BSDASRI = "bsdasri"
 BSFF = "bsff"
 BSVHU = "bsvhu"
-REGISTRY_INCOMING_WASTE = "registry_incoming_waste"
-REGISTRY_INCOMING_TEXS = "registry_incoming_texs"
-
 BS_TYPES_WITH_MULTIMODAL_TRANSPORT = [BSDD, BSDD_NON_DANGEROUS, BSDA, BSFF]
 
-DANGEROUS_WASTE = "dangerous"
-NON_DANGEROUS_WASTE = "non_dangerous"
-
-
-REGISTRY_TEXS = "registry_texs"
-REGISTRY_NON_DANGEROUS_WASTE = "non_dangerous_from_registry"
-BSD_NON_DANGEROUS_WASTE = "non_dangerous_from_bsd"
-
-WASTE_ORIGIN_TYPES = ["bsdd", "bsda", "texs", "dnd"]
+WASTE_ORIGIN_TYPES = [BSDD, BSDA, "texs", "dnd"]
 
 
 PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
