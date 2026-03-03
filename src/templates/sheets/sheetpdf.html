@@ -377,26 +377,28 @@
             <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
             <div class="row">
                 {% if bsdd_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--quarter">
-                        <h3 class="cell__title">BSDD - Origine des déchets</h3>
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDD (données bordereaux) - Origine des déchets</h3>
                         <img src="data:image/png;base64,{{ bsdd_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
                 {% if bsda_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--quarter">
-                        <h3 class="cell__title">BSDA - Origine des déchets</h3>
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDA (données bordereaux) - Origine des déchets</h3>
                         <img src="data:image/png;base64,{{ bsda_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
+            </div>
+            <div class="row">
                 {% if texs_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--quarter">
-                        <h3 class="cell__title">TEXS - Origine des déchets</h3>
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">TEXS (données registre) - Origine des déchets</h3>
                         <img src="data:image/png;base64,{{ texs_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
                 {% if dnd_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--quarter">
-                        <h3 class="cell__title">DND - Origine des déchets</h3>
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">DND (données registre) - Origine des déchets</h3>
                         <img src="data:image/png;base64,{{ dnd_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
