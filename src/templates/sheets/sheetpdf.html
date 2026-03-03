@@ -376,22 +376,30 @@
             {# waste origin per waste type #}
             <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
             <div class="row">
-                {% if dangerous_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--third">
-                        <h3 class="cell__title">Déchets Dangereux - Origine des déchets</h3>
-                        <img src="data:image/png;base64,{{ dangerous_waste_origin_graph }}" class="cell__img">
+                {% if bsdd_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDD (données bordereaux) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsdd_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
-                {% if non_dangerous_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--third">
-                        <h3 class="cell__title">Déchets Non Dangereux - Origine des déchets</h3>
-                        <img src="data:image/png;base64,{{ non_dangerous_waste_origin_graph }}" class="cell__img">
+                {% if bsda_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDA (données bordereaux) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsda_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
-                {% if amiante_waste_origin_graph %}
-                    <div class="cell cell--bordered cell--third">
-                        <h3 class="cell__title">Amiante - Origine des déchets</h3>
-                        <img src="data:image/png;base64,{{ amiante_waste_origin_graph }}" class="cell__img">
+            </div>
+            <div class="row">
+                {% if texs_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">TEXS (données registre) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ texs_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+                {% if dnd_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">DND (données registre) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ dnd_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
             </div>

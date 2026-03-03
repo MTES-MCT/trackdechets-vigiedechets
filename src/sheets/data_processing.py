@@ -16,12 +16,9 @@ from .constants import (
     BSDD_NON_DANGEROUS,
     BSFF,
     BSVHU,
-    WASTE_TYPE_BS_TYPE_MAPPING,
+    WASTE_ORIGIN_TYPES,
 )
-from .data_extract import (
-    load_departements_regions_data,
-    load_waste_code_data,
-)
+from .data_extract import load_departements_regions_data, load_waste_code_data
 from .data_extraction import (
     build_bsda_query,
     build_bsda_transporter_query,
@@ -399,17 +396,20 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        for waste_type, bs_type in WASTE_TYPE_BS_TYPE_MAPPING.items():
-            df = self.bs_dfs.get(bs_type)
-            if df is None:
-                continue
+        waste_origin_sources = {
+            "bsdd": self.bs_dfs.get(BSDD),
+            "bsda": self.bs_dfs.get(BSDA),
+            "texs": self.registry_data.get("excavated_land_incoming"),
+            "dnd": self.registry_data.get("ndw_incoming"),
+        }
 
+        for waste_type in WASTE_ORIGIN_TYPES:
             waste_origin = WasteOriginProcessor(
-                self.siret,
-                waste_type,
-                df,
-                DEPARTEMENTS_REGION_DATA,
-                data_date_interval,
+                company_siret=self.siret,
+                waste_type=waste_type,
+                data_df=waste_origin_sources[waste_type],
+                departements_regions_df=DEPARTEMENTS_REGION_DATA,
+                data_date_interval=data_date_interval,
             )
             setattr(self.computed, f"{waste_type}_waste_origin_data", waste_origin.build())
 
