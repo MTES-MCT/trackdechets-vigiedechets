@@ -179,9 +179,15 @@ class WasteOriginProcessor:
         )
         self.figure = fig
 
+    def _check_data_empty(self) -> bool:
+        return self.preprocessed_serie is None or len(self.preprocessed_serie) == 0
+
     def build(self) -> dict | str:
         self._preprocess_data()
-        if self.preprocessed_serie is None or len(self.preprocessed_serie) == 0:
-            return {}
-        self._create_figure()
-        return self.figure.to_json()
+
+        figure = {}
+        if not self._check_data_empty():
+            self._create_figure()
+            figure = self.figure.to_json()
+
+        return figure
