@@ -452,7 +452,7 @@ def test_data_df_none_returns_empty_figure(departements_regions_df, data_date_in
     )
     result = processor.build()
 
-    assert result == "{}"
+    assert result == {}
 
 
 def test_empty_postal_code_mapped_to_origine_inconnue(departements_regions_df, data_date_interval):
@@ -538,4 +538,4 @@ def test_all_quantities_zero_returns_empty_figure(departements_regions_df, data_
     )
     result = processor.build()
 
-    assert result == "{}"
+    assert result == {}

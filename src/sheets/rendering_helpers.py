@@ -35,7 +35,7 @@ def render_pdf_graph_fn(computed_pk, name):
             return
         graph_data = getattr(computed, graph_data_fn)
         graph = ""
-        if graph_data is not None and graph_data != "{}":
+        if graph_data:
             graph = data_to_bs64_plot(graph_data)
 
         setattr(computed, field_name_to_update, graph)
