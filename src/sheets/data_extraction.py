@@ -7,6 +7,8 @@ from sqlalchemy.sql import text
 from sheets.datawarehouse import get_wh_sqlachemy_engine
 
 from .queries import (
+    sql_auto_approved_revision_bsda_query_str,
+    sql_auto_approved_revision_bsdd_query_str,
     sql_bsda_query_str,
     sql_bsda_transporter_query_str,
     sql_bsdasri_query_str,
@@ -33,8 +35,6 @@ from .queries import (
     sql_get_trader_receipt_id_data,
     sql_get_transporter_receipt_id_data_str,
     sql_get_vhu_agrement_data,
-    sql_auto_approved_revision_bsda_query_str,
-    sql_auto_approved_revision_bsdd_query_str,
     sql_revised_bsda_query_str,
     sql_revised_bsdasri_query_str,
     sql_revised_bsdd_query_str,

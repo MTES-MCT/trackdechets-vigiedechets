@@ -74,9 +74,7 @@ class BsdAutoApprovedRevisionTableProcessor:
         for bs_type, df in self.auto_approved_revision_dfs.items():
             filtered = (
                 df.with_columns(
-                    pl.col("updated_at")
-                    .dt.convert_time_zone(time_zone="Europe/Paris")
-                    .alias("updated_at_paris")
+                    pl.col("updated_at").dt.convert_time_zone(time_zone="Europe/Paris").alias("updated_at_paris")
                 )
                 .filter(pl.col("updated_at_paris").is_between(*self.data_date_interval))
                 .with_columns(pl.col("updated_at_paris").dt.strftime("%d/%m/%Y %H:%M").alias("updated_at_str"))
