@@ -144,6 +144,7 @@ class ComputedInspectionData(models.Model):
     traceability_interruptions_data = models.JSONField(default=dict)
     waste_is_dangerous_statements_data = models.JSONField(default=dict)
     bsd_canceled_data = models.JSONField(default=dict)
+    bsd_auto_approved_revision_data = models.JSONField(default=list)
     bsd_refused_data = models.JSONField(default=dict)
     same_emitter_recipient_data = models.JSONField(default=dict)
     private_individuals_collections_data = models.JSONField(default=dict)
