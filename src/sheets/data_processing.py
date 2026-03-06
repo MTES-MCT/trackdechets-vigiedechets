@@ -20,6 +20,8 @@ from .constants import (
 )
 from .data_extract import load_departements_regions_data, load_waste_code_data
 from .data_extraction import (
+    build_auto_approved_revision_bsda_query,
+    build_auto_approved_revision_bsdd_query,
     build_bsda_query,
     build_bsda_transporter_query,
     build_bsdasri_query,
@@ -46,6 +48,7 @@ from .data_extraction import (
     get_ssd_data,
 )
 from .graph_processors.html_components import (
+    BsdAutoApprovedRevisionTableProcessor,
     BsdaWorkerStatsProcessor,
     BsdCanceledTableProcessor,
     BsdRefusedTableProcessor,
@@ -145,6 +148,7 @@ bsds_config = [
         "bsd_type": BSDD,
         "bs_data": build_bsdd_query,
         "bs_revised_data": build_revised_bsdd_query,
+        "bs_auto_approved_revision_data": build_auto_approved_revision_bsdd_query,
         "bs_transporter_data": build_bsdd_transporter_query,
     },
     {
@@ -157,6 +161,7 @@ bsds_config = [
         "bsd_type": BSDA,
         "bs_data": build_bsda_query,
         "bs_revised_data": build_revised_bsda_query,
+        "bs_auto_approved_revision_data": build_auto_approved_revision_bsda_query,
         "bs_transporter_data": build_bsda_transporter_query,
     },
     {
@@ -193,6 +198,7 @@ class SheetProcessor:
         self.linked_companies_data = None
         self.bs_dfs = {}
         self.revised_bs_dfs = {}
+        self.auto_approved_revision_dfs = {}
         self.transporter_data_dfs = {}
         self.bsff_packagings_df = None
         self.icpe_data = None
@@ -258,6 +264,14 @@ class SheetProcessor:
                 )
                 if len(revised_df.collect()) > 0:
                     self.revised_bs_dfs[bsd_type] = revised_df
+
+            bs_auto_approved_revision_data = bsd_config.get("bs_auto_approved_revision_data", None)
+            if bs_auto_approved_revision_data:
+                auto_approved_df = bs_auto_approved_revision_data(
+                    company_id=self.company_id,
+                )
+                if len(auto_approved_df.collect()) > 0:
+                    self.auto_approved_revision_dfs[bsd_type] = auto_approved_df
 
             bs_transporter_data = bsd_config.get("bs_transporter_data", None)
             if bs_transporter_data is not None:
@@ -612,6 +626,13 @@ class SheetProcessor:
             data_date_interval,
         )
         self.computed.bsd_canceled_data = bsd_canceled_table.build()
+
+        bsd_auto_approved_revision_table = BsdAutoApprovedRevisionTableProcessor(
+            self.siret,
+            self.auto_approved_revision_dfs,
+            data_date_interval,
+        )
+        self.computed.bsd_auto_approved_revision_data = bsd_auto_approved_revision_table.build()
 
         bsd_refused_table = BsdRefusedTableProcessor(
             self.siret,
