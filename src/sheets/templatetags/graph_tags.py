@@ -59,6 +59,15 @@ def render_bsd_canceled_table(computed, graph_context="web"):
     }
 
 
+@register.inclusion_tag("sheets/components/bsd_auto_approved_revision_table.html")
+def render_bsd_auto_approved_revision_table(computed, graph_context="web"):
+    return {
+        "bsd_auto_approved_revision_data": computed.bsd_auto_approved_revision_data,
+        "company_siret": computed.org_id,
+        "graph_context": graph_context,
+    }
+
+
 @register.inclusion_tag("sheets/components/bsd_refused_table.html")
 def render_bsd_refused_table(computed, graph_context="web"):
     return {
