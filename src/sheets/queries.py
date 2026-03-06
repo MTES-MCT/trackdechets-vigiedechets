@@ -439,6 +439,83 @@ from trusted_zone_trackdechets.bsdasri_revision_request
 where authoring_company_id = :company_id
 """
 
+sql_auto_approved_revision_bsdd_query_str = """
+select
+    r.id,
+    r.bsdd_id as bs_id,
+    r.updated_at,
+    r.comment,
+    b.readable_id,
+    b.emitter_company_siret,
+    b.emitter_is_private_individual,
+    b.emitter_company_omi_number,
+    b.recipient_company_siret,
+    r.waste_details_code,
+    r.initial_waste_details_code,
+    r.waste_details_name,
+    r.initial_waste_details_name,
+    r.quantity_received,
+    r.initial_quantity_received,
+    r.processing_operation_done,
+    r.initial_processing_operation_done,
+    r.waste_details_quantity,
+    r.initial_waste_details_quantity,
+    r.recipient_cap,
+    r.initial_recipient_cap,
+    r.destination_operation_mode,
+    r.initial_destination_operation_mode,
+    r.waste_acceptation_status,
+    r.initial_waste_acceptation_status,
+    r.quantity_refused,
+    r.initial_quantity_refused,
+    r.waste_refusal_reason,
+    r.initial_waste_refusal_reason,
+    r.waste_details_pop,
+    r.initial_waste_details_pop
+from trusted_zone_trackdechets.bsdd_revision_request r
+left join trusted_zone_trackdechets.bsdd_revision_request_approval a
+    on a.revision_request_id = r.id
+inner join trusted_zone_trackdechets.bsdd b on b.id = r.bsdd_id
+where r.authoring_company_id = :company_id
+    and r.status = 'ACCEPTED'
+    and not r.is_canceled
+    and a.id is null
+"""
+
+sql_auto_approved_revision_bsda_query_str = """
+select
+    r.id,
+    r.bsda_id as bs_id,
+    r.updated_at,
+    r.comment,
+    b.id as readable_id,
+    b.emitter_company_siret,
+    b.emitter_is_private_individual,
+    b.recipient_company_siret,
+    r.waste_code,
+    r.initial_waste_code,
+    r.waste_material_name,
+    r.initial_waste_material_name,
+    r.destination_reception_weight,
+    r.initial_destination_reception_weight,
+    r.destination_operation_code,
+    r.initial_destination_operation_code,
+    r.destination_cap,
+    r.initial_destination_cap,
+    r.destination_operation_mode,
+    r.initial_destination_operation_mode,
+    r.waste_pop,
+    r.initial_waste_pop
+from trusted_zone_trackdechets.bsda_revision_request r
+left join trusted_zone_trackdechets.bsda_revision_request_approval a
+    on a.revision_request_id = r.id
+inner join trusted_zone_trackdechets.bsda b on b.id = r.bsda_id
+where r.authoring_company_id = :company_id
+    and r.status = 'ACCEPTED'
+    and not r.is_canceled
+    and a.id is null
+"""
+
 sql_get_icpe_data = """
 select
     code_aiot,
