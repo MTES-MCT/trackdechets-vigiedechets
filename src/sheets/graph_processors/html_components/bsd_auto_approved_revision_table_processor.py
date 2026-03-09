@@ -61,7 +61,7 @@ class BsdAutoApprovedRevisionTableProcessor:
     def _normalize_emitter_siret(self, row: dict) -> str:
         omi_number = row.get("emitter_company_omi_number") or ""
         if omi_number:
-            return "N/I (navire OMI)"
+            return "N/A (navire OMI)"
         if row.get("emitter_is_private_individual"):
             return "N/A (particulier)"
         siret = row.get("emitter_company_siret") or ""
@@ -95,7 +95,7 @@ class BsdAutoApprovedRevisionTableProcessor:
                     current_val = row.get(current_col)
                     initial_val = row.get(initial_col)
 
-                    if current_val is None and initial_val is None:
+                    if current_val is None:
                         continue
                     if current_val == initial_val:
                         continue

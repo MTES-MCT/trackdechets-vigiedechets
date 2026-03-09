@@ -209,7 +209,7 @@ def test_bsdd_multiple_changed_fields_produces_multiple_rows(data_date_interval)
 def test_bsdd_omi_ship_emitter_label(data_date_interval):
     """GIVEN a BSDD revision where the emitter is an OMI ship
     WHEN building the table
-    THEN the emitter SIRET is labeled 'N/I (navire OMI)'.
+    THEN the emitter SIRET is labeled 'N/A (navire OMI)'.
     """
     df = make_bsdd_revision_df(
         [
@@ -236,7 +236,7 @@ def test_bsdd_omi_ship_emitter_label(data_date_interval):
     result = processor.build()
 
     assert len(result) == 1
-    assert result[0]["emitter_company_siret"] == "N/I (navire OMI)"
+    assert result[0]["emitter_company_siret"] == "N/A (navire OMI)"
 
 
 def test_bsdd_company_emitter_keeps_siret(data_date_interval):
