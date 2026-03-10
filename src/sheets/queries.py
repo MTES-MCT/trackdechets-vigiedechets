@@ -479,7 +479,8 @@ inner join trusted_zone_trackdechets.bsdd b on b.id = r.bsdd_id
 where r.authoring_company_id = :company_id
     and r.status = 'ACCEPTED'
     and not r.is_canceled
-    and (a.id is null or b.emitter_is_private_individual or NULLIF(b.emitter_company_omi_number, '') is not null)
+    and NULLIF(a.id, '') is null -- a.id is null if the revision is auto approved
+    and (b.emitter_is_private_individual or NULLIF(b.emitter_company_omi_number, '') is not null)
 """
 
 sql_auto_approved_revision_bsda_query_str = """
@@ -513,7 +514,8 @@ inner join trusted_zone_trackdechets.bsda b on b.id = r.bsda_id
 where r.authoring_company_id = :company_id
     and r.status = 'ACCEPTED'
     and not r.is_canceled
-    and (a.id is null or (b.emitter_is_private_individual and b.worker_company_siret is null))
+    and NULLIF(a.id, '') is null -- a.id is null if the revision is auto approved
+    and (b.emitter_is_private_individual and b.worker_company_siret is null)
 """
 
 sql_get_icpe_data = """
