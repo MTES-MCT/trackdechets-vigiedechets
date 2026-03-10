@@ -440,7 +440,7 @@ where authoring_company_id = :company_id
 """
 
 sql_auto_approved_revision_bsdd_query_str = """
-select
+select distinct
     r.id as id,
     r.bsdd_id as bs_id,
     r.updated_at as updated_at,
@@ -484,7 +484,7 @@ where r.authoring_company_id = :company_id
 """
 
 sql_auto_approved_revision_bsda_query_str = """
-select
+select distinct
     r.id as id,
     r.bsda_id as bs_id,
     r.updated_at as updated_at,
@@ -515,7 +515,7 @@ where r.authoring_company_id = :company_id
     and r.status = 'ACCEPTED'
     and not r.is_canceled
     and NULLIF(a.id, '') is null -- a.id is null if the revision is auto approved
-    and (b.emitter_is_private_individual and b.worker_company_siret is null)
+    and (b.emitter_is_private_individual and NULLIF(b.worker_company_siret, '') is null)
 """
 
 sql_get_icpe_data = """
