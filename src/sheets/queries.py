@@ -439,6 +439,13 @@ from trusted_zone_trackdechets.bsdasri_revision_request
 where authoring_company_id = :company_id
 """
 
+# Auto-approved BSDD revisions: revisions accepted without third-party validation.
+# This applies to BSDD where the emitter is a private individual or an OMI-registered vessel,
+# since no third-party approver exists in those cases.
+# Detection: LEFT JOIN on the approval table; NULLIF(a.id, '') IS NULL means no approval record
+# was created (handles both SQL NULL and empty-string defaults from ClickHouse non-nullable columns).
+# SELECT DISTINCT guards against duplicate rows if the approval table ever has multiple records
+# per revision request.
 sql_auto_approved_revision_bsdd_query_str = """
 select distinct
     r.id as id,
@@ -483,6 +490,10 @@ where r.authoring_company_id = :company_id
     and (b.emitter_is_private_individual or NULLIF(b.emitter_company_omi_number, '') is not null)
 """
 
+# Auto-approved BSDA revisions: revisions accepted without third-party validation.
+# This applies to BSDA where the emitter is a private individual with no work company
+# (worker_company_siret empty or null), since no third-party approver exists in that case.
+# Same NULLIF and DISTINCT rationale as the BSDD query above.
 sql_auto_approved_revision_bsda_query_str = """
 select distinct
     r.id as id,
