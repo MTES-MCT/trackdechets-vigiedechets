@@ -7,6 +7,8 @@ from sqlalchemy.sql import text
 from sheets.datawarehouse import get_wh_sqlachemy_engine
 
 from .queries import (
+    sql_auto_approved_revision_bsda_query_str,
+    sql_auto_approved_revision_bsdd_query_str,
     sql_bsda_query_str,
     sql_bsda_transporter_query_str,
     sql_bsdasri_query_str,
@@ -133,6 +135,37 @@ query_types = {
     "emitter_waste_weight_is_estimate": pl.Boolean,
     "refusal_reason": pl.String,
     "is_vhu_company": pl.Boolean,
+    "updated_at": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
+    "emitter_company_omi_number": pl.String,
+    "waste_details_code": pl.String,
+    "initial_waste_details_code": pl.String,
+    "waste_details_name": pl.String,
+    "initial_waste_details_name": pl.String,
+    "initial_quantity_received": pl.Float64,
+    "processing_operation_done": pl.String,
+    "initial_processing_operation_done": pl.String,
+    "initial_waste_details_quantity": pl.Float64,
+    "recipient_cap": pl.String,
+    "initial_recipient_cap": pl.String,
+    "destination_operation_mode": pl.String,
+    "initial_destination_operation_mode": pl.String,
+    "waste_acceptation_status": pl.String,
+    "initial_waste_acceptation_status": pl.String,
+    "initial_quantity_refused": pl.Float64,
+    "waste_refusal_reason": pl.String,
+    "initial_waste_refusal_reason": pl.String,
+    "waste_details_pop": pl.Boolean,
+    "initial_waste_details_pop": pl.Boolean,
+    "initial_waste_code": pl.String,
+    "waste_material_name": pl.String,
+    "initial_waste_material_name": pl.String,
+    "destination_reception_weight": pl.Float64,
+    "initial_destination_reception_weight": pl.Float64,
+    "destination_operation_code": pl.String,
+    "initial_destination_operation_code": pl.String,
+    "destination_cap": pl.String,
+    "initial_destination_cap": pl.String,
+    "initial_waste_pop": pl.Boolean,
 }
 
 
@@ -184,6 +217,20 @@ def build_bsdd_non_dangerous_query(
     )
 
     return df.lazy()
+
+
+def build_auto_approved_revision_bsdd_query(company_id: str) -> pl.LazyFrame:
+    return build_query(
+        sql_auto_approved_revision_bsdd_query_str,
+        query_params={"company_id": company_id},
+    ).lazy()
+
+
+def build_auto_approved_revision_bsda_query(company_id: str) -> pl.LazyFrame:
+    return build_query(
+        sql_auto_approved_revision_bsda_query_str,
+        query_params={"company_id": company_id},
+    ).lazy()
 
 
 def build_revised_bsdd_query(
