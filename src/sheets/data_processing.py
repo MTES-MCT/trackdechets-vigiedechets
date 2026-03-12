@@ -19,7 +19,6 @@ from .constants import (
     WASTE_ORIGIN_TYPES,
 )
 from .data_extract import load_departements_regions_data, load_waste_code_data
-from .data_extract import load_departements_regions_data, load_waste_code_data
 from .data_extraction import (
     build_auto_approved_revision_bsda_query,
     build_auto_approved_revision_bsdd_query,

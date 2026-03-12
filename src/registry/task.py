@@ -98,7 +98,6 @@ def generate_registry_export(self, registry_v2_export_pk):
             headers={"Authorization": f"Bearer {settings.TD_API_TOKEN}"},
             json={
                 "query": graphql_generate_registry_export,
-                "query": graphql_generate_registry_export,
                 "variables": variables,
             },
         )
