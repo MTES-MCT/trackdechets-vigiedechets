@@ -179,9 +179,7 @@ def test_bsdd_quantity_refused_subtracted(departements_regions_df, data_date_int
     assert processor.preprocessed_serie["quantity_received"].sum() == pytest.approx(20.0)
 
 
-def test_bsdd_cedex_address_extracts_postal_code_not_cedex_code(
-    departements_regions_df_extended, data_date_interval
-):
+def test_bsdd_cedex_address_extracts_postal_code_not_cedex_code(departements_regions_df_extended, data_date_interval):
     """GIVEN a BSDD address containing a CEDEX service code before the postal code
        (e.g. '2 RUE MARC LE ROUX CS 97006 74000 ANNECY')
     WHEN _preprocess_data is called with waste_type="bsdd"
