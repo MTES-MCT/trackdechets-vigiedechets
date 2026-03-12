@@ -251,23 +251,24 @@ def test_registry_v2_retrieve_missing_data(
         assert len(messages) == 1
         assert "Erreur, le registre n'a pu être téléchargé" in str(messages[0])
 
-    def test_registry_v2_retrieve_request_exception(
-        verified_user,
-    ):
-        """Test handling of HTTP request exceptions."""
 
-        registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
-        with patch("httpx.Client.post") as mock_post:
-            # Configure the mock to raise an exception
-            mock_post.side_effect = Exception("Network error")
+def test_registry_v2_retrieve_request_exception(
+    verified_user,
+):
+    """Test handling of HTTP request exceptions."""
 
-            # Make the request
-            url = reverse("registry_v2_retrieve", args=[registry_export.pk])
-            with pytest.raises(Exception):
-                verified_user.post(url)
-        registry_export.refresh_from_db()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
+    with patch("httpx.Client.post") as mock_post:
+        # Configure the mock to raise an exception
+        mock_post.side_effect = Exception("Network error")
 
-        assert registry_export.state == "PENDING"
+        # Make the request
+        url = reverse("registry_v2_retrieve", args=[registry_export.pk])
+        with pytest.raises(Exception):
+            verified_user.post(url)
+    registry_export.refresh_from_db()
+
+    assert registry_export.state == "PENDING"
 
 
 def test_registry_v2_retrieve_siren_success(verified_user):
