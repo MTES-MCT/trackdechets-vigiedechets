@@ -166,7 +166,7 @@ class RegistryV2Retrieve(FullyLoggedMixin, FormView):
             return (siret_export.siret, response.content)
         except Exception:
             return None
-            
+
     def _handle_siren_download(self, siren_export):
         """Handle download for SIREN export — returns a ZIP of all completed SIRET exports."""
         completed_exports = list(siren_export.siret_exports.filter(state=RegistryV2ExportState.SUCCESSFUL))
@@ -179,8 +179,6 @@ class RegistryV2Retrieve(FullyLoggedMixin, FormView):
             return HttpResponseRedirect(reverse_lazy("registry_v2_prepare"))
 
         ext = siren_export.export_format.lower()  # "csv" or "xlsx"
-
-
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             results = list(executor.map(self._fetch_file, completed_exports))
