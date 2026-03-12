@@ -50,7 +50,7 @@ class WasteOriginProcessor:
         if self.waste_type in self.BSD_TYPES:
             df = self.data_df.with_columns(
                 pl.col("received_at").alias("date"),
-                pl.col("emitter_company_address").str.extract(r"([0-9]{5})").alias("cp"),
+                pl.col("emitter_company_address").str.extract_all(r"[0-9]{5}").list.last().alias("cp"),
                 pl.col("recipient_company_siret").alias("siret"),
                 pl.col("quantity_received"),
             )
@@ -96,7 +96,7 @@ class WasteOriginProcessor:
         )
 
         df = df.with_columns(
-            pl.when(pl.col("code_dep").is_not_null())
+            pl.when(pl.col("LIBELLE").is_not_null())
             .then(
                 pl.concat_str(
                     pl.col("LIBELLE"),

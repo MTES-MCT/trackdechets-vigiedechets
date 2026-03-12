@@ -26,17 +26,18 @@ def departements_regions_df():
 def departements_regions_df_extended():
     return pl.LazyFrame(
         {
-            "DEP": ["75", "13", "33", "2A", "2B", "971", "972"],
+            "DEP": ["75", "13", "33", "74", "2A", "2B", "971", "972"],
             "LIBELLE": [
                 "Paris",
                 "Bouches-du-Rhone",
                 "Gironde",
+                "Haute-Savoie",
                 "Corse-du-Sud",
                 "Haute-Corse",
                 "Guadeloupe",
                 "Martinique",
             ],
-            "REG": ["11", "93", "75", "94", "94", "01", "02"],
+            "REG": ["11", "93", "75", "84", "94", "94", "01", "02"],
         }
     )
 
@@ -176,6 +177,38 @@ def test_bsdd_quantity_refused_subtracted(departements_regions_df, data_date_int
 
     assert processor.preprocessed_serie is not None
     assert processor.preprocessed_serie["quantity_received"].sum() == pytest.approx(20.0)
+
+
+def test_bsdd_cedex_address_extracts_postal_code_not_cedex_code(departements_regions_df_extended, data_date_interval):
+    """GIVEN a BSDD address containing a CEDEX service code before the postal code
+       (e.g. '2 RUE MARC LE ROUX CS 97006 74000 ANNECY')
+    WHEN _preprocess_data is called with waste_type="bsdd"
+    THEN the department is extracted from the postal code (74) not the CEDEX code (97006)
+    """
+    data = pl.LazyFrame(
+        {
+            "id": ["bsdd-1"],
+            "emitter_company_siret": ["11111111111111"],
+            "emitter_company_address": ["2 RUE MARC LE ROUX CS 97006 74000 ANNECY"],
+            "recipient_company_siret": [COMPANY_SIRET],
+            "received_at": [datetime(2024, 1, 15, tzinfo=tz)],
+            "quantity_received": [10.0],
+            "waste_code": ["01 01 01"],
+        }
+    )
+    processor = WasteOriginProcessor(
+        company_siret=COMPANY_SIRET,
+        waste_type="bsdd",
+        data_df=data,
+        departements_regions_df=departements_regions_df_extended,
+        data_date_interval=data_date_interval,
+    )
+    processor._preprocess_data()
+
+    assert processor.preprocessed_serie is not None
+    cp_values = processor.preprocessed_serie["cp_formatted"].to_list()
+    assert "Haute-Savoie (74)" in cp_values
+    assert all("97" not in v for v in cp_values)
 
 
 # ── BSDA ──────────────────────────────────────────────────────────────────────
