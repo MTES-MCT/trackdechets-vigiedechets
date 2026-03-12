@@ -129,6 +129,7 @@ class RegistryV2PrepareForm(forms.ModelForm):
                 sirets = self._get_sirets_for_siren(siren)
                 if not sirets:
                     raise ValidationError("Aucun établissement trouvé pour ce SIREN sur Trackdéchets.")
+                self._cached_sirets = sirets
 
         return siren
 
@@ -214,8 +215,8 @@ class RegistryV2PrepareForm(forms.ModelForm):
 
             if commit:
                 siren_export.save()
-                # Create child exports for each SIRET
-                sirets = self._get_sirets_for_siren(siren)
+                # Create child exports for each SIRET (reuse cached result from clean_siren)
+                sirets = getattr(self, "_cached_sirets", None) or self._get_sirets_for_siren(siren)
                 siren_export.total_sirets = len(sirets)
                 siren_export.save()
 
