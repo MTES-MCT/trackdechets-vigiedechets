@@ -49,14 +49,10 @@ class RegistryV2Prepare(FullyLoggedMixin, CreateView):
         label_prev_year = year - 1
         return super().get_context_data(**kwargs, label_this_year=label_this_year, label_prev_year=label_prev_year)
 
-    def form_valid(
-        self,
-        form,
-    ):
-        res = super().form_valid(form)
-
+    def form_valid(self, form):
+        self.object = form.save()
         process_export(self.object.pk)
-        return res
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class RegistryV2ListContent(FullyLoggedMixin, ListView):
