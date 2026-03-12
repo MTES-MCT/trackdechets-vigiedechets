@@ -24,8 +24,6 @@ def get_siret_export(registry_v2_export_pk):
             return RegistryV2Export.objects.get(pk=registry_v2_export_pk)
         except RegistryV2Export.DoesNotExist:
             return None
-    except RegistryV2ExportSiren.DoesNotExist:
-        return None
 
 
 def process_export(registry_v2_export_pk):
@@ -59,6 +57,9 @@ def process_export(registry_v2_export_pk):
                     update_siren_export_state.si(registry_v2_export_pk),
                 )
                 task_chain()
+
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            update_siren_export_state.delay(registry_v2_export_pk)
         return
     except RegistryV2ExportSiren.DoesNotExist:
         logger.error(f"Export {registry_v2_export_pk} not found")
