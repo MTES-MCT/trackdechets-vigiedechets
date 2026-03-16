@@ -38,6 +38,8 @@ async function loadFeaturesGraph(layer, year, rubrique, code) {
     data = await response.json();
     featuresStats[`${layer}.${year}.${rubrique}`][code]["graph"] =
       data["graph"];
+    featuresStats[`${layer}.${year}.${rubrique}`][code]["graph_cumul"] =
+      data["graph_cumul"];
   }
 }
 
@@ -274,7 +276,9 @@ async function showRegionInfo(event, rubrique, featureType) {
   }
 
   idDivGraph = "region-graph";
+  const idDivGraphCumul = "region-graph-cumul";
   Plotly.purge(idDivGraph);
+  Plotly.purge(idDivGraphCumul);
   await loadFeaturesGraph(layer, selectedYear, selectedRubrique, key);
   if (stats && stats.graph) {
     e = document.createElement("div");
@@ -316,9 +320,10 @@ async function showRegionInfo(event, rubrique, featureType) {
 
       // wait for the end of the animation
       setTimeout(() => {
-        Plotly.relayout(idDivGraph, {
-          autosize: true,
-        });
+        Plotly.relayout(idDivGraph, { autosize: true });
+        if (stats.graph_cumul) {
+          Plotly.relayout(idDivGraphCumul, { autosize: true });
+        }
       }, "250");
     });
     e.append(dataTitleButton);
@@ -334,6 +339,15 @@ async function showRegionInfo(event, rubrique, featureType) {
     Plotly.relayout(idDivGraph, {
       autosize: true,
     });
+
+    if (stats.graph_cumul) {
+      const plotDataCumul = stats.graph_cumul;
+      Plotly.newPlot(idDivGraphCumul, plotDataCumul.data, plotDataCumul.layout, {
+        responsive: true,
+        autosize: true,
+      });
+      Plotly.relayout(idDivGraphCumul, { autosize: true });
+    }
   }
 
   document
@@ -576,7 +590,9 @@ async function showFranceStats(rubrique, year) {
   franceInfoDiv.append(traitementDiv);
 
   idDivGraph = "region-graph";
+  const idDivGraphCumulFrance = "region-graph-cumul";
   Plotly.purge(idDivGraph);
+  Plotly.purge(idDivGraphCumulFrance);
   if (stats && stats.graph) {
     e = document.createElement("div");
     e.classList.add("data-title", "fr-pt-2w");
@@ -617,9 +633,10 @@ async function showFranceStats(rubrique, year) {
 
       // wait for the end of the animation
       setTimeout(() => {
-        Plotly.relayout(idDivGraph, {
-          autosize: true,
-        });
+        Plotly.relayout(idDivGraph, { autosize: true });
+        if (stats.graph_cumul) {
+          Plotly.relayout(idDivGraphCumulFrance, { autosize: true });
+        }
       }, "250");
     });
     e.append(dataTitleButton);
@@ -635,6 +652,15 @@ async function showFranceStats(rubrique, year) {
     Plotly.relayout(idDivGraph, {
       autosize: true,
     });
+
+    if (stats.graph_cumul) {
+      const plotDataCumulFrance = stats.graph_cumul;
+      Plotly.newPlot(idDivGraphCumulFrance, plotDataCumulFrance.data, plotDataCumulFrance.layout, {
+        responsive: true,
+        autosize: true,
+      });
+      Plotly.relayout(idDivGraphCumulFrance, { autosize: true });
+    }
   }
 
   document

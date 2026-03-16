@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
         build_dataframes()
 
-        for year in [2022, 2023, 2024, 2025, 2026]:
+        for year in [2026]:
             build_stats_and_figs(year, clear_year=True)
             logger.info(
                 f"\n--------------------------------Stats and figs built for year {year}--------------------------------\n"

@@ -153,10 +153,12 @@ def create_icpe_regional_df(
             )
             annual_stats = annual_stats.with_columns(consumption_rate_expr)
             df = annual_stats
+            main_graph, cumul_graph = create_icpe_graph(
+                df_waste_processed_filtered, key_column=None, rubrique=rubrique
+            )
             df = df.with_columns(
-                pl.lit(create_icpe_graph(df_waste_processed_filtered, key_column=None, rubrique=rubrique)).alias(
-                    "graph"
-                ),
+                pl.lit(main_graph, dtype=pl.Utf8).alias("graph"),
+                pl.lit(cumul_graph, dtype=pl.Utf8).alias("graph_cumul"),
                 pl.lit(rubrique).alias("rubrique"),
                 pl.lit(date_interval[0].year).alias("year"),
             )

@@ -178,6 +178,7 @@ class BaseComputation(models.Model):
     cumul_quantite_traitee = models.FloatField(null=True)
     moyenne_quantite_journaliere_traitee = models.FloatField(null=True)
     graph = models.JSONField(default=dict, null=True)
+    graph_cumul = models.JSONField(default=dict, null=True)
 
     class Meta:
         abstract = True
