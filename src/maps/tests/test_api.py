@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 from operator import itemgetter
 from urllib.parse import urlencode
 
@@ -9,6 +10,7 @@ from django.contrib.gis.geos import Point
 from django.urls import reverse
 
 from maps.factories import CartoCompanyFactory
+from maps.models import DepartementsComputation, FranceComputation, InstallationsComputation
 
 from ..constants import BSDA, BSDASRI, BSDD, BSDND, BSFF, BSVHU, DND, SSD, TEXS, TEXS_DD
 
@@ -325,3 +327,123 @@ def test_export_xlsx_format(verified_api, setup_export_test_data):
         {"siret": 98765432109876, "nom_etablissement": "Test Company 2"},
         {"siret": 45678901234567, "nom_etablissement": "Test Company 3"},
     ]
+
+
+# --- ICPEGraph ---
+
+
+def test_icpe_graph_includes_graph_cumul(verified_api):
+    graph_data = json.dumps({"data": [], "layout": {}})
+    cumul_data = json.dumps({"data": [], "layout": {"title": "cumul"}})
+    InstallationsComputation.objects.create(
+        year=2023,
+        rubrique="2790",
+        code_aiot="ABC123",
+        graph=graph_data,
+        graph_cumul=cumul_data,
+    )
+
+    url = reverse(
+        "icpe_get_graph", kwargs={"layer": "installations", "year": 2023, "rubrique": "2790", "code": "ABC123"}
+    )
+    res = verified_api.get(url)
+
+    assert res.status_code == 200
+    data = res.json()
+    assert "graph" in data
+    assert "graph_cumul" in data
+    assert data["graph_cumul"] is not None
+
+
+def test_icpe_graph_cumul_none_when_not_set(verified_api):
+    graph_data = json.dumps({"data": [], "layout": {}})
+    InstallationsComputation.objects.create(
+        year=2023,
+        rubrique="2760-1",
+        code_aiot="DEF456",
+        graph=graph_data,
+        graph_cumul=None,
+    )
+
+    url = reverse(
+        "icpe_get_graph", kwargs={"layer": "installations", "year": 2023, "rubrique": "2760-1", "code": "DEF456"}
+    )
+    res = verified_api.get(url)
+
+    assert res.status_code == 200
+    data = res.json()
+    assert "graph_cumul" in data
+    assert data["graph_cumul"] is None
+
+
+def test_icpe_graph_404_when_not_found(verified_api):
+    url = reverse(
+        "icpe_get_graph", kwargs={"layer": "installations", "year": 2023, "rubrique": "2790", "code": "NOTFOUND"}
+    )
+    res = verified_api.get(url)
+    assert res.status_code == 404
+
+
+def test_icpe_graph_departement_layer(verified_api):
+    graph_data = json.dumps({"data": [], "layout": {}})
+    cumul_data = json.dumps({"data": [], "layout": {}})
+    DepartementsComputation.objects.create(
+        year=2023,
+        rubrique="2790",
+        code_departement_insee="75",
+        nom_departement="Paris",
+        code_region_insee="11",
+        graph=graph_data,
+        graph_cumul=cumul_data,
+    )
+
+    url = reverse("icpe_get_graph", kwargs={"layer": "departements", "year": 2023, "rubrique": "2790", "code": "75"})
+    res = verified_api.get(url)
+
+    assert res.status_code == 200
+    data = res.json()
+    assert "graph" in data
+    assert "graph_cumul" in data
+
+
+# --- ICPEFrance ---
+
+
+def test_icpe_france_includes_graph_cumul(verified_api):
+    graph_data = json.dumps({"data": [], "layout": {}})
+    cumul_data = json.dumps({"data": [], "layout": {"title": "france cumul"}})
+    FranceComputation.objects.create(
+        year=2023,
+        rubrique="2790",
+        graph=graph_data,
+        graph_cumul=cumul_data,
+        nombre_installations=5,
+    )
+
+    url = reverse("icpe_france", kwargs={"year": 2023, "rubrique": "2790"})
+    res = verified_api.get(url)
+
+    assert res.status_code == 200
+    result = res.json()["data"]
+    assert "graph" in result
+    assert "graph_cumul" in result
+    assert result["graph_cumul"] is not None
+
+
+def test_icpe_france_graph_cumul_none_when_not_set(verified_api):
+    graph_data = json.dumps({"data": [], "layout": {}})
+    FranceComputation.objects.create(
+        year=2023,
+        rubrique="2760-1",
+        graph=graph_data,
+        graph_cumul=None,
+        nombre_installations=3,
+    )
+
+    url = reverse("icpe_france", kwargs={"year": 2023, "rubrique": "2760-1"})
+    res = verified_api.get(url)
+
+    assert res.status_code == 200
+    result = res.json()["data"]
+    assert "graph_cumul" in result
+    assert result["graph_cumul"] is None
