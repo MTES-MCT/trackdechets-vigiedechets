@@ -48,9 +48,6 @@ class FullyLoggedMixin(AccessMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        allowed_user_categories = self.get_allowed_user_categories()
-        allowed_user_emails = self.get_allowed_user_emails()
-
         # Allow empty lists when they are explicitly set (not None)
         has_categories = hasattr(self, 'allowed_user_categories') and self.allowed_user_categories is not None
         has_emails = hasattr(self, 'allowed_user_emails') and self.allowed_user_emails is not None
