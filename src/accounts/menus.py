@@ -45,7 +45,7 @@ class UserEmailItem(MenuItem):
 
     def check(self, request):
         allowed_emails = getattr(self, "allowed_emails", [])
-        self.visible = request.user.is_staff or request.user.email.lower() in allowed_emails
+        self.visible = request.user.is_staff or request.user.email.lower() in allowed_emails or allowed_emails == ["*"]
 
 
 submenu = (

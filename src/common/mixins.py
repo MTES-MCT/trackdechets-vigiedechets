@@ -51,7 +51,11 @@ class FullyLoggedMixin(AccessMixin):
         allowed_user_categories = self.get_allowed_user_categories()
         allowed_user_emails = self.get_allowed_user_emails()
 
-        if not allowed_user_categories and not allowed_user_emails:
+        # Allow empty lists when they are explicitly set (not None)
+        has_categories = hasattr(self, 'allowed_user_categories') and self.allowed_user_categories is not None
+        has_emails = hasattr(self, 'allowed_user_emails') and self.allowed_user_emails is not None
+        
+        if not has_categories and not has_emails: 
             raise ImproperlyConfigured(
                 f"{self.__class__.__name__} requires the `allowed_user_categories` or `allowed_user_emails` attribute to be set"
             )
@@ -100,6 +104,8 @@ class FullyLoggedMixin(AccessMixin):
         if self.request.user.is_staff:
             return True
         allowed_user_emails = self.get_allowed_user_emails()
+        if self.allowed_user_emails == ["*"]:
+            return True
         return self.request.user.email.lower() in allowed_user_emails
 
     def dispatch(self, request, *args, **kwargs):
