@@ -9,7 +9,6 @@ from accounts.constants import (
     PERMS_MAP_ICPE,
     PERMS_ROAD_CONTROL,
     PERMS_SHEET_AND_REGISTRY,
-    ALL_USER_CATEGORIES
 )
 
 
@@ -113,17 +112,6 @@ Menu.add_item(
         allowed_categories=settings.ALLOWED_CATEGORIES_FOR_SENTINEL,
         allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL,
     ),
-)
-
-
-    Menu.add_item(
-        "main",
-        UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
-    )
-elif settings.ENVIRONMENT == "sandbox":
-    Menu.add_item(
-        "main",
-        PermsItem("Sentinelle", reverse("sentinel"), allowed_categories=ALL_USER_CATEGORIES),
 )
 
 if not settings.HIDE_FAQ_NAV:

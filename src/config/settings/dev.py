@@ -8,8 +8,6 @@ INSTALLED_APPS += [  # noqa F405
     "django_extensions",
 ]
 
-ENVIRONMENT = "sandbox"
-
 ALLOWED_HOSTS = ["*"]
 
 INTERNAL_IPS = [
