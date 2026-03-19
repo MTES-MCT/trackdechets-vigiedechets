@@ -9,6 +9,7 @@ from accounts.constants import (
     PERMS_MAP_ICPE,
     PERMS_ROAD_CONTROL,
     PERMS_SHEET_AND_REGISTRY,
+    ALL_USER_CATEGORIES
 )
 
 
@@ -45,7 +46,7 @@ class UserEmailItem(MenuItem):
 
     def check(self, request):
         allowed_emails = getattr(self, "allowed_emails", [])
-        self.visible = request.user.is_staff or request.user.email.lower() in allowed_emails or allowed_emails == ["*"]
+        self.visible = request.user.is_staff or request.user.email.lower() in allowed_emails
 
 
 submenu = (
@@ -88,9 +89,15 @@ Menu.add_item(
         allowed_emails=settings.ALLOWED_EMAILS_FOR_DATA_EXPORT,
     ),
 )
-Menu.add_item(
-    "main",
-    UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
+if settings.ENVIRONMENT == "production":
+    Menu.add_item(
+        "main",
+        UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
+    )
+elif settings.ENVIRONMENT == "sandbox":
+    Menu.add_item(
+        "main",
+        PermsItem("Sentinelle", reverse("sentinel"), allowed_categories=ALL_USER_CATEGORIES),
 )
 
 if not settings.HIDE_FAQ_NAV:

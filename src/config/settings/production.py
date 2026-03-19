@@ -3,6 +3,8 @@ import sentry_sdk
 from .base import *  # noqa
 from .base import env
 
+ENVIRONMENT = env("ENVIRONMENT")
+
 SESSION_COOKIE_AGE = 60 * 60 * 4  # 4 hours
 
 SESSION_COOKIE_SECURE = True
