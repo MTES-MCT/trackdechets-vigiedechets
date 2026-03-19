@@ -88,6 +88,8 @@ Menu.add_item(
         allowed_emails=settings.ALLOWED_EMAILS_FOR_DATA_EXPORT,
     ),
 )
+
+
 class SentinelMenuItem(MenuItem):
     """Sentinel: visible by category (with wildcard support) OR by email, with staff override"""
 
@@ -103,6 +105,7 @@ class SentinelMenuItem(MenuItem):
             self.visible = request.user.user_category in allowed_categories
         else:
             self.visible = request.user.email.lower() in allowed_emails
+
 
 Menu.add_item(
     "main",

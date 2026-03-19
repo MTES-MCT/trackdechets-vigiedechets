@@ -100,8 +100,6 @@ class FullyLoggedMixin(AccessMixin):
         if self.request.user.is_staff:
             return True
         allowed_user_emails = self.get_allowed_user_emails()
-        if self.allowed_user_emails == ["*"]:
-            return True
         return self.request.user.email.lower() in allowed_user_emails
 
     def dispatch(self, request, *args, **kwargs):
