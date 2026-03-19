@@ -29,10 +29,7 @@ from .naf_codes import NAF_CODES
 class SentinelEmailAccessMixin:
 class SentinelEmailAccessMixin:
     allowed_user_categories = settings.ALLOWED_CATEGORIES_FOR_SENTINEL
-    allowed_user_emails = settings.ALLOWED_USER_FOR_SENTINEL
-        allowed_user_emails = settings.ALLOWED_USER_FOR_SENTINEL
-    elif settings.ENVIRONMENT == "sandbox":
-        allowed_user_categories = ["*"]
+    allowed_user_emails = settings.ALLOWED_USER_FOR_SENTINEL     
 
 
 class Sentinel(SentinelEmailAccessMixin, FullyLoggedMixin, TemplateView):
