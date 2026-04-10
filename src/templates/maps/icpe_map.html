@@ -159,6 +159,8 @@
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 18,
             attribution: "Données de la carte &copy; contributeurs d'OpenStreetMap",
+            referrerPolicy: "origin",
+            crossOrigin: true
         }).addTo(map);
 
         map.zoomControl.setPosition("topright");
