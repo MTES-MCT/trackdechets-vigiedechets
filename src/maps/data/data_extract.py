@@ -51,15 +51,7 @@ def run_query_polars(sql_string: str, schema_overrides: dict = None) -> pl.DataF
     """
     started_time = time.time()
 
-    ssh_tunnel(settings)
-    local_port = get_tunnel_port()
-    dwh_ssh_local_bind_host = settings.DWH_SSH_LOCAL_BIND_HOST
-
-    SQLALCHEMY_DATABASE_URL = (
-        f"clickhouse+native://{settings.DWH_USERNAME}:{settings.DWH_PASSWORD}@{dwh_ssh_local_bind_host}:{local_port}"
-    )
-
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    engine = get_wh_sqlachemy_engine()
     data_df = pl.read_database(sql_string, connection=engine, schema_overrides=schema_overrides)
 
     logger.info(
