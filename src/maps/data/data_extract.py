@@ -4,9 +4,7 @@ import time
 
 import polars as pl
 from django.conf import settings
-from sqlalchemy import create_engine
-
-from sheets.ssh import get_tunnel_port, ssh_tunnel
+from sqlalchemy import create_engine 
 
 from ..utils import format_waste_codes
 
@@ -45,8 +43,10 @@ def run_query_polars(sql_string: str, schema_overrides: dict = None) -> pl.DataF
 
     Notes
     -----
-    This function uses SSH tunneling to securely connect to the ClickHouse database.
-    It relies on the `ssh_tunnel` context manager to establish and close the SSH connection.
+    This function connects to the ClickHouse database using `get_wh_sqlachemy_engine()`.
+    The connection method (direct or via SSH tunnel) is determined by the `USE_SSH_TUNNEL` 
+    setting in your configuration. By default, the SSH tunnel is used for secure remote connections.
+    To disable the tunnel for local development, set `USE_SSH_TUNNEL=false` in your .env file.
     The function also logs the duration of the query execution using the `logger`.
     """
     started_time = time.time()
