@@ -43,7 +43,7 @@ def run_query_polars(sql_string: str, schema_overrides: dict = None) -> pl.DataF
     Notes
     -----
     This function connects to the ClickHouse database using `get_wh_sqlachemy_engine()`.
-    The connection method (direct or via SSH tunnel) is determined by the `USE_SSH_TUNNEL` 
+    The connection method (direct or via SSH tunnel) is determined by the `USE_SSH_TUNNEL`
     setting in your configuration. By default, the SSH tunnel is used for secure remote connections.
     To disable the tunnel for local development, set `USE_SSH_TUNNEL=false` in your .env file.
     The function also logs the duration of the query execution using the `logger`.

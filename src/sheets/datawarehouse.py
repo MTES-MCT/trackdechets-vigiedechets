@@ -39,9 +39,7 @@ def get_wh_sqlachemy_engine() -> Engine:
 
     if (get_engine() is None) or (get_engine_port() != port):
         logger.info("Creating new engine for datawarehouse.")
-        warehouse_url = (
-            f"clickhouse+native://{dwh_username}:{dwh_password}@{host}:{port}"
-        )
+        warehouse_url = f"clickhouse+native://{dwh_username}:{dwh_password}@{host}:{port}"
         wh_engine = create_engine(warehouse_url)
         set_engine(wh_engine, port)
 
