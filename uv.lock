@@ -2893,7 +2893,7 @@ requires-dist = [
 dev = [
     { name = "bandit", specifier = ">=1.8.6" },
     { name = "djade", specifier = ">=1.6.0" },
-    { name = "django-debug-toolbar", specifier = "<6" },
+    { name = "django-debug-toolbar", specifier = "<7" },
     { name = "django-extensions", specifier = ">=4.1" },
     { name = "isort", specifier = ">=7.0.0" },
     { name = "mypy", specifier = ">=1.18.2" },
