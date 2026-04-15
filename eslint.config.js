@@ -5,24 +5,13 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { 
-    ignores: [
-    "dist",                  // Code compilé (illisible)
-    ".venv/**",              // Libs Python/Django (évite le crash RAM)
-    "node_modules/**",       // Libs JS externes
-    "**/static/admin/**",    // Code source admin Django
-    "**/static/grappelli/**" // Code source thème Grappelli
-  ]
-  },
-
+  { ignores: ["dist"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["src/static/ui_app_ts/src/**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: {
-        ...globals.browser,
-      },
+      globals: globals.browser,
     },
     plugins: {
       "react-hooks": reactHooks,
