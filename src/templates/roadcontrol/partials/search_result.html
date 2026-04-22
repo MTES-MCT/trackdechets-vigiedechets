@@ -70,7 +70,7 @@
         {% endif %}
     </div>
 {% else %}
-    <div class="fr-alert fr-alert--warning fr-mt-4w">
+    <div class="fr-alert fr-alert--warning fr-mt-4w fr-mb-4w">
         <h3 class="fr-alert__title">Aucun bordereau ne correspond aux critères saisis</h3>
         {% if no_bsd_found_pdf_available %}
             <form action="{% url "no_result_roadcontrol_pdf" %}" method="post">

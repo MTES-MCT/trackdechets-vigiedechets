@@ -10,6 +10,7 @@ from ..models import PdfBundle
 
 pytestmark = pytest.mark.django_db
 
+import json
 
 # Road control search
 
@@ -129,8 +130,24 @@ def test_bsd_search(get_client):
     url = reverse("roadcontrol_bsd_search")
     res = get_client.get(url)
     assert res.status_code == 200
+    assert "Bordereaux" in res.content.decode()
 
-    assert "Rechercher un bordereau" in res.content.decode()
+def test_bsd_simple_search_view(verified_user):
+    """Vérifie que la vue renvoie bien le partial du formulaire simple"""
+    url = reverse("roadcontrol_bsd_simple_search")
+    res = verified_user.get(url)
+    assert res.status_code == 200
+    assert "Recherche simple" in res.content.decode()
+    assert "<form" in res.content.decode()
+    assert "id_search_clue" in res.content.decode()
+
+def test_bsd_advanced_search_view(verified_user):
+    """Vérifie que la vue renvoie bien le partial du formulaire avancé"""
+    url = reverse("roadcontrol_bsd_advanced_search")
+    res = verified_user.get(url)
+    assert res.status_code == 200
+    assert "Recherche avancée" in res.content.decode()
+    assert "id_code_dechet" in res.content.decode()
 
 
 def test_bsd_recent_pdfs_anon(anon_client):
@@ -397,3 +414,112 @@ def test_road_control_search_no_pagination(mock_query_td, verified_user):
     mock_query_td.assert_called_once_with(siret="12345678901234", plate="AB 123 CD", end_cursor="")
 
     assert response.context["has_previous_page"] is False
+
+@patch("roadcontrol.views.query_td_search_companies")
+def test_company_search_view_with_clue(mock_search, verified_user):
+    """Teste la recherche d'entreprise avec un mot-clé"""
+    mock_search.return_value = [
+        {"siret": "12345678901234", "name": "TEST COMPANY", "address": "PARIS"}
+    ]
+    url = reverse("roadcontrol_company_search")
+    res = verified_user.get(url, {"search_clue": "test"})
+    
+    assert res.status_code == 200
+    assert "TEST COMPANY" in res.content.decode()
+    assert "12345678901234" in res.content.decode()
+    mock_search.assert_called_with(clue="test")
+
+@patch("roadcontrol.views.query_td_search_companies")
+def test_company_search_view_persistence_json(mock_search, verified_user):
+    """Teste que l'entreprise est affichée via le JSON sans appel API supplémentaire"""
+    company_data = {"siret": "99999999999999", "name": "CACHED COMPANY", "address": "LYON"}
+    url = reverse("roadcontrol_company_search")
+    
+    # On passe le JSON en paramètre (simule le F5 ou la persistance)
+    res = verified_user.get(url, {
+        "selected_siret": "99999999999999",
+        "selected_company_json": json.dumps(company_data)
+    })
+    
+    assert res.status_code == 200
+    assert "CACHED COMPANY" in res.content.decode()
+    # Très important : on vérifie que l'API n'a PAS été appelée car on avait le JSON
+    mock_search.assert_not_called()
+
+def test_company_search_empty_clue(verified_user):
+    """Vérifie qu'une recherche trop courte ne renvoie rien (protection API)"""
+    url = reverse("roadcontrol_company_search")
+    res = verified_user.get(url, {"search_clue": "ab"}) # Moins de 3 caractères
+    assert res.status_code == 200
+    assert res.content.decode() == ""
+
+def test_bsd_search_mode_advanced(verified_user):
+    """Vérifie que le mode advanced dans l'URL charge le bon template"""
+    url = reverse("roadcontrol_bsd_search")
+    res = verified_user.get(url + "?mode=advanced")
+    assert res.status_code == 200
+    assert "Recherche avancée" in res.content.decode()
+
+def test_bsd_search_result_form_selection(verified_user):
+    """Vérifie que BsdSearchResult choisit le bon formulaire (simple vs avancé)"""
+    url = reverse("roadcontrol_bsd_search_result")
+    
+    # Test simple
+    res_simple = verified_user.post(url, data={"bsd_id": "BSD-123"})
+    assert res_simple.status_code == 200
+    
+    # Test avancé (presence d'un champ spécifique)
+    res_adv = verified_user.post(url, data={"code_dechet": "01 01 01"})
+    assert res_adv.status_code == 200
+
+@patch("roadcontrol.views.query_td_search_bsds")
+def test_bsd_search_result_rendering(mock_search_bsds, verified_user):
+    """Teste le rendu des résultats de recherche BSD avec les cursors et counts"""
+    mock_search_bsds.return_value = {
+        "data": {
+            "controlBsds": {
+                "totalCount": 50,
+                "pageInfo": {
+                    "startCursor": "start123",
+                    "endCursor": "end123",
+                    "hasNextPage": True,
+                    "hasPreviousPage": False,
+                },
+                "edges": [
+                    {
+                        "node": {
+                            "__typename": "Form",
+                            "id": "abc",
+                            "readableId": "BSD-ABC",
+                            "updatedAt": "2024-01-01",
+                            "bsddStatus": "SENT",
+                            "wasteDetails": {"code": "01", "name": "waste", "quantity": 1},
+                            "emitter": {"company": {"name": "Em"}},
+                            "recipient": {"company": {"name": "Rec"}},
+                            "transporters": [{"company": {"name": "Trans"}}],
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    
+    url = reverse("roadcontrol_bsd_search_result")
+    res = verified_user.post(url, data={"bsd_id": "BSD-ABC"})
+    
+    assert res.status_code == 200
+    assert res.context["total_count"] == 50
+    assert res.context["start_cursor"] == "start123"
+    assert res.context["has_next_page"] is True
+    assert "BSD-ABC" in res.content.decode()
+
+def test_bsd_recent_pdfs_content(verified_user):
+    """Vérifie que BsdRecentPdfs renvoie bien les objets BsdPdf de type BSD"""
+    BsdPdfFactory(created_by=verified_user.user, request_type="BSD", bsd_id="BSD-RECENT-1")
+    
+    url = reverse("bsd_recent_pdfs")
+    res = verified_user.get(url)
+    
+    assert res.status_code == 200
+    assert "BSD-RECENT-1" in res.content.decode()
+    assert "Recherche récente" in res.content.decode()
