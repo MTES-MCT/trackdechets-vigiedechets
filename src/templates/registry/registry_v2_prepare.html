@@ -15,10 +15,8 @@
     </div>
     <div class="fr-grid-row fr-grid-row--gutters">
     <div class="fr-col-4">
-
-
         <form method="post"
-                {% url "registry_v2_prepare" %}
+              action="{% url "registry_v2_prepare" %}"
               id="id_registry_prepare_form">
             {% csrf_token %}
             {% if form.errors or has_errors %}
@@ -32,7 +30,13 @@
                 </div>
             {% endif %}
             <div class="fr-grid-row fr-grid-row--gutters">
-                <div class="fr-col">{% include 'forms/_field.html' with field=form.siret %}</div>
+                <div class="fr-col">{% include 'forms/_radio.html' with field=form.identifier_type %}</div>
+            </div>
+            <div class="fr-grid-row fr-grid-row--gutters" id="siret-field-container">
+                <div class="fr-col">{% include 'forms/_field.html' with field=form.siret skip_optional=True %}</div>
+            </div>
+            <div class="fr-grid-row fr-grid-row--gutters" id="siren-field-container" style="display: none;">
+                <div class="fr-col">{% include 'forms/_field.html' with field=form.siren skip_optional=True %}</div>
             </div>
             <div class="fr-grid-row fr-grid-row--gutters">
                 <div class="fr-col">{% include 'forms/_field.html' with field=form.registry_type %}</div>
@@ -156,6 +160,42 @@
 
             selectElement.addEventListener('change', (e) => updateMessages(e.target.value));
             updateMessages(selectElement.value);
+        });
+    </script>
+    <script>
+        // Conditional field display for identifier_type
+        document.addEventListener('DOMContentLoaded', function() {
+            const identifierTypeRadios = document.querySelectorAll('[name="identifier_type"]');
+            const siretContainer = document.getElementById('siret-field-container');
+            const sirenContainer = document.getElementById('siren-field-container');
+            const siretInput = document.querySelector('[name="siret"]');
+            const sirenInput = document.querySelector('[name="siren"]');
+            
+            function toggleFields() {
+                const selectedValue = document.querySelector('[name="identifier_type"]:checked')?.value;
+                
+                if (selectedValue === 'SIRET') {
+                    siretContainer.style.display = 'block';
+                    sirenContainer.style.display = 'none';
+                    if (sirenInput) {
+                        sirenInput.value = '';
+                    }
+                } else if (selectedValue === 'SIREN') {
+                    siretContainer.style.display = 'none';
+                    sirenContainer.style.display = 'block';
+                    if (siretInput) {
+                        siretInput.value = '';
+                    }
+                }
+            }
+            
+            // Add event listeners to all radio buttons
+            identifierTypeRadios.forEach(function(radio) {
+                radio.addEventListener('change', toggleFields);
+            });
+            
+            // Initial state
+            toggleFields();
         });
     </script>
 {% endblock scripts %}
