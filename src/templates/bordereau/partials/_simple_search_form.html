@@ -1,5 +1,5 @@
 <h5 class="fr-mb-1w">Recherche simple</h5>
-<form hx-post="{% url "bsds_search_result" %}"
+<form hx-post="{% url "bordereau_search_result" %}"
       hx-target="#id_search_results"
       hx-indicator="#id_spinner_wrapper">
     {% csrf_token %}
@@ -12,7 +12,7 @@
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-4"
-            hx-get="{% url 'company_search' %}"
+            hx-get="{% url 'bordereau_company_search' %}"
             hx-trigger="keyup changed delay:300ms from:#id_search_clue"
             hx-target="#company-suggestions-container"
             hx-swap="innerHTML"
@@ -55,7 +55,7 @@
 <div class="fr-grid-row fr-mt-2w fr-mb-2w">
     <div class="fr-col">
         <button class="fr-btn fr-btn--secondary"
-            hx-get="{% url 'bsd_advanced_search' %}"
+            hx-get="{% url 'bordereau_advanced_search' %}"
             hx-target="#search-form-container"
             hx-swap="innerHTML"
             hx-push-url="?mode=advanced">

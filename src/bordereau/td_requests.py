@@ -217,12 +217,17 @@ def query_td_forms(
     end_cursor=None,
     status=None,
     roles=None,
-    waste_code=None,
     custom_id=None,
     first=50,
     updated_after=None,
     sent_after=None,
     code_postal=None,
+    code_dechet=None,
+    code_aiot=None,
+    start_date_rep=None,
+    end_date_rep=None,
+    start_date_exp=None,
+    end_date_exp=None,
 ):
     variables = {}
     if siret:
@@ -235,8 +240,8 @@ def query_td_forms(
         variables["status"] = status
     if roles:
         variables["roles"] = roles
-    if waste_code:
-        variables["wasteCode"] = waste_code
+    if code_dechet:
+        variables["wasteCode"] = code_dechet
     if first:
         variables["first"] = first
     if updated_after:

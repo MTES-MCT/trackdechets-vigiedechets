@@ -9,9 +9,9 @@ from .views import (
 )
 
 urlpatterns = [
-    path("bsd-search/", BsdSearch.as_view(), name="bsd_search"),
-    path("bsd-simple-search/", BsdSimpleSearch.as_view(), name="bsd_simple_search"),
-    path("bsd-advanced-search/", BsdAdvancedSearch.as_view(), name="bsd_advanced_search"),
-    path("company-search/", CompanySearchView.as_view(), name="company_search"),
-    path("bsd-search-result/", BsdSearchResult.as_view(), name="bsds_search_result"),
+    path("bsd-search/", BsdSearch.as_view(), name="bordereau_search"),
+    path("bsd-simple-search/", BsdSimpleSearch.as_view(), name="bordereau_simple_search"),
+    path("bsd-advanced-search/", BsdAdvancedSearch.as_view(), name="bordereau_advanced_search"),
+    path("company-search/", CompanySearchView.as_view(), name="bordereau_company_search"),
+    path("bsd-search-result/", BsdSearchResult.as_view(), name="bordereau_search_result"),
 ]

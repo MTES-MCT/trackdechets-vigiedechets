@@ -22,7 +22,7 @@ class BsdSearch(FullyLoggedMixin, TemplateView):
     """
     Cette vue gère la recherche de BSD via l'API Trackdéchets. Elle affiche un formulaire de recherche qui peut être simple ou avancé en fonction des champs présents dans la requête POST, et affiche les résultats de la recherche.
     """
-    template_name = "bordereau/bsd_search.html"
+    template_name = "bordereau/bordereau_search.html"
     allowed_user_categories = PERMS_BSD_SEARCH
 
     def get_context_data(self, **kwargs):
