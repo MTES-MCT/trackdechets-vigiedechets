@@ -118,7 +118,7 @@ def test_roadcontrol_pdf_bundle_result(verified_user):
 
 
 def test_bsd_search_anon(anon_client):
-    url = reverse("roadcontrol_bsd_search")
+    url = reverse("bsd_search")
     res = anon_client.get(url)
     assert res.status_code == 302
 
@@ -127,14 +127,14 @@ def test_bsd_search_anon(anon_client):
     "get_client", ["verified_client", "logged_monaiot_client", "logged_proconnect_client"], indirect=True
 )
 def test_bsd_search(get_client):
-    url = reverse("roadcontrol_bsd_search")
+    url = reverse("bsd_search")
     res = get_client.get(url)
     assert res.status_code == 200
     assert "Bordereaux" in res.content.decode()
 
 def test_bsd_simple_search_view(verified_user):
     """Vérifie que la vue renvoie bien le partial du formulaire simple"""
-    url = reverse("roadcontrol_bsd_simple_search")
+    url = reverse("bsd_simple_search")
     res = verified_user.get(url)
     assert res.status_code == 200
     assert "Recherche simple" in res.content.decode()
@@ -143,7 +143,7 @@ def test_bsd_simple_search_view(verified_user):
 
 def test_bsd_advanced_search_view(verified_user):
     """Vérifie que la vue renvoie bien le partial du formulaire avancé"""
-    url = reverse("roadcontrol_bsd_advanced_search")
+    url = reverse("bsd_advanced_search")
     res = verified_user.get(url)
     assert res.status_code == 200
     assert "Recherche avancée" in res.content.decode()
@@ -393,7 +393,7 @@ def test_road_control_search_no_results(mock_query_td, verified_user):
 
     form_data = {"siret": "12345678901234", "plate": "XY-999-ZZ"}
 
-    url = reverse("roadcontrol_search_result")
+    url = reverse("search_result")
     response = verified_user.post(url, data=form_data)
 
     assert response.status_code == 200
@@ -408,7 +408,7 @@ def test_road_control_search_no_pagination(mock_query_td, verified_user):
     mock_query_td.return_value = mock_graphql_response_factory(
         has_next_page=False,
     )
-    url = reverse("roadcontrol_search_result")
+    url = reverse("search_result")
     response = verified_user.post(url, data=form_data)
 
     mock_query_td.assert_called_once_with(siret="12345678901234", plate="AB 123 CD", end_cursor="")
@@ -421,7 +421,7 @@ def test_company_search_view_with_clue(mock_search, verified_user):
     mock_search.return_value = [
         {"siret": "12345678901234", "name": "TEST COMPANY", "address": "PARIS"}
     ]
-    url = reverse("roadcontrol_company_search")
+    url = reverse("company_search")
     res = verified_user.get(url, {"search_clue": "test"})
     
     assert res.status_code == 200
@@ -448,21 +448,21 @@ def test_company_search_view_persistence_json(mock_search, verified_user):
 
 def test_company_search_empty_clue(verified_user):
     """Vérifie qu'une recherche trop courte ne renvoie rien (protection API)"""
-    url = reverse("roadcontrol_company_search")
+    url = reverse("company_search")
     res = verified_user.get(url, {"search_clue": "ab"}) # Moins de 3 caractères
     assert res.status_code == 200
     assert res.content.decode() == ""
 
 def test_bsd_search_mode_advanced(verified_user):
     """Vérifie que le mode advanced dans l'URL charge le bon template"""
-    url = reverse("roadcontrol_bsd_search")
+    url = reverse("bsd_search")
     res = verified_user.get(url + "?mode=advanced")
     assert res.status_code == 200
     assert "Recherche avancée" in res.content.decode()
 
 def test_bsd_search_result_form_selection(verified_user):
     """Vérifie que BsdSearchResult choisit le bon formulaire (simple vs avancé)"""
-    url = reverse("roadcontrol_bsd_search_result")
+    url = reverse("bsd_search_result")
     
     # Test simple
     res_simple = verified_user.post(url, data={"bsd_id": "BSD-123"})

@@ -1,0 +1,46 @@
+<div class="fr-grid-row fr-px-2w fr-grid-row--middle fr-p-0">
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.received_at|default:"—" }}</span>
+    </div>
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.emitted_at|default:"—" }}</span>
+    </div>
+    <div class="fr-col-2">
+        <span class="fr-text--sm">{{ bsd.readable_id }}</span>
+    </div>
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.aiot_code|default:"—" }}</span>
+    </div>
+    <div class="fr-col-2">
+        <span class="fr-text--sm">{{ bsd.intermediaries.0.name|default:"—" }}</span>
+    </div>
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.destination.company.name|default:"—" }}</span>
+    </div>
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.waste_details.code|default:"—" }}</span>
+    </div>
+    <div class="fr-col-1">
+        <span class="fr-text--sm">{{ bsd.waste_details.weight|default:"—" }} t</span>
+    </div>
+    <div class="fr-col-1">
+        <form hx-post="{% url "single_bsd_pdf_download" %}"
+              hx-indicator="#id_bsd_spinner-{{ bsd.id }}">
+            {% csrf_token %}
+            <input type="hidden" value="{{ bsd.id }}" name="bsd_id" />
+            <input type="hidden" value="{{ bsd.bsd_type }}" name="bsd_type" />
+            <input type="hidden" value="{{ bsd.readable_id }}" name="bsd_readable_id" />
+            <input type="hidden" value="{{ request_type }}" name="request_type" />
+            <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+            <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+            <input type="hidden" name="adr" value="{{ bsd.adr }}" />
+            <input type="hidden" name="weight" value="{{ bsd.waste_details.weight }}" />
+            <input type="hidden" name="waste_code" value="{{ bsd.waste_details.code }}" />
+            <input type="hidden" name="packagings" value="{{ bsd.packagings }}" />
+            <button type="submit" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-btn--icon-only fr-icon-file-download-line"
+                    title="Télécharger le PDF {{ bsd.readable_id }}">
+                PDF<span id="id_bsd_spinner-{{ bsd.id }}"><span class="fr-icon-refresh-line" aria-hidden="true"></span></span>
+            </button>
+        </form>
+    </div>
+</div>

@@ -2,11 +2,6 @@ from django.urls import path
 
 from .views import (
     BsdRecentPdfs,
-    BsdSearch,
-    BsdSimpleSearch,
-    BsdAdvancedSearch,
-    CompanySearchView,
-    BsdSearchResult,
     BundleProcessingView,
     FragmentBundleProcessingView,
     NoResultRoadControlPdf,
@@ -37,9 +32,4 @@ urlpatterns = [
     path("pdf-bundle-result/<str:pk>/", RoadControlPdfBundleResult.as_view(), name="roadcontrol_pdf_bundle_result"),
     path("recent-road-control-pdfs/", RoadControlRecentPdfs.as_view(), name="roadcontrol_recent_pdfs"),
     path("recent-bsd-pdfs/", BsdRecentPdfs.as_view(), name="bsd_recent_pdfs"),
-    path("bsd-search/", BsdSearch.as_view(), name="roadcontrol_bsd_search"),
-    path("bsd-simple-search/", BsdSimpleSearch.as_view(), name="roadcontrol_bsd_simple_search"),
-    path("bsd-advanced-search/", BsdAdvancedSearch.as_view(), name="roadcontrol_bsd_advanced_search"),
-    path("company-search/", CompanySearchView.as_view(), name="roadcontrol_company_search"),
-    path("bsd-search-result/", BsdSearchResult.as_view(), name="roadcontrol_bsd_search_result"),
 ]

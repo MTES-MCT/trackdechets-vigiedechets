@@ -1,0 +1,138 @@
+{% load partials static %}
+
+{% partialdef bundle-form-partial %}
+{% if bundle_download_available %}
+    {% if search_params.siret and total_count <= 100 %}
+        <form action="{% url "roadcontrol_pdf_bundle" %}" method="post">
+            {% csrf_token %}
+            {% for bsd in bsds %}
+                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                <input type="hidden" name="bsd_types[]" value="{{ bsd.bsd_type }}" />
+                <input type="hidden" name="bsd_ids[]" value="{{ bsd.id }}" />
+                <input type="hidden" name="readable_ids[]" value="{{ bsd.readable_id }}" />
+                <input type="hidden" name="waste_codes[]" value="{{ bsd.waste_details.code }}" />
+                <input type="hidden" name="weights[]" value="{{ bsd.waste_details.weight }}" />
+                <input type="hidden" name="adr_codes[]" value="{{ bsd.adr }}" />
+                <input type="hidden" name="packagings[]" value="{{ bsd.packagings }}" />
+            {% endfor %}
+            <div class="fr-grid-row fr-grid-row--right">
+                <button class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-file-text-line">
+                    Télécharger tous les pdf
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="fr-grid-row fr-grid-row--right">Export de dossier indisponible - trop de résultats</div>
+    {% endif %}
+{% endif %}
+{% endpartialdef %}
+
+{% if bsds %}
+    <p class="fr-mt-3w">
+        <strong>{{ bsds|length }} bordereaux de déchets collectés ({{ total_count }} au total)</strong>
+    </p>
+
+    <div>{% partial bundle-form-partial %}</div>
+
+    {# En-tête du tableau simulé #}
+    <div class="fr-grid-row bsd-table-header fr-px-2w">
+        <div class="fr-col-1 "><span class="fr-text--xs fr-text--bold">Reçu le</span></div>
+        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Expédié le</span></div>
+        <div class="fr-col-2"><span class="fr-text--xs fr-text--bold">N° de bordereau</span></div>
+        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Code AIOT</span></div>
+        <div class="fr-col-2"><span class="fr-text--xs fr-text--bold">Intermédiaire</span></div>
+        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Destination</span></div>
+        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Code déchet</span></div>
+        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Tonnage</span></div>
+        <div class="fr-col-1 fr-grid-row--center"><span class="fr-text--xs fr-text--bold">PDF</span></div>
+    </div>
+
+    <ul class="bsd-table-list">
+        {% for bsd in bsds %}
+            <li class="bsd-table-list__item">
+                {% include "bordereau/partials/_bsd_card_search.html" with bsd=bsd search_params=search_params request_type=request_type %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="fr-mb-4w">{% partial bundle-form-partial %}</div>
+
+    <div class="fr-grid-row fr-mt-2w" style="gap: 8px;">
+        {% if has_previous_page %}
+            <form hx-post="{% url "search_result" %}"
+                  hx-target="#id_search_results"
+                  hx-indicator="#id_spinner__wrapper">
+                {% csrf_token %}
+                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                <input type="hidden" name="start_cursor" value="{{ start_cursor }}" />
+                <button class="fr-btn fr-btn--secondary fr-mr-1w">Précédent</button>
+            </form>
+        {% endif %}
+        {% if has_next_page %}
+            <form hx-post="{% url "search_result" %}"
+                  hx-target="#id_search_results"
+                  hx-indicator="#id_spinner__wrapper">
+                {% csrf_token %}
+                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                <input type="hidden" name="end_cursor" value="{{ end_cursor }}" />
+                <button class="fr-btn fr-btn--secondary">Suivant</button>
+            </form>
+        {% endif %}
+    </div>
+
+{% else %}
+    <div class="fr-alert fr-alert--warning fr-mt-4w fr-mb-4w">
+        <h3 class="fr-alert__title">Aucun bordereau ne correspond aux critères saisis</h3>
+        {% if no_bsd_found_pdf_available %}
+            <form action="{% url "no_result_roadcontrol_pdf" %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                <div class="fr-grid-row fr-grid-row--right">
+                    <button class="fr-btn fr-btn--sm fr-btn--secondary fr-btn--icon-right fr-icon-file-text-line">Imprimer un pdf</button>
+                </div>
+            </form>
+        {% endif %}
+        <p>{{ form.non_field_errors }}</p>
+        {% for field in form %}
+            {% if field.errors %}
+                <ul>
+                    {% for error in field.errors %}
+                        <li>{{ field.label_tag }} <strong>{{ error|escape }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+        <ul>
+            {% if value %}
+                {% for fn, value in form.cleaned_data.items %}<li>{{ fn }}: {{ value }}</li>{% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+{% endif %}
+
+<style>
+.bsd-table-header {
+    background: #f6f6f6;
+    border-top: 1px solid #dddddd;
+    border-left: 1px solid #dddddd;
+    border-right: 1px solid #dddddd;
+    font-weight: 700;
+}
+.bsd-table-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.bsd-table-list__item {
+    border-left: 1px solid #dddddd;
+    border-right: 1px solid #dddddd;
+    border-bottom: 1px solid #dddddd;
+}
+.bsd-table-list__item:hover {
+    background: #f5f5fe;
+}
+</style>

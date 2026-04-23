@@ -62,6 +62,7 @@ LOCAL_APPS = [
     "oidc",
     "content",
     "import_export",
+    "bordereau",
     "roadcontrol",
     "sheets",
     "maps",

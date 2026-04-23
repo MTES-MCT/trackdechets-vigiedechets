@@ -1,23 +1,41 @@
 {% if recent_downloads %}
-<div style="background: white; border: 1px solid #dddddd; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
-    <div style="padding: 1px 7px 1px; border-bottom: 2px solid #dddddd; background-color: #e3e2f2;">
-        <span style="font-size: 0.7rem; font-weight: 700; color: #3e1399; letter-spacing: 0.05em; text-transform: uppercase;">
-            Recherche récente
-        </span>
+    <div class="fr-table fr-table--bordered">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">{{ download_column_name }}</th>
+                    <th scope="col">Établissement</th>
+                    <th scope="col">Immatriculation</th>
+                    <th scope="col">PDF/ZIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for download in recent_downloads %}
+                    <tr data-test-id="{{ download.pk }}">
+                        <td>
+                            <p style="white-space: nowrap ">{{ download.created_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+                        </td>
+                        <td>
+                            {% if download.bsd_id %}
+                                {{ download.bsd_id }}
+                            {% else %}
+                                {{ download.verbose_type }}
+                            {% endif %}
+                        </td>
+                        <td>{{ download.company_name }} {{ download.company_siret }}</td>
+                        <td>{{ download.transporter_plate }}</td>
+                        <td>
+                            {% if download.pdf_file or download.zip_file %}
+                                <a href="{{ download.pdf_file.url }}{{ download.zip_file.url }}"
+                                   class="fr-btn fr-btn--tertiary fr-icon-download-line"></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% for download in recent_downloads %}
-    <input type="hidden" class="data-test-id" value="{{ download.pk }}">
-    <button
-        type="button"
-        style="display:block; width:100%; text-align:left; background:none; border:none; border-bottom: 1px solid #eeeeee; padding: 4px 7px 4px; font-size: 0.875rem; color: #1e1e1e; cursor:pointer;"
-        onmouseover="this.style.background='#f6f6f6'"
-        onmouseout="this.style.background='none'"
-        onclick="
-            document.getElementById('id_bsd_id').value = '{{ download.bsd_id }}';
-            document.getElementById('recent-bsds-list').innerHTML = '';
-        ">
-        <strong>Bord. n°</strong>{{ download.bsd_id }}
-    </button>
-    {% endfor %}
-</div>
+{% else %}
+    <p>Aucune recherche récente</p>
 {% endif %}

@@ -1,5 +1,5 @@
-<h5 class="fr-mb-1w">Recherche simple</h5>
-<form hx-post="{% url "roadcontrol_bsd_search_result" %}"
+<h5 class="fr-mb-1w">Recherche avancée</h5>
+<form hx-post="{% url "bsds_search_result" %}"
       hx-target="#id_search_results"
       hx-indicator="#id_spinner_wrapper">
     {% csrf_token %}
@@ -10,9 +10,9 @@
         </div>
     {% endif %}
 
-    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
+   <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-4"
-            hx-get="{% url 'roadcontrol_company_search' %}"
+            hx-get="{% url 'company_search' %}"
             hx-trigger="keyup changed delay:300ms from:#id_search_clue"
             hx-target="#company-suggestions-container"
             hx-swap="innerHTML"
@@ -44,22 +44,52 @@
             hx-indicator="this">
             {% include 'forms/_field.html' with field=form.bsd_id skip_optional=True%}
         </div>
-        <div class="fr-col">
-            <button class="fr-btn fr-mt-4w" hx-on:click="document.getElementById('id_search_results').innerHTML = ''" hx-indicator="#id_spinner_wrapper">Afficher le bordereau</button>
+        <div class="fr-col-4">
+            {% include 'forms/_field.html' with field=form.code_dechet skip_optional=True %}
+        </div>
+        <div class="fr-col-4">
+            {% include 'forms/_field.html' with field=form.code_aiot skip_optional=True %}
         </div>
     </div>
     <div class="fr-grid-row fr-grid-row--gutters fr-mb-2w" style="position: relative;">
         <div id="recent-bsds-list" class="fr-col-3" style="position: absolute; z-index: 1000; top: -0.5rem;"></div>
     </div>
+    <div class="fr-grid-row fr-grid-row--gutters">
+        <div class="fr-col-4">
+            <p class="fr-text--bold fr-mb-2w">Dates de réception</p>
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-6">
+                    {% include 'forms/_field.html' with field=form.start_date_rep skip_optional=True %}
+                </div>
+                <div class="fr-col-6">
+                    {% include 'forms/_field.html' with field=form.end_date_rep skip_optional=True %}
+                </div>
+            </div>
+        </div>
+        <div class="fr-col-4">
+            <p class="fr-text--bold fr-mb-2w">Date d'expédition</p>
+            <div class="fr-grid-row fr-grid-row--gutters">
+                <div class="fr-col-6">
+                    {% include 'forms/_field.html' with field=form.start_date_exp skip_optional=True %}
+                </div>
+                <div class="fr-col-6">
+                    {% include 'forms/_field.html' with field=form.end_date_exp skip_optional=True %}
+                </div>
+            </div>
+        </div>
+        <div class="fr-col">
+            <button class="fr-btn fr-mt-9w" hx-on:click="document.getElementById('id_search_results').innerHTML = ''">Afficher le(s) bordereau(x)</button>
+        </div>
+    </div>
 </form>
-<div class="fr-grid-row fr-mt-2w fr-mb-2w">
+<div class="fr-grid-row fr-mt-2w">
     <div class="fr-col">
         <button class="fr-btn fr-btn--secondary"
-            hx-get="{% url 'roadcontrol_bsd_advanced_search' %}"
-            hx-target="#search-form-container"
-            hx-swap="innerHTML"
-            hx-push-url="?mode=advanced">
-            Recherche avancée
+                hx-get="{% url 'bsd_simple_search' %}"
+                hx-target="#search-form-container"
+                hx-swap="innerHTML"
+                hx-push-url="?">
+                Recherche simple
         </button>
     </div>
 </div>
