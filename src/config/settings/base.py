@@ -362,6 +362,7 @@ RNDTS_DATA_UPDATE_DATE_STRING = env("RNDTS_DATA_UPDATE_DATE_STRING")
 MATOMO_SITE_ID = env("MATOMO_SITE_ID", default=None)
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]
+ALLOWED_CATEGORIES_FOR_SENTINEL = env.list("ALLOWED_CATEGORIES_FOR_SENTINEL", default=[])
 ALLOWED_EMAILS_FOR_DATA_EXPORT = [email.lower() for email in env.list("ALLOWED_EMAILS_FOR_DATA_EXPORT")]
 
 # Doc available here: https://docs.celeryq.dev/en/latest/userguide/configuration.html

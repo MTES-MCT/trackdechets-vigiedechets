@@ -7,14 +7,14 @@ from celery.exceptions import Retry
 from registry.constants import RegistryV2DeclarationType, RegistryV2ExportState, RegistryV2WasteCode
 from registry.task import refresh_registry_export
 
-from ..factories import RegistryV2ExportFactory
+from ..factories import RegistryV2ExportSiretFactory
 from ..task import generate_registry_export
 
 pytestmark = pytest.mark.django_db
 
 
 def test_generate_registry_export_success():
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportSiretFactory()
     mock_response = {
         "data": {
             "generateRegistryV2Export": {
@@ -43,19 +43,19 @@ def test_generate_registry_export_success():
         request_payload = call_kwargs["json"]
         variables = request_payload["variables"]
         assert variables["siret"] == registry_export.siret
-        assert variables["registryType"] == registry_export.registry_type
-        assert variables["format"] == registry_export.export_format
+        assert variables["registryType"] == registry_export.parent.registry_type
+        assert variables["format"] == registry_export.parent.export_format
 
 
 def test_generate_registry_export_with_advanced_params_success():
-    registry_export = RegistryV2ExportFactory(
-        start_date=dt.datetime.fromisoformat("2024-12-31T23:00:00+00:00"),
-        end_date=dt.datetime.fromisoformat("2025-12-31T23:00:00+00:00"),
-        declaration_type=RegistryV2DeclarationType.BSD,
-        waste_types_dnd=True,
-        waste_types_dd=True,
-        waste_types_texs=True,
-        waste_codes=[RegistryV2WasteCode.WASTE_01_01_01],
+    registry_export = RegistryV2ExportSiretFactory(
+        parent__start_date=dt.datetime.fromisoformat("2024-12-31T23:00:00+00:00"),
+        parent__end_date=dt.datetime.fromisoformat("2025-12-31T23:00:00+00:00"),
+        parent__declaration_type=RegistryV2DeclarationType.BSD,
+        parent__waste_types_dnd=True,
+        parent__waste_types_dd=True,
+        parent__waste_types_texs=True,
+        parent__waste_codes=[RegistryV2WasteCode.WASTE_01_01_01],
     )
     mock_response = {
         "data": {
@@ -99,7 +99,7 @@ def test_generate_registry_export_with_advanced_params_success():
 
 
 def test_generate_registry_export_api_error():
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportSiretFactory()
 
     mock_error_response = {"errors": [{"message": "Export generation failed"}]}
 
@@ -122,7 +122,7 @@ def test_generate_registry_export_api_error():
 
 
 def test_generate_registry_export_request_exception():
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportSiretFactory()
     with patch("httpx.Client.post") as mock_post:
         mock_post.side_effect = Exception("Network error")
 
@@ -136,7 +136,7 @@ def test_generate_registry_export_request_exception():
 
 
 def test_refresh_registry_export_success():
-    registry_export = RegistryV2ExportFactory(registry_export_id="wxcvbn")
+    registry_export = RegistryV2ExportSiretFactory(registry_export_id="wxcvbn")
 
     mock_response = {
         "data": {
@@ -169,7 +169,7 @@ def test_refresh_registry_export_success():
 
 
 def test_refresh_registry_export_in_progress():
-    registry_export = RegistryV2ExportFactory(registry_export_id="wxcvbn")
+    registry_export = RegistryV2ExportSiretFactory(registry_export_id="wxcvbn")
 
     mock_response = {
         "data": {
@@ -198,7 +198,7 @@ def test_refresh_registry_export_in_progress():
 
 
 def test_refresh_registry_export_failed():
-    registry_export = RegistryV2ExportFactory(registry_export_id="wxcvbn")
+    registry_export = RegistryV2ExportSiretFactory(registry_export_id="wxcvbn")
 
     mock_response = {
         "data": {
@@ -234,7 +234,7 @@ def test_refresh_registry_export_failed():
 
 
 def test_refresh_registry_export_request_exception():
-    registry_export = RegistryV2ExportFactory(registry_export_id="wxcvbn")
+    registry_export = RegistryV2ExportSiretFactory(registry_export_id="wxcvbn")
 
     with patch("httpx.Client.post") as mock_post:
         mock_post.side_effect = Exception("Network error")

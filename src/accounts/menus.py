@@ -88,9 +88,33 @@ Menu.add_item(
         allowed_emails=settings.ALLOWED_EMAILS_FOR_DATA_EXPORT,
     ),
 )
+
+
+class SentinelMenuItem(MenuItem):
+    """Sentinel: visible by category (with wildcard support) OR by email, with staff override"""
+
+    def check(self, request):
+        if request.user.is_staff:
+            self.visible = True
+            return
+        allowed_categories = getattr(self, "allowed_categories", [])
+        allowed_emails = getattr(self, "allowed_emails", [])
+        if allowed_categories == ["*"]:
+            self.visible = request.user.is_authenticated
+        elif allowed_categories:
+            self.visible = request.user.user_category in allowed_categories
+        else:
+            self.visible = request.user.email.lower() in allowed_emails
+
+
 Menu.add_item(
     "main",
-    UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
+    SentinelMenuItem(
+        "Sentinelle",
+        reverse("sentinel"),
+        allowed_categories=settings.ALLOWED_CATEGORIES_FOR_SENTINEL,
+        allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL,
+    ),
 )
 
 if not settings.HIDE_FAQ_NAV:
