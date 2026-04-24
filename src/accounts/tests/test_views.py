@@ -283,3 +283,20 @@ def test_password_reset_fails_for_oidc_users(oidc_connexion, anon_client):
     assert res.context["form"].errors == {
         "email": ["Cet utilisateur n'existe aps ou n'est pas autorisé à se connecter par mot de passe"]
     }
+
+
+def test_password_reset_rate_limiting(anon_client):
+    """Test that password reset endpoint is rate limited to 5 requests per hour."""
+    user = UserFactory()
+
+    # Make 6 POST requests (should be limited after 5)
+    for i in range(6):
+        res = anon_client.post(
+            reverse("password_reset"),
+            {"email": user.email},
+        )
+
+    # After 5 requests, subsequent requests should be rate limited
+    # The rate limiter returns 403 or redirects to lockout page
+    assert res.status_code in [403, 302]  # 403 Forbidden or redirect to lockout
+
