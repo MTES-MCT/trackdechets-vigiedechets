@@ -1,29 +1,29 @@
-<div class="fr-grid-row fr-px-2w fr-grid-row--middle fr-p-0">
-    <div class="fr-col-1">
+<tr class="bsd-table-row">
+    <td>
         <span class="fr-text--sm">{{ bsd.received_at|default:"—" }}</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.emitted_at|default:"—" }}</span>
-    </div>
-    <div class="fr-col-2">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.readable_id }}</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.aiot_code|default:"—" }}</span>
-    </div>
-    <div class="fr-col-2">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.intermediaries.0.name|default:"—" }}</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.destination.company.name|default:"—" }}</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.waste_details.code|default:"—" }}</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <span class="fr-text--sm">{{ bsd.waste_details.weight|default:"—" }} t</span>
-    </div>
-    <div class="fr-col-1">
+    </td>
+    <td>
         <form hx-post="{% url "single_bsd_pdf_download" %}"
               hx-indicator="#id_bsd_spinner-{{ bsd.id }}">
             {% csrf_token %}
@@ -42,5 +42,11 @@
                 PDF<span id="id_bsd_spinner-{{ bsd.id }}"><span class="fr-icon-refresh-line" aria-hidden="true"></span></span>
             </button>
         </form>
-    </div>
-</div>
+    </td>
+</tr>
+<style>
+.bsd-table-row td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dddddd;
+}
+</style>

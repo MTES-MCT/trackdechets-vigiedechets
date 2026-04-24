@@ -13,21 +13,22 @@
    <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-4"
             hx-get="{% url 'bordereau_company_search' %}"
-            hx-trigger="keyup changed delay:300ms from:#id_search_clue"
+            hx-trigger="keyup changed delay:300ms from:#id_search_clue, keyup changed delay:300ms from:#id_code_postal"
             hx-target="#company-suggestions-container"
             hx-swap="innerHTML"
             hx-include="#id_search_clue"
             hx-indicator="#company-search-indicator"
-            hx-on:htmx:before-request="if(document.getElementById('id_search_clue').value.trim().length >= 3) { document.getElementById('company-suggestions-container').innerHTML = ''; }"
+            hx-on:htmx:before-request="if(document.getElementById('id_search_clue').value.trim().length >= 3 || document.getElementById('id_code_postal').value.trim().length > 0) { document.getElementById('company-suggestions-container').innerHTML = ''; }"
             hx-vals='js:{
                 "selected_siret": document.getElementById("id_siret") ? document.getElementById("id_siret").value : "",
-                "selected_company_json": document.getElementById("selected_company_json") ? document.getElementById("selected_company_json").value : ""
+                "selected_company_json": document.getElementById("selected_company_json") ? document.getElementById("selected_company_json").value : "",
+                "code_postal": document.getElementById("id_code_postal") ? document.getElementById("id_code_postal").value : "",
             }'>
             {% include 'forms/_field.html' with field=form.search_clue skip_optional=True %}
             {{ form.siret }}
         </div>
         <div class="fr-col-2">  
-                {% include 'forms/_field.html' with field=form.code_postal skip_optional=True %}
+            {% include 'forms/_field.html' with field=form.code_postal skip_optional=True %}
         </div>
     </div>
     <div class="fr-grid-row fr-grid-row--gutters">
@@ -37,7 +38,7 @@
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-3"
-            hx-get="{% url 'bsd_recent_pdfs' %}"
+            hx-get="{% url 'bordereau_recent_search' %}"
             hx-trigger="focus from:input#id_bsd_id"
             hx-target="#recent-bsds-list"
             hx-swap="innerHTML"
@@ -105,4 +106,26 @@
             }
         }
     });
+
+    (function() {
+        const searchClueInput = document.getElementById('id_search_clue');
+        const codePostalInput = document.getElementById('id_code_postal');
+        
+        if (searchClueInput && codePostalInput) {
+            // Fonction pour vérifier et mettre à jour l'état du champ postal
+            function updateCodePostalState() {
+                const hasSearchClue = searchClueInput.value.trim().length >= 3;
+                codePostalInput.disabled = !hasSearchClue;
+                if (!hasSearchClue) {
+                    codePostalInput.value = '';  // Vide le champ si désactivé
+                }
+            }
+            
+            // Initialiser l'état
+            updateCodePostalState();
+            
+            // Écouter les changements du champ search_clue
+            searchClueInput.addEventListener('input', updateCodePostalState);
+        }
+    })();
 </script>

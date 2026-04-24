@@ -13,21 +13,22 @@
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-4"
             hx-get="{% url 'bordereau_company_search' %}"
-            hx-trigger="keyup changed delay:300ms from:#id_search_clue"
+            hx-trigger="keyup changed delay:300ms from:#id_search_clue, keyup changed delay:300ms from:#id_code_postal"
             hx-target="#company-suggestions-container"
             hx-swap="innerHTML"
             hx-include="#id_search_clue"
             hx-indicator="#company-search-indicator"
-            hx-on:htmx:before-request="if(document.getElementById('id_search_clue').value.trim().length >= 3) { document.getElementById('company-suggestions-container').innerHTML = ''; }"
+            hx-on:htmx:before-request="if(document.getElementById('id_search_clue').value.trim().length >= 3 || document.getElementById('id_code_postal').value.trim().length > 0) { document.getElementById('company-suggestions-container').innerHTML = ''; }"
             hx-vals='js:{
                 "selected_siret": document.getElementById("id_siret") ? document.getElementById("id_siret").value : "",
-                "selected_company_json": document.getElementById("selected_company_json") ? document.getElementById("selected_company_json").value : ""
+                "selected_company_json": document.getElementById("selected_company_json") ? document.getElementById("selected_company_json").value : "",
+                "code_postal": document.getElementById("id_code_postal") ? document.getElementById("id_code_postal").value : "",
             }'>
             {% include 'forms/_field.html' with field=form.search_clue skip_optional=True %}
             {{ form.siret }}
         </div>
         <div class="fr-col-2">  
-                {% include 'forms/_field.html' with field=form.code_postal skip_optional=True %}
+            {% include 'forms/_field.html' with field=form.code_postal skip_optional=True %}
         </div>
     </div>
     <div class="fr-grid-row fr-grid-row--gutters">
@@ -37,7 +38,7 @@
 
     <div class="fr-grid-row fr-grid-row--gutters fr-mt-2w">
         <div class="fr-col-3"
-            hx-get="{% url 'bsd_recent_pdfs' %}"
+            hx-get="{% url 'bordereau_recent_search' %}"
             hx-trigger="focus from:input#id_bsd_id"
             hx-target="#recent-bsds-list"
             hx-swap="innerHTML"
@@ -48,10 +49,10 @@
             <button class="fr-btn fr-mt-4w" hx-on:click="document.getElementById('id_search_results').innerHTML = ''" hx-indicator="#id_spinner_wrapper">Afficher le(s) bordereau(x)</button>
         </div>
     </div>
-    <div class="fr-grid-row fr-grid-row--gutters fr-mb-2w" style="position: relative;">
-        <div id="recent-bsds-list" class="fr-col-3" style="position: absolute; z-index: 1000; top: -0.5rem;"></div>
-    </div>
 </form>
+
+<div id="recent-bsds-list" style="position: absolute; z-index: 1000;"></div>
+
 <div class="fr-grid-row fr-mt-2w fr-mb-2w">
     <div class="fr-col">
         <button class="fr-btn fr-btn--secondary"
@@ -69,10 +70,40 @@
         const recentBsdsList = document.getElementById('recent-bsds-list');
         
         if (bsdInput && recentBsdsList) {
-            // Si le clic n'est ni sur l'input ni à l'intérieur de la liste des suggestions
-            if (!bsdInput.contains(event.target) && !recentBsdsList.contains(event.target)) {
+            const isOnBsdLabel = event.target.closest('label[for="id_bsd_id"]');
+            if (!bsdInput.contains(event.target) && !recentBsdsList.contains(event.target) && !isOnBsdLabel) {
                 recentBsdsList.innerHTML = '';
             }
         }
     });
+
+    (function() {
+        const searchClueInput = document.getElementById('id_search_clue');
+        const codePostalInput = document.getElementById('id_code_postal');
+        
+        if (searchClueInput && codePostalInput) {
+            function updateCodePostalState() {
+                const hasSearchClue = searchClueInput.value.trim().length >= 3;
+                codePostalInput.disabled = !hasSearchClue;
+                if (!hasSearchClue) {
+                    codePostalInput.value = '';
+                }
+            }
+            
+            updateCodePostalState();
+            searchClueInput.addEventListener('input', updateCodePostalState);
+        }
+
+        // Positionnement dynamique de la liste des BSD récents
+        const bsdInput = document.getElementById('id_bsd_id');
+        const recentList = document.getElementById('recent-bsds-list');
+        if (bsdInput && recentList) {
+            bsdInput.addEventListener('focus', function() {
+                const rect = bsdInput.getBoundingClientRect();
+                recentList.style.left = rect.left + 'px';
+                recentList.style.top = rect.bottom + 'px';
+                recentList.style.width = rect.width + 'px';
+            });
+        }
+    })();
 </script>

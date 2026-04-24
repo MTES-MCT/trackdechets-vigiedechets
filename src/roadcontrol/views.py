@@ -322,16 +322,3 @@ class RoadControlRecentPdfs(FullyLoggedMixin, TemplateView):
         return super().get_context_data(
             **kwargs, recent_downloads=self.get_recent_downloads(), download_column_name="N° de bordereau/dossier"
         )
-
-class BsdRecentPdfs(FullyLoggedMixin, TemplateView):
-    template_name = "roadcontrol/partials/_recent_pdfs.html"
-    allowed_user_categories = PERMS_BSD_SEARCH
-
-    def get_recent_downloads(self):
-        user = self.request.user
-        return BsdPdf.objects.bsd().filter(created_by=user)[:5]
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(
-            **kwargs, recent_downloads=self.get_recent_downloads(), download_column_name="N° de bordereau"
-        )

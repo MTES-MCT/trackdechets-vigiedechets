@@ -30,31 +30,31 @@
 
 {% if bsds %}
     <p class="fr-mt-3w">
-        <strong>{{ bsds|length }} bordereaux de déchets collectés ({{ total_count }} au total)</strong>
+        <strong>{{ total_count }} bordereau{% if total_count > 1 %}x{% endif %} de déchet{% if total_count > 1 %}s{% endif %} trouvé{% if total_count > 1 %}s{% endif %}</strong>
     </p>
 
     <div>{% partial bundle-form-partial %}</div>
 
-    {# En-tête du tableau simulé #}
-    <div class="fr-grid-row bsd-table-header fr-px-2w">
-        <div class="fr-col-1 "><span class="fr-text--xs fr-text--bold">Reçu le</span></div>
-        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Expédié le</span></div>
-        <div class="fr-col-2"><span class="fr-text--xs fr-text--bold">N° de bordereau</span></div>
-        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Code AIOT</span></div>
-        <div class="fr-col-2"><span class="fr-text--xs fr-text--bold">Intermédiaire</span></div>
-        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Destination</span></div>
-        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Code déchet</span></div>
-        <div class="fr-col-1"><span class="fr-text--xs fr-text--bold">Tonnage</span></div>
-        <div class="fr-col-1 fr-grid-row--center"><span class="fr-text--xs fr-text--bold">PDF</span></div>
-    </div>
-
-    <ul class="bsd-table-list">
-        {% for bsd in bsds %}
-            <li class="bsd-table-list__item">
+    <table class="bsd-table">
+        <thead>
+            <tr>
+                <th>Reçu le</th>
+                <th>Expédié le</th>
+                <th>N° de bordereau</th>
+                <th>Code AIOT</th>
+                <th>Intermédiaire</th>
+                <th>Destination</th>
+                <th>Code déchet</th>
+                <th>Tonnage</th>
+                <th class="fr-grid-row--center">PDF</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bsd in bsds %}
                 {% include "bordereau/partials/_bsd_card_search.html" with bsd=bsd search_params=search_params request_type=request_type %}
-            </li>
-        {% endfor %}
-    </ul>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <div class="fr-mb-4w">{% partial bundle-form-partial %}</div>
 
@@ -115,24 +115,25 @@
 {% endif %}
 
 <style>
-.bsd-table-header {
-    background: #f6f6f6;
-    border-top: 1px solid #dddddd;
-    border-left: 1px solid #dddddd;
-    border-right: 1px solid #dddddd;
-    font-weight: 700;
-}
-.bsd-table-list {
-    list-style: none;
-    padding: 0;
+.bsd-table {
+    width: 100%;
+    border-collapse: collapse;
     margin: 0;
+    padding: 0;
+    border: 1px solid #dddddd;
 }
-.bsd-table-list__item {
-    border-left: 1px solid #dddddd;
-    border-right: 1px solid #dddddd;
+.bsd-table thead {
+    background: #f6f6f6;
     border-bottom: 1px solid #dddddd;
 }
-.bsd-table-list__item:hover {
+.bsd-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #3a3a3a;
+}
+.bsd-table tbody tr:hover {
     background: #f5f5fe;
 }
 </style>

@@ -6,6 +6,7 @@ from .views import (
     BsdAdvancedSearch,
     CompanySearchView,
     BsdSearchResult,
+    BsdRecentSearch,
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     path("bsd-advanced-search/", BsdAdvancedSearch.as_view(), name="bordereau_advanced_search"),
     path("company-search/", CompanySearchView.as_view(), name="bordereau_company_search"),
     path("bsd-search-result/", BsdSearchResult.as_view(), name="bordereau_search_result"),
+    path("bsd-recent-search/", BsdRecentSearch.as_view(), name="bordereau_recent_search"),
 ]

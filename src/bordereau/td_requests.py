@@ -45,15 +45,15 @@ def query_td_search_bsds(siret=None, bsd_id=None, code_postal=None, code_dechet=
     except (httpx.HTTPError, ValueError):
         return None
 
-def query_td_search_companies(clue):
+def query_td_search_companies(clue,department=None):
     """
     Requête de recherche d'entreprises dans Trackdéchets en fonction d'une "clue" qui peut être un numéro de SIRET, un numéro de TVA,
     une raison sociale ou une partie de raison sociale. La requête retourne une liste d'entreprises correspondant à la clue,
     avec leurs informations publiques (SIRET, numéro de TVA, nom, adresse, etc.).
     """
     query = """
-    query SearchCompanies($clue: String!) {
-      searchCompanies(clue: $clue, allowForeignCompanies: true) {
+    query SearchCompanies($clue: String!, $department: String) {
+      searchCompanies(clue: $clue, department: $department, allowForeignCompanies: true) {
         siret
         vatNumber
         name
@@ -64,7 +64,7 @@ def query_td_search_companies(clue):
       }
     }
     """
-    payload = {"query": query, "variables": {"clue": clue}}
+    payload = {"query": query, "variables": {"clue": clue, "department": department}}
     client = httpx.Client(timeout=30)
 
 

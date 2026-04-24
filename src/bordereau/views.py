@@ -73,8 +73,9 @@ class CompanySearchView(FullyLoggedMixin, TemplateView):
     allowed_user_categories = PERMS_BSD_SEARCH
 
     def get(self, request, *args, **kwargs):
-        clue = (request.GET.get("search_clue_input") or request.GET.get("search_clue") or "").strip()
-        selected_siret = request.GET.get("selected_siret")
+        clue = request.GET.get("search_clue").strip() or ""
+        department = request.GET.get("code_postal").strip() or None
+        selected_siret = request.GET.get("selected_siret")  
         selected_company_json = request.GET.get("selected_company_json") # un champ optionnel qui peut contenir les données de l'entreprise sélectionnée au format JSON, pour éviter une requête supplémentaire à l'API si ces données sont déjà disponibles côté client
 
         # Si la recherche est inférieure à 3 caractères et qu'aucun SIRET sélectionné
@@ -92,7 +93,7 @@ class CompanySearchView(FullyLoggedMixin, TemplateView):
                 })
 
         # Recherche des entreprises via l'API Trackdéchets
-        companies = query_td_search_companies(clue=clue)
+        companies = query_td_search_companies(clue=clue, department=department)
 
         # Si un SIRET sélectionné est fourni, on tente de le mettre en avant dans les résultats
         if selected_siret:
@@ -174,7 +175,7 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
         )
 
 
-class BsdRecentPdfs(FullyLoggedMixin, TemplateView):
+class BsdRecentSearch(FullyLoggedMixin, TemplateView):
     template_name = "bordereau/partials/_recent_pdfs.html"
     allowed_user_categories = PERMS_BSD_SEARCH
 

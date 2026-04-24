@@ -30,6 +30,7 @@ class BsdSearchForm(Form):
     widget=TextInput(attrs={
         "list": "recent-bsds-list",
         "autocomplete": "off",
+        "placeholder": "BSD-",
     }),
     )
 
@@ -63,8 +64,13 @@ class BsdAvancedSearchForm(Form):
     )
 
     bsd_id = CharField(
-        label="N° de bordereau",
-        required=False,
+    label="N° de bordereau",
+    required=False,
+    widget=TextInput(attrs={
+        "list": "recent-bsds-list",
+        "autocomplete": "off",
+        "placeholder": "BSD-",
+    }),
     )
 
     code_dechet = MultipleChoiceField(
