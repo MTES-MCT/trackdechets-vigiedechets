@@ -299,4 +299,3 @@ def test_password_reset_rate_limiting(anon_client):
     # After 5 requests, subsequent requests should be rate limited
     # The rate limiter returns 403 or redirects to lockout page
     assert res.status_code in [403, 302]  # 403 Forbidden or redirect to lockout
-
