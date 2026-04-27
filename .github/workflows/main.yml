@@ -84,7 +84,7 @@ jobs:
         run: |
           # Download mc client with retry logic
           for i in {1..3}; do
-            curl -f -o mc https://dl.min.io/client/mc/release/linux-amd64/mc && break
+            curl -fL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc && break
             echo "Download attempt $i failed, retrying..."
             sleep 2
           done
