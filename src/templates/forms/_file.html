@@ -69,14 +69,16 @@
             const tag = document.createElement("div");
             tag.className = "fr-badge-group fr-mt-1w";
             tag.style.cssText = "display:flex; align-items:center; gap:0.5rem;";
-            tag.innerHTML = `
-                <span class="fr-badge fr-badge--info">${file.name} (${formatSize(file.size)})</span>
-                <button type="button"
-                        class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-close-line"
-                        aria-label="Supprimer ${file.name}"
-                        data-index="${index}">
-                </button>
-            `;
+            const badge = document.createElement("span");
+            badge.className = "fr-badge fr-badge--info";
+            badge.textContent = `${file.name} (${formatSize(file.size)})`;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-close-line";
+            btn.setAttribute("aria-label", `Supprimer ${file.name}`);
+            btn.dataset.index = String(index);
+            tag.appendChild(badge);
+            tag.appendChild(btn);
             fileListContainer.appendChild(tag);
         });
 
