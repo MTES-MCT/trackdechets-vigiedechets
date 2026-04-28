@@ -73,7 +73,7 @@ jobs:
             -p 9000:9000 -p 9001:9001 \
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
-            quay.io/minio/minio:latest server /data --console-address ":9001"
+            quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z.hotfix.7aa24e772 server /data --console-address ":9001"
 
           # Wait for MinIO to be ready
           until curl -f http://localhost:9000/minio/health/live; do
@@ -82,7 +82,20 @@ jobs:
 
       - name: Create MinIO bucket
         run: |
-          curl -O https://dl.min.io/client/mc/release/linux-amd64/mc
+          # Download mc client with retry logic
+          for i in {1..3}; do
+            curl -fL -o mc https://dl.min.io/client/mc/release/linux-amd64/mc && break
+            echo "Download attempt $i failed, retrying..."
+            sleep 2
+          done
+          
+          # Verify the binary is valid
+          if ! file mc | grep -q "ELF 64-bit"; then
+            echo "Downloaded file is not a valid ELF binary"
+            cat mc
+            exit 1
+          fi
+          
           chmod +x mc
           ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
           ./mc mb --ignore-existing myminio/vigidechets-test

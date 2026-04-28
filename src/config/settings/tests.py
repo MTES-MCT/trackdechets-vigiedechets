@@ -53,6 +53,7 @@ DJANGO_VITE = {"default": {"dev_mode": True}}
 SKIP_SIRET_CHECK = True
 
 ALLOWED_USER_FOR_SENTINEL = ["allowed_for_sentinel@mail.test"]
+ALLOWED_CATEGORIES_FOR_SENTINEL = ["PERMS_ROAD_CONTROL", "PERMS_MAP_ICPE"]
 ALLOWED_EMAILS_FOR_DATA_EXPORT = ["allowed_for_data_export@mail.test"]
 
 SKIP_ROAD_CONTROL_SIRET_CHECK = True

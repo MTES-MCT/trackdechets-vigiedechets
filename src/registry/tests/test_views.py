@@ -1,11 +1,12 @@
 import datetime as dt
+import io
 from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
 
 from ..constants import RegistryV2ExportState
-from ..factories import RegistryV2ExportFactory
+from ..factories import RegistryV2ExportFactory, RegistryV2ExportSirenFactory, RegistryV2ExportSiretFactory
 from ..models import RegistryV2Export
 
 pytestmark = pytest.mark.django_db
@@ -60,21 +61,12 @@ def test_registry_v2_prepare_v2(get_client):
     "get_client", ["verified_client", "logged_monaiot_client", "logged_proconnect_client"], indirect=True
 )
 def test_registry_prepare_v2_post(get_client):
-    mock_response = {
-        "data": {
-            "generateRegistryV2Export": {
-                "id": "mock-export-id-123",
-                "status": RegistryV2ExportState.STARTED,
-            }
-        }
-    }
     url = reverse("registry_v2_prepare")
-    with patch("httpx.Client.post") as mock_post:
-        mock_post.return_value.json.return_value = mock_response
-
+    with patch("registry.views.process_export"):
         res = get_client.post(
             url,
             data={
+                "identifier_type": "SIRET",
                 "siret": "51212357100030",
                 "registry_type": "INCOMING",
                 "export_format": "CSV",
@@ -92,18 +84,17 @@ def test_registry_prepare_v2_post(get_client):
     reg = RegistryV2Export.objects.first()
     assert reg.pk
     assert reg.siret == "51212357100030"
-    assert reg.state == "STARTED"
+    assert reg.state == "PENDING"
 
 
 def test_registry_v2_prepare_form_valid_calls_task(verified_user):
-    """Test that form_valid method calls generate_registry_export.delay with correct args."""
+    """Test that form_valid method calls process_export with correct args."""
 
-    # Mock the delay method of the task
-    with patch("registry.task.generate_registry_export.delay") as mock_delay:
-        # Get the form submission URL
+    with patch("registry.views.process_export") as mock_process:
         url = reverse("registry_v2_prepare")
 
         form_data = {
+            "identifier_type": "SIRET",
             "siret": "12345678900000",
             "registry_type": "INCOMING",
             "declaration_type": "ALL",
@@ -128,8 +119,8 @@ def test_registry_v2_prepare_form_valid_calls_task(verified_user):
         assert export.registry_type == form_data["registry_type"]
         assert export.state == "PENDING"
 
-        # Assert that the task was called with the correct argument
-        mock_delay.assert_called_once_with(export.pk)
+        # Assert that process_export was called with the correct argument
+        mock_process.assert_called_once_with(export.pk)
 
 
 def test_registry_v2_list_content_deny_anon(anon_client):
@@ -174,7 +165,7 @@ def test_registry_v2_retrieve_deny_observatoire(verified_observatoire):
 def test_registry_v2_retrieve_success(verified_user):
     """Test successful retrieval of signed URL."""
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     # Mock API response with a signed URL
     mock_response = {
         "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://test-signed-url.example.com/download"}}
@@ -209,7 +200,7 @@ def test_registry_v2_retrieve_success(verified_user):
 def test_registry_v2_retrieve_api_error(verified_user):
     """Test handling of API error response."""
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     # Mock API error response
     mock_response = {"errors": [{"message": "Error retrieving download URL"}]}
 
@@ -237,7 +228,7 @@ def test_registry_v2_retrieve_missing_data(
     """Test handling of missing data in API response."""
     # Mock response with missing data structure
 
-    registry_export = RegistryV2ExportFactory()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
     mock_response = {
         "data": {}  # Empty data without the expected fields
     }
@@ -260,20 +251,121 @@ def test_registry_v2_retrieve_missing_data(
         assert len(messages) == 1
         assert "Erreur, le registre n'a pu être téléchargé" in str(messages[0])
 
-    def test_registry_v2_retrieve_request_exception(
-        verified_user,
-    ):
-        """Test handling of HTTP request exceptions."""
 
-        registry_export = RegistryV2ExportFactory()
-        with patch("httpx.Client.post") as mock_post:
-            # Configure the mock to raise an exception
-            mock_post.side_effect = Exception("Network error")
+def test_registry_v2_retrieve_request_exception(
+    verified_user,
+):
+    """Test handling of HTTP request exceptions."""
 
-            # Make the request
-            url = reverse("registry_v2_retrieve", args=[registry_export.pk])
-            with pytest.raises(Exception):
-                verified_user.post(url)
-        registry_export.refresh_from_db()
+    registry_export = RegistryV2ExportFactory(created_by=verified_user.user)
+    with patch("httpx.Client.post") as mock_post:
+        # Configure the mock to raise an exception
+        mock_post.side_effect = Exception("Network error")
 
-        assert registry_export.state == "PENDING"
+        # Make the request
+        url = reverse("registry_v2_retrieve", args=[registry_export.pk])
+        with pytest.raises(Exception):
+            verified_user.post(url)
+    registry_export.refresh_from_db()
+
+    assert registry_export.state == "PENDING"
+
+
+def test_registry_v2_retrieve_siren_success(verified_user):
+    """SIREN download returns a ZIP with one file per SIRET."""
+    import zipfile as zf
+
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, export_format="CSV")
+    siret1 = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="11111111111111", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="exp-1"
+    )
+    siret2 = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="22222222222222", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="exp-2"
+    )
+
+    mock_graphql_response = {
+        "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://s3.example.com/file"}}
+    }
+    fake_file_content = b"col1,col2\nval1,val2"
+
+    with patch("httpx.Client.post") as mock_post, patch("httpx.get") as mock_get:
+        mock_post.return_value.json.return_value = mock_graphql_response
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.content = fake_file_content
+        mock_get.return_value.raise_for_status = lambda: None
+
+        url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+        response = verified_user.post(url)
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/zip"
+    assert f"{siren_export.siren}_registre.zip" in response["Content-Disposition"]
+
+    zip_bytes = io.BytesIO(response.content)
+    with zf.ZipFile(zip_bytes) as z:
+        names = z.namelist()
+        assert f"{siret1.siret}.csv" in names
+        assert f"{siret2.siret}.csv" in names
+        assert z.read(f"{siret1.siret}.csv") == fake_file_content
+        assert z.read(f"{siret2.siret}.csv") == fake_file_content
+
+
+def test_registry_v2_retrieve_siren_no_completed_exports(verified_user):
+    """SIREN download with no SUCCESSFUL children redirects with error message."""
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, total_sirets=2, completed_sirets=0)
+    RegistryV2ExportSiretFactory(parent=siren_export, state=RegistryV2ExportState.PENDING)
+
+    url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+    response = verified_user.post(url, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("registry_v2_prepare")
+    messages_list = list(response.context["messages"])
+    assert any("Aucun export disponible" in str(m) for m in messages_list)
+
+
+def test_registry_v2_retrieve_siren_partial_failure(verified_user):
+    """SIREN download with some failed child downloads still returns a ZIP with successes."""
+    import zipfile as zf
+
+    siren_export = RegistryV2ExportSirenFactory(created_by=verified_user.user, export_format="CSV")
+    siret_ok = RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="33333333333333", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="ok"
+    )
+    RegistryV2ExportSiretFactory(
+        parent=siren_export, siret="44444444444444", state=RegistryV2ExportState.SUCCESSFUL, registry_export_id="fail"
+    )
+
+    fake_file_content = b"ok_data"
+
+    # Return a signed URL only for the "ok" export_id; return an error response for "fail"
+    def fake_post(url, **kwargs):
+        export_id = kwargs["json"]["variables"]["exportId"]
+        mock = type("R", (), {})()
+        if export_id == "ok":
+            mock.json = lambda: {
+                "data": {"registryV2ExportDownloadSignedUrl": {"signedUrl": "https://s3.example.com/file"}}
+            }
+        else:
+            mock.json = lambda: {"errors": [{"message": "not found"}]}
+        return mock
+
+    def fake_get(url, **kwargs):
+        mock = type("R", (), {})()
+        mock.status_code = 200
+        mock.content = fake_file_content
+        mock.raise_for_status = lambda: None
+        return mock
+
+    with patch("httpx.Client.post", side_effect=fake_post), patch("httpx.get", side_effect=fake_get):
+        url = reverse("registry_v2_retrieve", args=[siren_export.pk])
+        response = verified_user.post(url)
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/zip"
+
+    zip_bytes = io.BytesIO(response.content)
+    with zf.ZipFile(zip_bytes) as z:
+        names = z.namelist()
+        assert f"{siret_ok.siret}.csv" in names
+        assert len(names) == 1
