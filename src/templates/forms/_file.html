@@ -49,7 +49,11 @@
     }
 
     function showError(msg) {
-        messagesContainer.innerHTML = `<p class="fr-message fr-message--error">${msg}</p>`;
+        messagesContainer.innerHTML = "";
+        const errorMessage = document.createElement("p");
+        errorMessage.className = "fr-message fr-message--error";
+        errorMessage.textContent = msg;
+        messagesContainer.appendChild(errorMessage);
     }
 
     function clearError() {
