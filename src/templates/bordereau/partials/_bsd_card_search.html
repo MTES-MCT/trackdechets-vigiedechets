@@ -37,9 +37,9 @@
             <input type="hidden" name="weight" value="{{ bsd.waste_details.weight }}" />
             <input type="hidden" name="waste_code" value="{{ bsd.waste_details.code }}" />
             <input type="hidden" name="packagings" value="{{ bsd.packagings }}" />
-            <button type="submit" class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-btn--icon-only fr-icon-file-download-line"
+            <button type="submit" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line"
                     title="Télécharger le PDF {{ bsd.readable_id }}">
-                PDF<span id="id_bsd_spinner-{{ bsd.id }}"><span class="fr-icon-refresh-line" aria-hidden="true"></span></span>
+                <span id="id_bsd_spinner-{{ bsd.id }}"></span>
             </button>
         </form>
     </td>

@@ -49,10 +49,10 @@
             <button class="fr-btn fr-mt-4w" hx-on:click="document.getElementById('id_search_results').innerHTML = ''" hx-indicator="#id_spinner_wrapper">Afficher le(s) bordereau(x)</button>
         </div>
     </div>
+    <div class="fr-grid-row fr-grid-row--gutters fr-mb-2w" style="position: relative;">
+        <div id="recent-bsds-list" class="fr-col-3" style="position: absolute; z-index: 1000; top: -0.5rem;"></div>
+    </div>
 </form>
-
-<div id="recent-bsds-list" style="position: absolute; z-index: 1000;"></div>
-
 <div class="fr-grid-row fr-mt-2w fr-mb-2w">
     <div class="fr-col">
         <button class="fr-btn fr-btn--secondary"
@@ -64,15 +64,27 @@
         </button>
     </div>
 </div>
+<div id="page-bottom-spacer" style="height: 125px; display: none;"></div>
 <script>
     document.addEventListener('click', function(event) {
         const bsdInput = document.getElementById('id_bsd_id');
         const recentBsdsList = document.getElementById('recent-bsds-list');
+        const spacer = document.getElementById('page-bottom-spacer');
         
-        if (bsdInput && recentBsdsList) {
-            const isOnBsdLabel = event.target.closest('label[for="id_bsd_id"]');
-            if (!bsdInput.contains(event.target) && !recentBsdsList.contains(event.target) && !isOnBsdLabel) {
+        if (bsdInput && recentBsdsList && spacer) {
+            const searchResultsExist = document.getElementById('bsd-table') || document.querySelector('.fr-alert--warning');
+
+            // Si le clic est sur l'input
+            if (bsdInput.contains(event.target)) {
+                // On affiche le spacer seulement s'il n'y a pas déjà de résultats
+                if (!searchResultsExist) {
+                    spacer.style.display = 'block';
+                }
+            } 
+            // Si le clic n'est ni sur l'input ni à l'intérieur de la liste, on cache tout
+            else if (!recentBsdsList.contains(event.target)) {
                 recentBsdsList.innerHTML = '';
+                spacer.style.display = 'none';
             }
         }
     });
@@ -80,30 +92,20 @@
     (function() {
         const searchClueInput = document.getElementById('id_search_clue');
         const codePostalInput = document.getElementById('id_code_postal');
-        
         if (searchClueInput && codePostalInput) {
             function updateCodePostalState() {
                 const hasSearchClue = searchClueInput.value.trim().length >= 3;
                 codePostalInput.disabled = !hasSearchClue;
                 if (!hasSearchClue) {
-                    codePostalInput.value = '';
+                    codePostalInput.value = ''; 
                 }
             }
             
+            // Initialiser l'état
             updateCodePostalState();
+            
+            // Écouter les changements du champ search_clue
             searchClueInput.addEventListener('input', updateCodePostalState);
-        }
-
-        // Positionnement dynamique de la liste des BSD récents
-        const bsdInput = document.getElementById('id_bsd_id');
-        const recentList = document.getElementById('recent-bsds-list');
-        if (bsdInput && recentList) {
-            bsdInput.addEventListener('focus', function() {
-                const rect = bsdInput.getBoundingClientRect();
-                recentList.style.left = rect.left + 'px';
-                recentList.style.top = rect.bottom + 'px';
-                recentList.style.width = rect.width + 'px';
-            });
         }
     })();
 </script>

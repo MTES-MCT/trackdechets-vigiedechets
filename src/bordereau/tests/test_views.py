@@ -43,12 +43,12 @@ def test_bsd_advanced_search_view(verified_user):
     assert "id_code_dechet" in res.content.decode()
 
 
-def test_bsd_recent_pdfs_anon(anon_client):
-    res = anon_client.get(reverse("bsd_recent_pdfs"))
+def test_bordereau_recent_search_anon(anon_client):
+    res = anon_client.get(reverse("bordereau_recent_search"))
     assert res.status_code == 302
 
 
-def test_bsd_recent_pdfs(verified_user):
+def test_bordereau_recent_search(verified_user):
     other_user = UserFactory()
     BsdPdfFactory(created_by=other_user)
     BsdPdfFactory(created_by=verified_user.user, request_type="BSD", bsd_id="BSD-RECENT-1")
@@ -56,7 +56,7 @@ def test_bsd_recent_pdfs(verified_user):
     BsdPdfFactory(created_by=verified_user.user, request_type="ROAD_CONTROL")
     PdfBundleFactory(created_by=verified_user.user, state=PdfBundle.BundleChoice.PROCESSING)
 
-    res = verified_user.get(reverse("bsd_recent_pdfs"))
+    res = verified_user.get(reverse("bordereau_recent_search"))
     assert res.status_code == 200
     assert "BSD-RECENT-1" in res.content.decode()
 
@@ -73,7 +73,7 @@ def test_company_search_view_with_clue(mock_search, verified_user):
     mock_search.return_value = [
         {"siret": "12345678901234", "name": "TEST COMPANY", "address": "PARIS"}
     ]
-    res = verified_user.get(reverse("bordereau_company_search"), {"search_clue": "test"})
+    res = verified_user.get(reverse("bordereau_company_search"), {"search_clue": "test", "code_postal": ""})
     assert res.status_code == 200
     assert "TEST COMPANY" in res.content.decode()
 
@@ -82,7 +82,7 @@ def test_company_search_view_persistence_json(mock_search, verified_user):
     company_data = {"siret": "99999999999999", "name": "CACHED COMPANY", "address": "LYON"}
     res = verified_user.get(
         reverse("bordereau_company_search"),
-        {"selected_siret": "99999999999999", "selected_company_json": json.dumps(company_data)},
+        {"search_clue": "", "code_postal": "", "selected_siret": "99999999999999", "selected_company_json": json.dumps(company_data)},
     )
     assert res.status_code == 200
     assert "CACHED COMPANY" in res.content.decode()
