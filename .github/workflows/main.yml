@@ -55,7 +55,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: admin
           POSTGRES_DB: vigiedechets_test
-        ports: [ "5432:5432" ]
+        ports: ["5432:5432"]
       redis:
         image: redis
         ports:
@@ -88,14 +88,14 @@ jobs:
             echo "Download attempt $i failed, retrying..."
             sleep 2
           done
-          
+
           # Verify the binary is valid
           if ! file mc | grep -q "ELF 64-bit"; then
             echo "Downloaded file is not a valid ELF binary"
             cat mc
             exit 1
           fi
-          
+
           chmod +x mc
           ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
           ./mc mb --ignore-existing myminio/vigidechets-test
