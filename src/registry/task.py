@@ -3,6 +3,7 @@ import logging
 
 import httpx
 from celery import chain
+from celery.exceptions import MaxRetriesExceededError
 from django.conf import settings
 from django.utils import timezone
 
@@ -10,19 +11,59 @@ from config.celery_app import app
 
 from .constants import RegistryV2ExportState
 from .gql import graphql_generate_registry_export, graphql_read_registry_export
-from .models import RegistryV2Export
+from .models import RegistryV2Export, RegistryV2ExportSiren, RegistryV2ExportSiret
 
 logger = logging.getLogger(__name__)
 
 
-def process_export(registry_v2_export_pk):
-    if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
-        # for testing purposes
-        generate_registry_export.delay(registry_v2_export_pk)
-        return
+def get_siret_export(registry_v2_export_pk):
+    try:
+        return RegistryV2ExportSiret.objects.get(pk=registry_v2_export_pk)
+    except RegistryV2ExportSiret.DoesNotExist:
+        try:
+            return RegistryV2Export.objects.get(pk=registry_v2_export_pk)
+        except RegistryV2Export.DoesNotExist:
+            return None
 
-    task_chain = chain(generate_registry_export.s(registry_v2_export_pk), refresh_registry_export.s())
-    task_chain()
+
+def process_export(registry_v2_export_pk):
+    """Process export - handles both SIRET and SIREN exports"""
+    # Try to get as SIRET export first (backward compatibility)
+    try:
+        RegistryV2Export.objects.get(pk=registry_v2_export_pk)
+        # Existing SIRET export logic
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            generate_registry_export.delay(registry_v2_export_pk)
+            return
+
+        task_chain = chain(generate_registry_export.s(registry_v2_export_pk), refresh_registry_export.s())
+        task_chain()
+        return
+    except RegistryV2Export.DoesNotExist:
+        pass
+
+    # Try as SIREN export
+    try:
+        siren_export = RegistryV2ExportSiren.objects.get(pk=registry_v2_export_pk)
+        siret_exports = siren_export.siret_exports.all()
+
+        for siret_export in siret_exports:
+            if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+                generate_registry_export.delay(siret_export.pk)
+            else:
+                task_chain = chain(
+                    generate_registry_export.s(siret_export.pk),
+                    refresh_registry_export.s(),
+                    update_siren_export_state.si(registry_v2_export_pk),
+                )
+                task_chain()
+
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            update_siren_export_state.delay(registry_v2_export_pk)
+        return
+    except RegistryV2ExportSiren.DoesNotExist:
+        logger.error(f"Export {registry_v2_export_pk} not found")
+        raise
 
 
 MAX__GENERATE_DELAY = dt.timedelta(minutes=15)
@@ -32,7 +73,12 @@ MAX__GENERATE_DELAY = dt.timedelta(minutes=15)
 def generate_registry_export(self, registry_v2_export_pk):
     """Create a registry export on TD api"""
     geo_retry_delay = min(10 * self.request.retries, 300)
-    export = RegistryV2Export.objects.get(pk=registry_v2_export_pk)
+    max_retries = getattr(self, "max_retries", 3)  # Default to 3 if not set
+
+    export = get_siret_export(registry_v2_export_pk)
+    if not export:
+        logger.error(f"Export {registry_v2_export_pk} not found")
+        return None
 
     # Distant export ID already retrieved
     if export.registry_export_id:
@@ -56,18 +102,64 @@ def generate_registry_export(self, registry_v2_export_pk):
                 "variables": variables,
             },
         )
-    except httpx.RequestError:
-        logger.info("HTTP error")
-        raise self.retry(countdown=geo_retry_delay)
+    except httpx.RequestError as e:
+        logger.info(f"HTTP error: {e}")
+        try:
+            if self.request.retries >= max_retries:
+                logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+                export.mark_as_failed()
+                return None
+            raise self.retry(countdown=geo_retry_delay)
+        except MaxRetriesExceededError:
+            logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+            export.mark_as_failed()
+            return None
 
     resp = res.json()
+
+    # Check for GraphQL errors
+    if resp.get("errors"):
+        logger.error(f"GraphQL errors: {resp.get('errors')}")
+        try:
+            if self.request.retries >= max_retries:
+                logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+                export.mark_as_failed()
+                return None
+            raise self.retry(countdown=geo_retry_delay)
+        except MaxRetriesExceededError:
+            logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+            export.mark_as_failed()
+            return None
+
+    # Check if data is None (GraphQL error response)
+    if resp.get("data") is None:
+        logger.error(f"GraphQL response has no data for export {registry_v2_export_pk}")
+        try:
+            if self.request.retries >= max_retries:
+                logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+                export.mark_as_failed()
+                return None
+            raise self.retry(countdown=geo_retry_delay)
+        except MaxRetriesExceededError:
+            logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+            export.mark_as_failed()
+            return None
 
     try:
         registry_export_id = resp["data"]["generateRegistryV2Export"]["id"]
         status = resp["data"]["generateRegistryV2Export"]["status"]
-    except (TypeError, KeyError):
-        logger.info("Api response error")
-        raise self.retry(countdown=geo_retry_delay)
+    except (TypeError, KeyError) as e:
+        logger.error(f"Api response error: {e}, response: {resp}")
+        try:
+            if self.request.retries >= max_retries:
+                logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+                export.mark_as_failed()
+                return None
+            raise self.retry(countdown=geo_retry_delay)
+        except MaxRetriesExceededError:
+            logger.error(f"Max retries exceeded for export {registry_v2_export_pk}")
+            export.mark_as_failed()
+            return None
 
     export.registry_export_id = registry_export_id
     export.state = status
@@ -84,9 +176,8 @@ def refresh_registry_export(self, registry_v2_export_pk):
     static_retry_delay = 10
     geo_retry_delay = min(10 * self.request.retries, 300)
 
-    try:
-        export = RegistryV2Export.objects.get(pk=registry_v2_export_pk)
-    except RegistryV2Export.DoesNotExist:
+    export = get_siret_export(registry_v2_export_pk)
+    if not export:
         if self.request.retries < 3:
             # retry 2 times with a 1s delay
             raise self.retry(countdown=1)
@@ -95,7 +186,6 @@ def refresh_registry_export(self, registry_v2_export_pk):
 
     if export.state in [
         RegistryV2ExportState.CANCELED,
-        RegistryV2ExportState.SUCCESSFUL,
         RegistryV2ExportState.SUCCESSFUL,
     ]:
         return None
@@ -145,3 +235,14 @@ def refresh_registry_export(self, registry_v2_export_pk):
         # Api error, geometric retry delay
         logger.info("Api error")
         raise self.retry(countdown=geo_retry_delay)
+
+
+@app.task
+def update_siren_export_state(registry_v2_export_siren_pk):
+    """Update parent SIREN export state based on children"""
+    siren_export = RegistryV2ExportSiren.objects.get(pk=registry_v2_export_siren_pk)
+    siren_export.update_aggregated_state()
+
+    # If not all completed, schedule another check
+    if siren_export.state in [RegistryV2ExportState.PENDING, RegistryV2ExportState.STARTED]:
+        update_siren_export_state.apply_async(args=[registry_v2_export_siren_pk], countdown=10)
