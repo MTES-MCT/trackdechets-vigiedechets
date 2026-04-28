@@ -10,11 +10,26 @@ class FaqSearchForm(forms.Form):
 
 
 class ValidableMultiFileField(MultiFileField):
+    def __init__(self, *args, allowed_extensions=None, **kwargs):
+        self.allowed_extensions = allowed_extensions or []
+        self.data_max_files = kwargs.get("max_num")
+        self.data_max_size = kwargs.get("max_file_size")
+        self.human_readable_max_size = f"{self.data_max_size / (1024 * 1024)} Mo"
+        super().__init__(*args, **kwargs)
+
     def run_validators(self, value):
         value = value or []
-
         for item in value:
             super().run_validators(item)
+
+    def widget_attrs(self, widget):
+        attrs = super().widget_attrs(widget)
+        attrs["data-max-files"] = self.data_max_files
+        attrs["data-max-size"] = self.data_max_size
+        attrs["data-human-readable-max-size"] = self.human_readable_max_size
+        if self.allowed_extensions:
+            attrs["data-allowed-extensions"] = ",".join(self.allowed_extensions)
+        return attrs
 
 
 class ContactForm(forms.Form):
@@ -25,11 +40,14 @@ class ContactForm(forms.Form):
 
     body = forms.CharField(label="Question", widget=forms.Textarea(), min_length=20, max_length=3000)
 
+    ALLOWED_EXTENSIONS = ["jpg", "png", "pdf", "xls", "doc"]
+
     files = ValidableMultiFileField(
-        label="Fichier(s)",
+        label="Fichier(s) – facultatif, jusqu'à 5 fichiers",
         required=False,
         min_num=0,
         max_num=5,
         max_file_size=1024 * 1024 * 2.5,
-        validators=[FileExtensionValidator(["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"])],
+        allowed_extensions=ALLOWED_EXTENSIONS,
+        validators=[FileExtensionValidator(ALLOWED_EXTENSIONS)],
     )

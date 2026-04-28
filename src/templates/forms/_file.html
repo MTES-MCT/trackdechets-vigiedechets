@@ -1,0 +1,122 @@
+{% with max_size=field.field.data_max_size max_files=field.field.data_max_files extensions=field.field.allowed_extensions %}
+<div class="fr-upload-group"
+     id="{{ field.id_for_label }}-group">
+    <label class="fr-label">
+        {{ field.label }}
+        <span class="fr-hint-text">
+            Taille maximale : {{ field.field.human_readable_max_size }} par fichier. Formats supportés : {{ extensions|join:", " }}.
+        </span>
+    </label>
+    <input
+        class="fr-upload"
+        type="file"
+        id="{{ field.id_for_label }}"
+        accept=".{{ extensions|join:",." }}"
+        aria-describedby="{{ field.id_for_label }}-messages"
+        data-max-files="{{ max_files }}"
+        data-max-size="{{ max_size }}"
+        data-allowed-extensions="{{ extensions|join:"," }}"
+        multiple
+        {% if field.errors %}aria-invalid="true"{% endif %}
+    >
+    <div id="{{ field.id_for_label }}-file-list" class="fr-mt-2w"></div>
+    <div class="fr-messages-group" id="{{ field.id_for_label }}-messages" aria-live="polite">
+        {% for error in field.errors %}
+            <p class="fr-message fr-message--error">{{ error }}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endwith %}
+
+<script>
+(function () {
+    const input = document.getElementById("{{ field.id_for_label }}");
+    const fieldName = "{{ field.html_name }}";
+    const MAX_FILES = parseInt(input.dataset.maxFiles, 10);
+    const MAX_SIZE = parseInt(input.dataset.maxSize, 10);
+    const ALLOWED_EXTENSIONS = input.dataset.allowedExtensions.split(",");
+
+    const fileListContainer = document.getElementById(`${input.id}-file-list`);
+    const messagesContainer = document.getElementById(`${input.id}-messages`);
+    let selectedFiles = [];
+
+    function getExtension(filename) {
+        return filename.split(".").pop().toLowerCase();
+    }
+
+    function formatSize(bytes) {
+        return (bytes / 1024 / 1024).toFixed(2) + " Mo";
+    }
+
+    function showError(msg) {
+        messagesContainer.innerHTML = `<p class="fr-message fr-message--error">${msg}</p>`;
+    }
+
+    function clearError() {
+        messagesContainer.innerHTML = "";
+    }
+
+    function renderFileList() {
+        fileListContainer.innerHTML = "";
+
+        document.querySelectorAll(`input[data-file-input="${fieldName}"]`).forEach(el => el.remove());
+
+        selectedFiles.forEach((file, index) => {
+            const tag = document.createElement("div");
+            tag.className = "fr-badge-group fr-mt-1w";
+            tag.style.cssText = "display:flex; align-items:center; gap:0.5rem;";
+            tag.innerHTML = `
+                <span class="fr-badge fr-badge--info">${file.name} (${formatSize(file.size)})</span>
+                <button type="button"
+                        class="fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-close-line"
+                        aria-label="Supprimer ${file.name}"
+                        data-index="${index}">
+                </button>
+            `;
+            fileListContainer.appendChild(tag);
+        });
+
+        const form = input.closest("form");
+        selectedFiles.forEach((file) => {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            const hiddenInput = document.createElement("input");
+            hiddenInput.type = "file";
+            hiddenInput.name = fieldName;
+            hiddenInput.style.display = "none";
+            hiddenInput.dataset.fileInput = fieldName;
+            hiddenInput.files = dt.files;
+            form.appendChild(hiddenInput);
+        });
+
+        input.style.display = selectedFiles.length >= MAX_FILES ? "none" : "";
+    }
+
+    fileListContainer.addEventListener("click", function (e) {
+        const btn = e.target.closest("button[data-index]");
+        if (!btn) return;
+        selectedFiles.splice(parseInt(btn.dataset.index, 10), 1);
+        clearError();
+        renderFileList();
+    });
+
+    input.addEventListener("change", function () {
+        clearError();
+        for (const file of Array.from(input.files)) {
+            if (selectedFiles.find(f => f.name === file.name && f.size === file.size)) continue;
+            if (!ALLOWED_EXTENSIONS.includes(getExtension(file.name))) {
+                showError(`Format non supporté : ${file.name}`); continue;
+            }
+            if (file.size > MAX_SIZE) {
+                showError(`Fichier trop lourd (max ${formatSize(MAX_SIZE)}) : ${file.name}`); continue;
+            }
+            if (selectedFiles.length >= MAX_FILES) {
+                showError(`Maximum ${MAX_FILES} fichiers autorisés.`); break;
+            }
+            selectedFiles.push(file);
+        }
+        input.value = "";
+        renderFileList();
+    });
+})();
+</script>

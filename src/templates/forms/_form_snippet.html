@@ -18,6 +18,8 @@
         {% include 'forms/_checkbox.html' with field=field %}
     {% elif field|is_radio %}
         {% include 'forms/_radio.html' with field=field %}
+    {% elif field|is_input_file %}
+        {% include 'forms/_file.html' with field=field %}
     {% else %}
         {% include 'forms/_field.html' with field=field skip_optional=skip_optional %}
     {% endif %}
