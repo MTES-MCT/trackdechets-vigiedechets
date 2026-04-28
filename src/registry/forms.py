@@ -190,7 +190,7 @@ class RegistryV2PrepareForm(forms.ModelForm):
             # (the query uses substring comparison)
             results = con.execute(prepared_query, {"siren": siren}).all()
             return [row[0] for row in results]  # Extract SIRETs
-            
+
     def save(self, commit=True):
         identifier_type = self.cleaned_data.get("identifier_type")
 
