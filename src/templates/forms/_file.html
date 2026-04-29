@@ -66,21 +66,24 @@
         document.querySelectorAll(`input[data-file-input="${fieldName}"]`).forEach(el => el.remove());
 
         selectedFiles.forEach((file, index) => {
-            const tag = document.createElement("div");
-            tag.className = "fr-badge-group fr-mt-1w";
-            tag.style.cssText = "display:flex; align-items:center; gap:0.5rem;";
-            const badge = document.createElement("span");
-            badge.className = "fr-badge fr-badge--info";
-            badge.textContent = `${file.name} (${formatSize(file.size)})`;
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-close-line";
-            btn.setAttribute("aria-label", `Supprimer ${file.name}`);
-            btn.dataset.index = String(index);
-            tag.appendChild(badge);
-            tag.appendChild(btn);
-            fileListContainer.appendChild(tag);
-        });
+        const tag = document.createElement("div");
+        tag.style.cssText = "display:flex; align-items:center; gap:0.5rem; width:100%;";
+
+        const badge = document.createElement("span");
+        badge.className = "fr-badge fr-badge--info";
+        badge.style.cssText = "flex: 1; max-width: fit-content;";
+        badge.textContent = `${file.name} (${formatSize(file.size)})`;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "fr-btn fr-btn--tertiary-no-outline fr-btn--sm fr-icon-close-line";
+        btn.setAttribute("aria-label", `Supprimer ${file.name}`);
+        btn.dataset.index = String(index);
+
+        tag.appendChild(badge);
+        tag.appendChild(btn);
+        fileListContainer.appendChild(tag);
+    });
 
         const form = input.closest("form");
         selectedFiles.forEach((file) => {
@@ -114,7 +117,7 @@
                 showError(`Format non supporté : ${file.name}`); continue;
             }
             if (file.size > MAX_SIZE) {
-                showError(`Fichier trop lourd (max ${formatSize(MAX_SIZE)}) : ${file.name}`); continue;
+                showError(`Fichier trop lourd (max ${formatSize(MAX_SIZE)}) : ${file.name} (${formatSize(file.size)})`); continue;
             }
             if (selectedFiles.length >= MAX_FILES) {
                 showError(`Maximum ${MAX_FILES} fichiers autorisés.`); break;
