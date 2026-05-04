@@ -1,7 +1,7 @@
 graphql_generate_registry_export = """
   mutation GenerateRegistryV2Export(
     $registryType: RegistryV2ExportType!
-    $siret: String,
+    $siret: String!
     $format: RegistryExportFormat!
     $dateRange: DateFilter!
     $where: RegistryV2ExportWhere
