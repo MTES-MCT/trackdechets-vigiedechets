@@ -17,7 +17,7 @@ def test_generate_registry_export_success():
     registry_export = RegistryV2ExportSiretFactory()
     mock_response = {
         "data": {
-            "generateRegistryV2ExportAsAdmin ": {
+            "generateRegistryV2ExportAsAdmin": {
                 "id": "mock-export-id-123",
                 "status": RegistryV2ExportState.STARTED,
             }
@@ -59,7 +59,7 @@ def test_generate_registry_export_with_advanced_params_success():
     )
     mock_response = {
         "data": {
-            "generateRegistryV2ExportAsAdmin ": {
+            "generateRegistryV2ExportAsAdmin": {
                 "id": "mock-export-id-123",
                 "status": RegistryV2ExportState.STARTED,
             }
