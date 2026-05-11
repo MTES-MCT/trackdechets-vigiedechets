@@ -5,6 +5,25 @@ Les changements importants de Trackdéchets préparation inspection sont documen
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 et le projet suit un schéma de versioning inspiré de [Calendar Versioning](https://calver.org/).
 
+## 06/03/2026
+
+- Ajout du tableau des révisions auto-approuvées dans les fiches établissement : affiche les révisions BSDD (émetteur particulier ou navire OMI) et BSDA (émetteur particulier sans entreprise de travaux) validées sans approbation tierce, avec le détail des champs modifiés (valeur précédente / nouvelle valeur)
+
+## 02/03/2026
+
+- Refonte des graphiques "Origine des déchets" des fiches établissement : affichage par source (BSDD, BSDA, TEXS, DND) au lieu de "déchets dangereux / non dangereux / amiante"
+
+## 09/02/2026
+
+- Ajout du suivi de la quantité cumulée (`cumul_quantite_traitee`) pour les rubriques ICPE journalières (2790, 2791, 2770, 2771) dans la cartographie ICPE
+- Ajout du support de la rubrique 2791 dans les rubriques journalières
+- Amélioration des graphiques ICPE : affichage de la quantité cumulée sur un axe Y secondaire pour les rubriques journalières
+- Ajout du contrôle d'accès par email pour les exports de données (Observatoires) via la variable d'environnement `ALLOWED_EMAILS_FOR_DATA_EXPORT`
+
+## 27/01/2026
+
+- Réorganisation de l'affichage : la section ICPE est maintenant affichée avant la section des bordereaux de suivi dématérialisés dans les fiches établissement
+
 ## 08/01/2026
 
 - Ajout du statut "fermé/inactif" (is_dormant) dans la vue cartographie des établissements avec affichage d'un badge dans le popup

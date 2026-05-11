@@ -1,0 +1,46 @@
+{% load utils %}
+{% if bsd_auto_approved_revision_data %}
+    <h3>Liste des révisions auto-approuvées</h3>
+    <div {% if graph_context == "web" %}class="fr-table "{% endif %}>
+        <table {% if graph_context != "web" %}class="pdf-table"{% endif %}>
+            <thead>
+                <tr>
+                    <th scope="col">Numéro de bordereau</th>
+                    <th scope="col">Date de modification</th>
+                    <th scope="col">SIRET émetteur</th>
+                    <th scope="col">SIRET destinataire</th>
+                    <th scope="col">Motif renseigné</th>
+                    <th scope="col">Champ modifié</th>
+                    <th scope="col">Valeur précédente</th>
+                    <th scope="col">Nouvelle valeur</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in bsd_auto_approved_revision_data %}
+                    <tr>
+                        <td>{{ row.readable_id }}</td>
+                        <td>{{ row.updated_at }}</td>
+                        <td>
+                            {% if row.emitter_company_siret == company_siret %}
+                                <span class="fr-text--bold">{{ row.emitter_company_siret }}</span>
+                            {% else %}
+                                {{ row.emitter_company_siret }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.recipient_company_siret == company_siret %}
+                                <span class="fr-text--bold">{{ row.recipient_company_siret }}</span>
+                            {% else %}
+                                {{ row.recipient_company_siret }}
+                            {% endif %}
+                        </td>
+                        <td>{{ row.comment }}</td>
+                        <td>{{ row.field_name }}</td>
+                        <td>{{ row.previous_value }}</td>
+                        <td>{{ row.new_value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

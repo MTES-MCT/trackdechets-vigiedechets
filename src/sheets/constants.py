@@ -47,8 +47,9 @@ BSDA = "bsda"
 BSDASRI = "bsdasri"
 BSFF = "bsff"
 BSVHU = "bsvhu"
-
 BS_TYPES_WITH_MULTIMODAL_TRANSPORT = [BSDD, BSDD_NON_DANGEROUS, BSDA, BSFF]
+
+WASTE_ORIGIN_TYPES = [BSDD, BSDA, "texs", "dnd"]
 
 
 PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
@@ -64,8 +65,10 @@ PLOTLY_GRAPHS_TO_RENDER_IN_PDF = [
     "bsff_stock",
     "bsvhu_created_rectified",
     "bsvhu_stock",
-    "waste_origin",
-    "waste_origin_map",
+    "bsdd_waste_origin",
+    "bsda_waste_origin",
+    "texs_waste_origin",
+    "dnd_waste_origin",
     "icpe_2770",
     "icpe_2790",
     "icpe_2760_1",

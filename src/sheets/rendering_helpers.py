@@ -35,7 +35,7 @@ def render_pdf_graph_fn(computed_pk, name):
             return
         graph_data = getattr(computed, graph_data_fn)
         graph = ""
-        if graph_data is not None and graph_data != "{}":
+        if graph_data:
             graph = data_to_bs64_plot(graph_data)
 
         setattr(computed, field_name_to_update, graph)
@@ -80,8 +80,10 @@ def render_pdf_sheet_fn(computed_pk: str):
         "bsff_stock_graph": sheet.bsff_stock_graph,
         "bsvhu_created_rectified_graph": sheet.bsvhu_created_rectified_graph,
         "bsvhu_stock_graph": sheet.bsvhu_stock_graph,
-        "waste_origin_graph": sheet.waste_origin_graph,
-        "waste_origin_map_graph": sheet.waste_origin_map_graph,
+        "bsdd_waste_origin_graph": sheet.bsdd_waste_origin_graph,
+        "bsda_waste_origin_graph": sheet.bsda_waste_origin_graph,
+        "texs_waste_origin_graph": sheet.texs_waste_origin_graph,
+        "dnd_waste_origin_graph": sheet.dnd_waste_origin_graph,
         "icpe_2770_graph": sheet.icpe_2770_graph,
         "icpe_2790_graph": sheet.icpe_2790_graph,
         "icpe_2760_1_graph": sheet.icpe_2760_1_graph,

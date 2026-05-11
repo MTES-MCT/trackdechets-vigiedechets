@@ -130,16 +130,21 @@ class ComputedInspectionData(models.Model):
 
     storage_data = models.JSONField(default=dict)
 
-    waste_origin_data = models.JSONField(default=dict)
-    waste_origin_map_data = models.JSONField(default=dict)
+    bsdd_waste_origin_data = models.JSONField(default=dict)
+    bsda_waste_origin_data = models.JSONField(default=dict)
+    texs_waste_origin_data = models.JSONField(default=dict)
+    dnd_waste_origin_data = models.JSONField(default=dict)
 
     waste_flows_data = models.JSONField(default=dict)
 
     icpe_data = models.JSONField(default=dict)
     agreement_data = models.JSONField(default=dict)
+    eco_organisme_partners_data = models.JSONField(default=list)
+    is_vhu_company = models.BooleanField(default=False)
     traceability_interruptions_data = models.JSONField(default=dict)
     waste_is_dangerous_statements_data = models.JSONField(default=dict)
     bsd_canceled_data = models.JSONField(default=dict)
+    bsd_auto_approved_revision_data = models.JSONField(default=list)
     bsd_refused_data = models.JSONField(default=dict)
     same_emitter_recipient_data = models.JSONField(default=dict)
     private_individuals_collections_data = models.JSONField(default=dict)
@@ -165,8 +170,10 @@ class ComputedInspectionData(models.Model):
     bsvhu_created_rectified_graph = models.TextField(blank=True)
     bsvhu_stock_graph = models.TextField(blank=True)
 
-    waste_origin_graph = models.TextField(blank=True)
-    waste_origin_map_graph = models.TextField(blank=True)
+    bsdd_waste_origin_graph = models.TextField(blank=True)
+    bsda_waste_origin_graph = models.TextField(blank=True)
+    texs_waste_origin_graph = models.TextField(blank=True)
+    dnd_waste_origin_graph = models.TextField(blank=True)
 
     icpe_2770_data = models.TextField(blank=True)
     icpe_2770_graph = models.TextField(blank=True)

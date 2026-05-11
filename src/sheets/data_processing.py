@@ -8,13 +8,20 @@ import pandas as pd
 import polars as pl
 from django.utils import timezone
 
-from .constants import BS_TYPES_WITH_MULTIMODAL_TRANSPORT, BSDA, BSDASRI, BSDD, BSDD_NON_DANGEROUS, BSFF, BSVHU
-from .data_extract import (
-    load_and_preprocess_regions_geographical_data,
-    load_departements_regions_data,
-    load_waste_code_data,
+from .constants import (
+    BS_TYPES_WITH_MULTIMODAL_TRANSPORT,
+    BSDA,
+    BSDASRI,
+    BSDD,
+    BSDD_NON_DANGEROUS,
+    BSFF,
+    BSVHU,
+    WASTE_ORIGIN_TYPES,
 )
+from .data_extract import load_departements_regions_data, load_waste_code_data
 from .data_extraction import (
+    build_auto_approved_revision_bsda_query,
+    build_auto_approved_revision_bsdd_query,
     build_bsda_query,
     build_bsda_transporter_query,
     build_bsdasri_query,
@@ -31,6 +38,7 @@ from .data_extraction import (
     build_revised_bsdasri_query,
     build_revised_bsdd_query,
     get_agreement_data,
+    get_eco_organisme_partners_data,
     get_gistrid_data,
     get_icpe_data,
     get_icpe_item_data,
@@ -40,6 +48,7 @@ from .data_extraction import (
     get_ssd_data,
 )
 from .graph_processors.html_components import (
+    BsdAutoApprovedRevisionTableProcessor,
     BsdaWorkerStatsProcessor,
     BsdCanceledTableProcessor,
     BsdRefusedTableProcessor,
@@ -79,7 +88,6 @@ from .graph_processors.plotly_components import (
     TransportedQuantitiesGraphProcessor,
     TransporterBordereauxGraphProcessor,
     WasteOriginProcessor,
-    WasteOriginsMapProcessor,
 )
 from .models import ComputedInspectionData
 from .utils import (
@@ -91,7 +99,6 @@ from .utils import (
 
 WASTE_CODES_DATA = load_waste_code_data()
 DEPARTEMENTS_REGION_DATA = load_departements_regions_data()
-REGIONS_GEODATA = load_and_preprocess_regions_geographical_data()
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +148,7 @@ bsds_config = [
         "bsd_type": BSDD,
         "bs_data": build_bsdd_query,
         "bs_revised_data": build_revised_bsdd_query,
+        "bs_auto_approved_revision_data": build_auto_approved_revision_bsdd_query,
         "bs_transporter_data": build_bsdd_transporter_query,
     },
     {
@@ -153,6 +161,7 @@ bsds_config = [
         "bsd_type": BSDA,
         "bs_data": build_bsda_query,
         "bs_revised_data": build_revised_bsda_query,
+        "bs_auto_approved_revision_data": build_auto_approved_revision_bsda_query,
         "bs_transporter_data": build_bsda_transporter_query,
     },
     {
@@ -189,6 +198,7 @@ class SheetProcessor:
         self.linked_companies_data = None
         self.bs_dfs = {}
         self.revised_bs_dfs = {}
+        self.auto_approved_revision_dfs = {}
         self.transporter_data_dfs = {}
         self.bsff_packagings_df = None
         self.icpe_data = None
@@ -255,6 +265,14 @@ class SheetProcessor:
                 if len(revised_df.collect()) > 0:
                     self.revised_bs_dfs[bsd_type] = revised_df
 
+            bs_auto_approved_revision_data = bsd_config.get("bs_auto_approved_revision_data", None)
+            if bs_auto_approved_revision_data:
+                auto_approved_df = bs_auto_approved_revision_data(
+                    company_id=self.company_id,
+                )
+                if len(auto_approved_df.collect()) > 0:
+                    self.auto_approved_revision_dfs[bsd_type] = auto_approved_df
+
             bs_transporter_data = bsd_config.get("bs_transporter_data", None)
             if bs_transporter_data is not None:
                 transporter_data_df = bs_transporter_data(
@@ -296,10 +314,12 @@ class SheetProcessor:
 
     def _process_company_data(self):
         company_data_df = self.company_data.collect()
+        company_types = company_data_df["company_types"].item()
+
         self.company_id = company_data_df["id"].item()
         self.computed.company_name = company_data_df["name"].item()
         self.computed.company_address = company_data_df["address"].item() or ""
-        self.computed.company_profiles = to_verbose_company_types(company_data_df["company_types"].item())
+        self.computed.company_profiles = to_verbose_company_types(company_types)
         self.computed.company_collector_profiles = to_verbose_collector_types(
             company_data_df["collector_types"].item()
         )
@@ -310,6 +330,14 @@ class SheetProcessor:
         self.computed.company_has_enabled_registry_dnd_from_bsd_since = company_data_df[
             "has_enabled_registry_dnd_from_bsd_since"
         ].item()
+
+        # Process eco-organisme partners data only for VHU installations
+        is_vhu_company = "WASTE_VEHICLES" in company_types
+        self.computed.is_vhu_company = is_vhu_company
+        if is_vhu_company:
+            eco_organisme_partners_ids = company_data_df["eco_organisme_partners_ids"].item()
+            if len(eco_organisme_partners_ids) > 0:
+                self.computed.eco_organisme_partners_data = get_eco_organisme_partners_data(eco_organisme_partners_ids)
 
         self.computed.save()
 
@@ -382,24 +410,22 @@ class SheetProcessor:
         )
         self.computed.quantities_transported_stats_graph_data = quantities_transported_graph.build()
 
-        waste_origin = WasteOriginProcessor(
-            self.siret,
-            self.bs_dfs,
-            DEPARTEMENTS_REGION_DATA,
-            data_date_interval,
-            packagings_data=self.bsff_packagings_df,
-        )
-        self.computed.waste_origin_data = waste_origin.build()
+        waste_origin_sources = {
+            "bsdd": self.bs_dfs.get(BSDD),
+            "bsda": self.bs_dfs.get(BSDA),
+            "texs": self.registry_data.get("excavated_land_incoming"),
+            "dnd": self.registry_data.get("ndw_incoming"),
+        }
 
-        waste_origin_map = WasteOriginsMapProcessor(
-            self.siret,
-            self.bs_dfs,
-            DEPARTEMENTS_REGION_DATA,
-            REGIONS_GEODATA,
-            data_date_interval,
-            packagings_data=self.bsff_packagings_df,
-        )
-        self.computed.waste_origin_map_data = waste_origin_map.build()
+        for waste_type in WASTE_ORIGIN_TYPES:
+            waste_origin = WasteOriginProcessor(
+                company_siret=self.siret,
+                waste_type=waste_type,
+                data_df=waste_origin_sources[waste_type],
+                departements_regions_df=DEPARTEMENTS_REGION_DATA,
+                data_date_interval=data_date_interval,
+            )
+            setattr(self.computed, f"{waste_type}_waste_origin_data", waste_origin.build())
 
         for rubrique, processor in [
             ("2770", ICPEDailyItemProcessor),
@@ -600,6 +626,13 @@ class SheetProcessor:
             data_date_interval,
         )
         self.computed.bsd_canceled_data = bsd_canceled_table.build()
+
+        bsd_auto_approved_revision_table = BsdAutoApprovedRevisionTableProcessor(
+            self.siret,
+            self.auto_approved_revision_dfs,
+            data_date_interval,
+        )
+        self.computed.bsd_auto_approved_revision_data = bsd_auto_approved_revision_table.build()
 
         bsd_refused_table = BsdRefusedTableProcessor(
             self.siret,

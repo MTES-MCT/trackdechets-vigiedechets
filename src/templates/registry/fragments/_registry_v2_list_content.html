@@ -18,24 +18,44 @@
         <tr>
             <td>
                 <div>{{ export.created_at }}</div>
-
-
-             {% registry_badge_class export %}
-
+                <p class="fr-badge fr-badge--sm 
+                    {% if export.state == 'SUCCESSFUL' %}fr-badge--success
+                    {% elif export.state == 'FAILED' or export.state == 'CANCELED' %}fr-badge--error
+                    {% elif export.state == 'STARTED' %}fr-badge--info
+                    {% else %}fr-badge--new{% endif %}">
+                    {% if export.state == 'SUCCESSFUL' %}Terminé
+                    {% elif export.state == 'FAILED' %}Erreur
+                    {% elif export.state == 'CANCELED' %}Annulé
+                    {% elif export.state == 'STARTED' %}En cours
+                    {% else %}En attente{% endif %}
+                </p>
             </td>
-            <td>{{ export.siret }}</td>
-            <td> {{ export.get_registry_type_display }}</td>
-            <td> {{ export.get_declaration_type_display }}</td>
+            <td>
+                {% if export.type == 'SIREN' %}
+                    <strong>SIREN:</strong> {{ export.identifier }}
+                    {% if export.total_sirets %}
+                        <br><small class="fr-text--sm">({{ export.completed_sirets }}/{{ export.total_sirets }} SIRETs terminés)</small>
+                    {% endif %}
+                {% else %}
+                    {{ export.identifier }}
+                {% endif %}
+            </td>
+            <td>
+                {{ export.registry_type_display }}
+                {% if export.type == 'SIREN' %}
+                    <br><span class="fr-badge fr-badge--sm fr-badge--info">SIREN</span>
+                {% endif %}
+            </td>
+            <td>{{ export.declaration_type_display }}</td>
             <td>{{ export.start_date|date:"SHORT_DATE_FORMAT" }}
                 <br> {{ export.end_date|date:"SHORT_DATE_FORMAT" }}</td>
 
             <td>
-
-                {% if export.in_progress %}
-                        <span class="fr-icon-refresh-line spinning fr-mx-1w"  ></span>
-            {% endif %}
-                {% if export.successful %}
-                    <form action="{% url "registry_v2_retrieve" export.pk %}" method="post">
+                {% if export.state == 'STARTED' or export.state == 'PENDING' %}
+                    <span class="fr-icon-refresh-line spinning fr-mx-1w"></span>
+                {% endif %}
+                {% if export.state == 'SUCCESSFUL' %}
+                    <form action="{% url "registry_v2_retrieve" export.id %}" method="post">
                         {% csrf_token %}
                         <button class="fr-btn fr-btn--tertiary fr-icon-download-line">download</button>
                     </form>

@@ -29,7 +29,7 @@ class DataExport(models.Model):
     s3_path = models.CharField(_("S3 path"), max_length=512, blank=True)
     last_modified = models.DateTimeField(_("LAst modified"), blank=True, null=True)
     created_at = models.DateTimeField(_("Created at"), default=timezone.now)
-    size = models.PositiveIntegerField(_("Size"), null=True, blank=True)
+    size = models.PositiveBigIntegerField(_("Size"), null=True, blank=True)
     verbose_size = models.CharField(_("Verbose size"), max_length=64, blank=True)
 
     class Meta:

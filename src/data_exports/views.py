@@ -21,6 +21,7 @@ class DummyForm(forms.Form):
 class ExportList(FullyLoggedMixin, TemplateView):
     template_name = "data_exports/data_exports.html"
     allowed_user_categories = PERMS_DATA_EXPORT
+    allowed_user_emails = settings.ALLOWED_EMAILS_FOR_DATA_EXPORT
 
     def get_exports(self):
         oldest_year = 2022
@@ -45,6 +46,7 @@ class ExportDownload(FullyLoggedMixin, FormView):
     form_class = DummyForm
     success_url = ""
     allowed_user_categories = PERMS_DATA_EXPORT
+    allowed_user_emails = settings.ALLOWED_EMAILS_FOR_DATA_EXPORT
 
     def get(self, request, *args, **kwargs):
         raise Http404()

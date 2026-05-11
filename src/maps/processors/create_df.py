@@ -1,11 +1,15 @@
+import logging
 import os
 import shutil
 
 from ..data.datasets import get_data_df
 
+logger = logging.getLogger(__name__)
+
 
 def build_dataframes():
     # store dataframes as parquet in temp files
+    logger.info("Building dataframes")
     root = r"temp_data"  # unversionned dir
     try:
         shutil.rmtree(root)
@@ -23,3 +27,4 @@ def build_dataframes():
         "icpe_france_waste_processed_data",
     ]:
         getattr(data, dataset_name).write_parquet(f"temp_data/{dataset_name}.parquet")
+        logger.info(f"DataFrame {dataset_name} written to temp_data/{dataset_name}.parquet")

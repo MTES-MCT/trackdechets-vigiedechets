@@ -107,8 +107,7 @@ INITIAL → COMPUTED → GRAPH_RENDERED → (PDF généré)
 
 - `BsdQuantitiesGraph` : Évolution mensuelle des quantités entrantes/sortantes
 - `BsdTrackedAndRevisedProcessor` : Bordereaux émis/reçus/révisés
-- `WasteOriginProcessor` : Origine géographique des déchets (TOP 6)
-- `WasteOriginsMapProcessor` : Carte choroplèthe des provenances
+- `WasteOriginProcessor` : Origine géographique des déchets par type de bordereau (TOP 10 départements)
 - `ICPEDailyItemProcessor` / `ICPEAnnualItemProcessor` : Suivi ICPE
 - `RegistryQuantitiesGraphProcessor` : Quantités registres DND
 

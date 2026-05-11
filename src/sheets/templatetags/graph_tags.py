@@ -59,6 +59,15 @@ def render_bsd_canceled_table(computed, graph_context="web"):
     }
 
 
+@register.inclusion_tag("sheets/components/bsd_auto_approved_revision_table.html")
+def render_bsd_auto_approved_revision_table(computed, graph_context="web"):
+    return {
+        "bsd_auto_approved_revision_data": computed.bsd_auto_approved_revision_data,
+        "company_siret": computed.org_id,
+        "graph_context": graph_context,
+    }
+
+
 @register.inclusion_tag("sheets/components/bsd_refused_table.html")
 def render_bsd_refused_table(computed, graph_context="web"):
     return {
@@ -139,6 +148,14 @@ def render_bs_without_icpe_authorization_tables(computed, graph_context="web"):
 def render_agreements(computed):
     return {
         "agreement_data": computed.agreement_data,
+    }
+
+
+@register.inclusion_tag("sheets/components/eco_organism_partners.html")
+def render_eco_organism_partners(computed):
+    return {
+        "eco_organisme_partners_data": computed.eco_organisme_partners_data,
+        "is_vhu_company": computed.is_vhu_company,
     }
 
 

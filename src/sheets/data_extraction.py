@@ -7,6 +7,8 @@ from sqlalchemy.sql import text
 from sheets.datawarehouse import get_wh_sqlachemy_engine
 
 from .queries import (
+    sql_auto_approved_revision_bsda_query_str,
+    sql_auto_approved_revision_bsdd_query_str,
     sql_bsda_query_str,
     sql_bsda_transporter_query_str,
     sql_bsdasri_query_str,
@@ -20,6 +22,7 @@ from .queries import (
     sql_bsvhu_query_str,
     sql_company_query_str,
     sql_get_broker_receipt_id_data,
+    sql_get_eco_organisme_partners_data,
     sql_get_gistrid_data,
     sql_get_icpe_data,
     sql_get_icpe_item_data,
@@ -84,6 +87,7 @@ query_types = {
     "collector_types": pl.List(inner=pl.String),
     "waste_processor_types": pl.List(inner=pl.String),
     "has_enabled_registry_dnd_from_bsd_since": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
+    "eco_organisme_partners_ids": pl.List(inner=pl.String),
     "emitter_is_private_individual": pl.Boolean,
     "volume": pl.Float64,
     "bsff_id": pl.String,
@@ -130,6 +134,38 @@ query_types = {
     "emitter_company_name": pl.String,
     "emitter_waste_weight_is_estimate": pl.Boolean,
     "refusal_reason": pl.String,
+    "is_vhu_company": pl.Boolean,
+    "updated_at": pl.Datetime(time_zone=ZoneInfo("Europe/Paris")),
+    "emitter_company_omi_number": pl.String,
+    "waste_details_code": pl.String,
+    "initial_waste_details_code": pl.String,
+    "waste_details_name": pl.String,
+    "initial_waste_details_name": pl.String,
+    "initial_quantity_received": pl.Float64,
+    "processing_operation_done": pl.String,
+    "initial_processing_operation_done": pl.String,
+    "initial_waste_details_quantity": pl.Float64,
+    "recipient_cap": pl.String,
+    "initial_recipient_cap": pl.String,
+    "destination_operation_mode": pl.String,
+    "initial_destination_operation_mode": pl.String,
+    "waste_acceptation_status": pl.String,
+    "initial_waste_acceptation_status": pl.String,
+    "initial_quantity_refused": pl.Float64,
+    "waste_refusal_reason": pl.String,
+    "initial_waste_refusal_reason": pl.String,
+    "waste_details_pop": pl.Boolean,
+    "initial_waste_details_pop": pl.Boolean,
+    "initial_waste_code": pl.String,
+    "waste_material_name": pl.String,
+    "initial_waste_material_name": pl.String,
+    "destination_reception_weight": pl.Float64,
+    "initial_destination_reception_weight": pl.Float64,
+    "destination_operation_code": pl.String,
+    "initial_destination_operation_code": pl.String,
+    "destination_cap": pl.String,
+    "initial_destination_cap": pl.String,
+    "initial_waste_pop": pl.Boolean,
 }
 
 
@@ -181,6 +217,20 @@ def build_bsdd_non_dangerous_query(
     )
 
     return df.lazy()
+
+
+def build_auto_approved_revision_bsdd_query(company_id: str) -> pl.LazyFrame:
+    return build_query(
+        sql_auto_approved_revision_bsdd_query_str,
+        query_params={"company_id": company_id},
+    ).lazy()
+
+
+def build_auto_approved_revision_bsda_query(company_id: str) -> pl.LazyFrame:
+    return build_query(
+        sql_auto_approved_revision_bsda_query_str,
+        query_params={"company_id": company_id},
+    ).lazy()
 
 
 def build_revised_bsdd_query(
@@ -496,3 +546,22 @@ def get_ssd_data(siret: str) -> Union[pl.LazyFrame, None]:
     if len(ssd_data):
         return ssd_data.lazy()
     return None
+
+
+def get_eco_organisme_partners_data(partner_ids: list[str]) -> list[dict]:
+    """Get eco-organisme partners data from their SIRETs.
+
+    Parameters
+    ----------
+    partner_ids : list[str]
+        List of company ids to look up.
+
+    Returns
+    -------
+    list[dict]
+        List of dicts with 'siret' and 'name' keys.
+    """
+
+    df = build_query(sql_get_eco_organisme_partners_data, query_params={"partner_ids": tuple(partner_ids)})
+
+    return [{"name": row["name"], "siret": row["siret"]} for row in df.iter_rows(named=True)]

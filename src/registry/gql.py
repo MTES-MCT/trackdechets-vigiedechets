@@ -1,12 +1,12 @@
 graphql_generate_registry_export = """
-  mutation GenerateRegistryV2Export(
+  mutation GenerateRegistryV2ExportAsAdmin (
     $registryType: RegistryV2ExportType!
-    $siret: String,
+    $siret: String!
     $format: RegistryExportFormat!
     $dateRange: DateFilter!
     $where: RegistryV2ExportWhere
   ) {
-    generateRegistryV2Export(
+    generateRegistryV2ExportAsAdmin(
      registryType: $registryType, 
      format: $format, 
      siret: $siret, 

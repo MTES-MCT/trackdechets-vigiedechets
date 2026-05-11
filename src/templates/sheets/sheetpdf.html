@@ -52,6 +52,7 @@
                 <div class="cell cell--bordered cell--third">
                     <h3 class="cell__title">Agréments et récépissés déclarés sur Trackdéchets</h3>
                     {% render_agreements sheet %}
+                    {% render_eco_organism_partners sheet %}
                 </div>
                 <div class="cell cell--third">
                     <p class="pdf-text">Les données présentes dans cette fiche proviennent de différentes sources :</p>
@@ -67,6 +68,48 @@
                 {% render_linked_companies_data sheet graph_context="pdf" %}
                 {# end linked companies table #}
             </div>
+            {# ICPE #}
+            <h2 class="section__title">Données installation classée pour la protection de l'Environnement (ICPE)</h2>
+            {% if sheet.icpe_data %}
+                <p>
+                    Vous trouverez ci-aprés les données GUN telles qu'elles sont enregistrées dans GUN.
+                    En cas de différence avec la réalité, merci de vérifier et mettre à jour GUN,
+                    de façon à pouvoir vous proposer une analyse plus fine en lien avec les rubriques.
+                </p>
+                <div class="row">
+                    {# Rubriques list #}
+                    {% render_icpe sheet graph_context="pdf" %}
+                    {# end Rubriques list #}
+                </div>
+                {% render_icpe_graphs sheet graph_context="pdf" %}
+                {% if sheet.bs_processed_without_icpe_authorization %}
+                    <div class="row">
+                        <div>
+                            <div class="fr-alert fr-alert--warning">
+                                <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
+                                <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
+                            </div>
+                            {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-data-section">PAS DE DONNÉES ICPE.</div>
+                <p>
+                    Les données GUN ne nous permettent pas de disposer des données ICPE et ainsi vous proposer une analyse plus fine en lien avec les rubriques.
+                    Pour disposer de ces données, merci de vous assurer que le SIRET de l'établissement est complété dans GUN et qu'il est bien à jour (à corroborer avec l'exploitant).
+                </p>
+                {% if sheet.bs_processed_without_icpe_authorization %}
+                    <div>
+                        <div class="fr-alert fr-alert--warning">
+                            <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
+                            <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
+                        </div>
+                        {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
+                    </div>
+                {% endif %}
+            {% endif %}
+            {# end ICPE #}
             <h2 class="section-title">Données des bordereaux de suivi dématérialisés issues de Trackdéchets</h2>
             {% if sheet.all_bsd_data_empty %}
                 <div class="no-data-section">PAS DE DONNÉES TRACKDÉCHETS À AFFICHER POUR LE SIRET {{ sheet.org_id }}.</div>
@@ -325,72 +368,43 @@
             {# on site #}
             <h2 class="section__title">Déchets sur site (théorique)</h2>
             <div class="row">
-                <div class="cell cell--bordered cell--third">
+                <div class="cell cell--bordered cell--half">
                     {% include "sheets/components/on_site_wastes.html" with storage_data=sheet.storage_data %}
-                </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Départements</h3>
-                    {% if waste_origin_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
-                </div>
-                <div class="cell cell--bordered cell--third">
-                    <h3 class="cell__title">Origine des déchets - Régions</h3>
-                    {% if waste_origin_map_graph %}
-                        <img src="data:image/png;base64,{{ waste_origin_map_graph }}"
-                             class="cell__img">
-                    {% else %}
-                        <div class="no-data">Pas de données à afficher.</div>
-                    {% endif %}
                 </div>
             </div>
             {# end on site #}
-            {# ICPE #}
-            <h2 class="section__title">Données installation classée pour la protection de l'Environnement (ICPE)</h2>
-            {% if sheet.icpe_data %}
-                <p>
-                    Vous trouverez ci-aprés les données GUN telles qu'elles sont enregistrées dans GUN.
-                    En cas de différence avec la réalité, merci de vérifier et mettre à jour GUN,
-                    de façon à pouvoir vous proposer une analyse plus fine en lien avec les rubriques.
-                </p>
-                {% render_icpe_graphs sheet graph_context="pdf" %}
-                {% if sheet.bs_processed_without_icpe_authorization %}
-                    <div class="row">
-                        <div>
-                            <div class="fr-alert fr-alert--warning">
-                                <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
-                                <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
-                            </div>
-                            {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
-                        </div>
+            {# waste origin per waste type #}
+            <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
+            <div class="row">
+                {% if bsdd_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDD (données bordereaux) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsdd_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
-                <div class="row">
-                    {# Rubriques list #}
-                    {% render_icpe sheet graph_context="pdf" %}
-                    {# end Rubriques list #}
-                </div>
-            {% else %}
-                <div class="no-data-section">PAS DE DONNÉES ICPE.</div>
-                <p>
-                    Les données GUN ne nous permettent pas de disposer des données ICPE et ainsi vous proposer une analyse plus fine en lien avec les rubriques.
-                    Pour disposer de ces données, merci de vous assurer que le SIRET de l'établissement est complété dans GUN et qu'il est bien à jour (à corroborer avec l'exploitant).
-                </p>
-                {% if sheet.bs_processed_without_icpe_authorization %}
-                    <div>
-                        <div class="fr-alert fr-alert--warning">
-                            <h3 class="fr-alert__title">Attention : traitements de déchets sans rubriques correspondantes</h3>
-                            <p>L'établissement a traité des déchets mais les données ICPE sont manquantes.</p>
-                        </div>
-                        {% render_bs_without_icpe_authorization_tables sheet graph_context="pdf" %}
+                {% if bsda_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">BSDA (données bordereaux) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ bsda_waste_origin_graph }}" class="cell__img">
                     </div>
                 {% endif %}
-            {% endif %}
+            </div>
+            <div class="row">
+                {% if texs_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">TEXS (données registre) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ texs_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+                {% if dnd_waste_origin_graph %}
+                    <div class="cell cell--bordered cell--half">
+                        <h3 class="cell__title">DND (données registre) - Origine des déchets</h3>
+                        <img src="data:image/png;base64,{{ dnd_waste_origin_graph }}" class="cell__img">
+                    </div>
+                {% endif %}
+            </div>
+            {# end waste origin per waste type #}
             <div class="row">{% render_traceabilty_break sheet graph_context="pdf" %}</div>
-            {# end ICPE #}
             {# Transborder section #}
             <h2 class="section__title">Données relatives aux échanges transfrontaliers</h2>
             {% if sheet.followed_with_pnttd_data or sheet.gistrid_stats_data %}
@@ -419,6 +433,9 @@
             {# bsd canceled table #}
             <div>{% render_bsd_canceled_table sheet graph_context="pdf" %}</div>
             {# end bsd canceled table #}
+            {# bsd auto approved revision table #}
+            <div>{% render_bsd_auto_approved_revision_table sheet graph_context="pdf" %}</div>
+            {# end bsd auto approved revision table #}
             {# bsd refused table #}
             <div>{% render_bsd_refused_table sheet graph_context="pdf" %}</div>
             {# end bsd refused table #}            

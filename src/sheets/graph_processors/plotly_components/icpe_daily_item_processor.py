@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import plotly.graph_objects as go
 import polars as pl
-from datetime import datetime
+
 from sheets.utils import format_number_str
 
 

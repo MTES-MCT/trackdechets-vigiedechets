@@ -41,10 +41,11 @@
                     <div class="fr-select-group fr-mb-1w">
                         <label class="fr-label" for="year-select">Année</label>
                         <select class="fr-select" id="year-select" name="select-annee">
-                            <option selected value="2025">2025</option>
+                            <option value="2025">2025</option>
                             <option value="2024">2024</option>
                             <option value="2023">2023</option>
                             <option value="2022">2022</option>
+                            <option selected value="2026">2026</option>
                         </select>
                     </div>
                     <div class="fr-select-group">
@@ -55,7 +56,7 @@
                             <option value="2770">2770 (Incinération DD)</option>
                             <option value="2771">2771 (Incinération DND)</option>
                             <option value="2790">2790 (Traitement DD)</option>
-
+                            <option value="2791">2791 (Traitement DND)</option>
                         </select>
                     </div>
                     <button id="back-to-france" class="fr-btn fr-btn--secondary fr-mb-2w">
@@ -127,6 +128,7 @@
                         <div id="region-info"></div>
                         <div id="region-title"></div>
                         <div id="region-graph" class="graph"></div>
+                        <div id="region-graph-cumul" class="graph"></div>
                     </div>
                 </div>
             </div>
@@ -157,6 +159,8 @@
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 18,
             attribution: "Données de la carte &copy; contributeurs d'OpenStreetMap",
+            referrerPolicy: "origin",
+            crossOrigin: true
         }).addTo(map);
 
         map.zoomControl.setPosition("topright");

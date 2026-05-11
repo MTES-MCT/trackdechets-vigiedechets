@@ -27,6 +27,19 @@ class PermsItem(MenuItem):
         self.visible = request.user.is_staff or request.user.user_category in allowed_categories
 
 
+class PermsOrEmailItem(MenuItem):
+    """User is staff or belongs to the allowed categories or allowed emails"""
+
+    def check(self, request):
+        allowed_categories = getattr(self, "allowed_categories", [])
+        allowed_emails = getattr(self, "allowed_emails", [])
+        self.visible = (
+            request.user.is_staff
+            or request.user.user_category in allowed_categories
+            or request.user.email.lower() in allowed_emails
+        )
+
+
 class UserEmailItem(MenuItem):
     """User is staff or belongs to the allowed emails"""
 
@@ -68,11 +81,40 @@ Menu.add_item(
 
 Menu.add_item(
     "main",
-    PermsItem("Observatoires", reverse("data_export_list"), allowed_categories=PERMS_DATA_EXPORT),
+    PermsOrEmailItem(
+        "Observatoires",
+        reverse("data_export_list"),
+        allowed_categories=PERMS_DATA_EXPORT,
+        allowed_emails=settings.ALLOWED_EMAILS_FOR_DATA_EXPORT,
+    ),
 )
+
+
+class SentinelMenuItem(MenuItem):
+    """Sentinel: visible by category (with wildcard support) OR by email, with staff override"""
+
+    def check(self, request):
+        if request.user.is_staff:
+            self.visible = True
+            return
+        allowed_categories = getattr(self, "allowed_categories", [])
+        allowed_emails = getattr(self, "allowed_emails", [])
+        if allowed_categories == ["*"]:
+            self.visible = request.user.is_authenticated
+        elif allowed_categories:
+            self.visible = request.user.user_category in allowed_categories
+        else:
+            self.visible = request.user.email.lower() in allowed_emails
+
+
 Menu.add_item(
     "main",
-    UserEmailItem("Sentinelle", reverse("sentinel"), allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL),
+    SentinelMenuItem(
+        "Sentinelle",
+        reverse("sentinel"),
+        allowed_categories=settings.ALLOWED_CATEGORIES_FOR_SENTINEL,
+        allowed_emails=settings.ALLOWED_USER_FOR_SENTINEL,
+    ),
 )
 
 if not settings.HIDE_FAQ_NAV:

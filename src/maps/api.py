@@ -15,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .centroids import DEPARTMENTS_CENTROIDS, REGIONS_CENTROIDS
-from .constants import ANNUAL_ICPE_RUBRIQUES
 from .filters import CartoCompanyFilter
 from .models import (
     CartoCompany,
@@ -215,10 +214,6 @@ class ICPEViewMany(APIView):
     permission_classes = [UserIsVerifedPermission]
 
     def get(self, request, layer, year, rubrique):
-        metric_name = "moyenne_quantite_journaliere_traitee"
-        if rubrique in ANNUAL_ICPE_RUBRIQUES:
-            metric_name = "cumul_quantite_traitee"
-
         layers_configs = {
             "installations": {
                 "cls": InstallationsComputation,
@@ -237,7 +232,8 @@ class ICPEViewMany(APIView):
                     "unite",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                 ],
                 "layer_key": "code_aiot",
             },
@@ -248,7 +244,8 @@ class ICPEViewMany(APIView):
                     "nom_departement",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": "code_departement_insee",
@@ -260,7 +257,8 @@ class ICPEViewMany(APIView):
                     "nom_region",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": "code_region_insee",
@@ -272,7 +270,8 @@ class ICPEViewMany(APIView):
                     "nom_region",
                     "quantite_autorisee",
                     "taux_consommation",
-                    metric_name,
+                    "moyenne_quantite_journaliere_traitee",
+                    "cumul_quantite_traitee",
                     "nombre_installations",
                 ],
                 "layer_key": None,
@@ -321,13 +320,19 @@ class ICPEGraph(APIView):
         layer_config = layers_configs[layer]
         model = layer_config["cls"]
         specific_filter = layer_config["specific_filter"]
-        result = model.objects.filter(year=year, rubrique=rubrique, **specific_filter).values("graph").first()
+        result = (
+            model.objects.filter(year=year, rubrique=rubrique, **specific_filter)
+            .values("graph", "graph_cumul")
+            .first()
+        )
         if not result:
             raise Http404
 
-        resp = {"graph": None}
+        resp = {"graph": None, "graph_cumul": None}
         if result["graph"] is not None:
-            resp = {"graph": json.loads(result["graph"])}
+            resp["graph"] = json.loads(result["graph"])
+        if result["graph_cumul"] is not None:
+            resp["graph_cumul"] = json.loads(result["graph_cumul"])
 
         return Response(resp)
 
@@ -337,15 +342,14 @@ class ICPEFrance(APIView):
     permission_classes = [UserIsVerifedPermission]
 
     def get(self, request, year, rubrique):
-        metric_name = "moyenne_quantite_journaliere_traitee"
-        if rubrique in ANNUAL_ICPE_RUBRIQUES:
-            metric_name = "cumul_quantite_traitee"
         fields = [
             "quantite_autorisee",
-            metric_name,
+            "moyenne_quantite_journaliere_traitee",
+            "cumul_quantite_traitee",
             "taux_consommation",
             "nombre_installations",
             "graph",
+            "graph_cumul",
         ]
         result = FranceComputation.objects.filter(year=year, rubrique=rubrique).first()
 
@@ -356,8 +360,8 @@ class ICPEFrance(APIView):
         for k in fields:
             val = getattr(result, k)
 
-            if k == "graph":
-                result_dict[k] = json.loads(val)
+            if k in ("graph", "graph_cumul"):
+                result_dict[k] = json.loads(val) if val else None
             elif isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
                 result_dict[k] = None
             else:

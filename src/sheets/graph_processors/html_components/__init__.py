@@ -4,6 +4,7 @@ This module contains processors that generate data structures for HTML templates
 Each processor is in its own file for better maintainability.
 """
 
+from .bsd_auto_approved_revision_table_processor import BsdAutoApprovedRevisionTableProcessor
 from .bsd_canceled_table_processor import BsdCanceledTableProcessor
 from .bsd_refused_table_processor import BsdRefusedTableProcessor
 from .bsd_stats_processor import BsdStatsProcessor
@@ -29,6 +30,7 @@ from .waste_is_dangerous_statements_processor import WasteIsDangerousStatementsP
 from .waste_processing_without_icpe_rubrique_processor import WasteProcessingWithoutICPERubriqueProcessor
 
 __all__ = [
+    "BsdAutoApprovedRevisionTableProcessor",
     "BsdaWorkerStatsProcessor",
     "BsdCanceledTableProcessor",
     "BsdRefusedTableProcessor",

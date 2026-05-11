@@ -139,7 +139,8 @@ select id,
     vhu_agrement_broyeur_id,
     collector_types,
     waste_processor_types,
-    has_enabled_registry_dnd_from_bsd_since
+    has_enabled_registry_dnd_from_bsd_since,
+    eco_organisme_partners_ids
 from trusted_zone_trackdechets.company c
 where c.siret = :siret
 """
@@ -438,6 +439,96 @@ from trusted_zone_trackdechets.bsdasri_revision_request
 where authoring_company_id = :company_id
 """
 
+# Auto-approved BSDD revisions: revisions accepted without third-party validation.
+# This applies to BSDD where the emitter is a private individual or an OMI-registered vessel,
+# since no third-party approver exists in those cases.
+# Detection: LEFT JOIN on the approval table; NULLIF(a.id, '') IS NULL means no approval record
+# was created (handles both SQL NULL and empty-string defaults from ClickHouse non-nullable columns).
+# SELECT DISTINCT guards against duplicate rows if the approval table ever has multiple records
+# per revision request.
+sql_auto_approved_revision_bsdd_query_str = """
+select distinct
+    r.id as id,
+    r.bsdd_id as bs_id,
+    r.updated_at as updated_at,
+    r.comment as comment,
+    b.readable_id,
+    b.emitter_company_siret,
+    b.emitter_is_private_individual,
+    b.emitter_company_omi_number,
+    b.recipient_company_siret,
+    r.waste_details_code as waste_details_code,
+    r.initial_waste_details_code,
+    r.waste_details_name as waste_details_name,
+    r.initial_waste_details_name,
+    toFloat64(r.quantity_received) as quantity_received,
+    toFloat64(r.initial_quantity_received) as initial_quantity_received,
+    r.processing_operation_done as processing_operation_done,
+    r.initial_processing_operation_done,
+    toFloat64(r.waste_details_quantity) as waste_details_quantity,
+    toFloat64(r.initial_waste_details_quantity) as initial_waste_details_quantity,
+    r.recipient_cap as recipient_cap,
+    r.initial_recipient_cap,
+    r.destination_operation_mode as destination_operation_mode,
+    r.initial_destination_operation_mode,
+    r.waste_acceptation_status as waste_acceptation_status,
+    r.initial_waste_acceptation_status,
+    toFloat64(r.quantity_refused) as quantity_refused,
+    toFloat64(r.initial_quantity_refused) as initial_quantity_refused,
+    r.waste_refusal_reason as waste_refusal_reason,
+    r.initial_waste_refusal_reason,
+    r.waste_details_pop as waste_details_pop,
+    r.initial_waste_details_pop
+from trusted_zone_trackdechets.bsdd_revision_request r
+left join trusted_zone_trackdechets.bsdd_revision_request_approval a
+    on a.revision_request_id = r.id
+inner join trusted_zone_trackdechets.bsdd b on b.id = r.bsdd_id
+where r.authoring_company_id = :company_id
+    and r.status = 'ACCEPTED'
+    and not r.is_canceled
+    and NULLIF(a.id, '') is null -- a.id is null if the revision is auto approved
+    and (b.emitter_is_private_individual or NULLIF(b.emitter_company_omi_number, '') is not null)
+"""
+
+# Auto-approved BSDA revisions: revisions accepted without third-party validation.
+# This applies to BSDA where the emitter is a private individual with no work company
+# (worker_company_siret empty or null), since no third-party approver exists in that case.
+# Same NULLIF and DISTINCT rationale as the BSDD query above.
+sql_auto_approved_revision_bsda_query_str = """
+select distinct
+    r.id as id,
+    r.bsda_id as bs_id,
+    r.updated_at as updated_at,
+    r.comment as comment,
+    b.id as readable_id,
+    b.emitter_company_siret,
+    b.emitter_is_private_individual,
+    b.destination_company_siret as recipient_company_siret,
+    r.waste_code as waste_code,
+    r.initial_waste_code,
+    r.waste_material_name as waste_material_name,
+    r.initial_waste_material_name,
+    toFloat64(r.destination_reception_weight) as destination_reception_weight,
+    toFloat64(r.initial_destination_reception_weight) as initial_destination_reception_weight,
+    r.destination_operation_code as destination_operation_code,
+    r.initial_destination_operation_code,
+    r.destination_cap as destination_cap,
+    r.initial_destination_cap,
+    r.destination_operation_mode as destination_operation_mode,
+    r.initial_destination_operation_mode,
+    r.waste_pop as waste_pop,
+    r.initial_waste_pop
+from trusted_zone_trackdechets.bsda_revision_request r
+left join trusted_zone_trackdechets.bsda_revision_request_approval a
+    on a.revision_request_id = r.id
+inner join trusted_zone_trackdechets.bsda b on b.id = r.bsda_id
+where r.authoring_company_id = :company_id
+    and r.status = 'ACCEPTED'
+    and not r.is_canceled
+    and NULLIF(a.id, '') is null -- a.id is null if the revision is auto approved
+    and (b.emitter_is_private_individual and NULLIF(b.worker_company_siret, '') is null)
+"""
+
 sql_get_icpe_data = """
 select
     code_aiot,
@@ -517,6 +608,18 @@ where
     substring(c.siret,1,9) = substring(:siret,1,9)
 """
 
+sql_get_linked_companies_data_from_siren = """
+select
+    siret,
+    created_at,
+    name,
+    address
+from
+    trusted_zone_trackdechets.company c
+where
+    substring(c.siret,1,9) = substring(:siren,1,9)
+"""
+
 sql_get_gistrid_data = """
 select
     numero_notification,
@@ -548,14 +651,18 @@ sql_get_incoming_ndw_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,
     volume,
     reception_date,
     operation_code,
-    transporters_org_ids
-FROM trusted_zone_trackdechets.registry_incoming_waste
+    transporters_org_ids,
+    (match(waste_code,'(?i).*\*$')
+        OR coalesce(waste_pop,false)
+        OR coalesce(waste_is_dangerous,false)) as is_dangerous
+FROM trusted_zone_trackdechets.latest_registry_incoming_waste
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -565,6 +672,7 @@ sql_get_outgoing_ndw_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,
@@ -574,7 +682,7 @@ SELECT
     destination_company_org_id,
     destination_company_name,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_outgoing_waste
+FROM trusted_zone_trackdechets.latest_registry_outgoing_waste
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -585,6 +693,7 @@ sql_get_incoming_excavated_land_data = """
 SELECT 
     id,
     report_for_company_siret as siret,
+    report_for_company_postal_code as postal_code,
     waste_code,
     waste_description,
     weight_value,
@@ -592,7 +701,7 @@ SELECT
     reception_date,
     operation_code,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_incoming_texs
+FROM trusted_zone_trackdechets.latest_registry_incoming_texs
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -611,7 +720,7 @@ SELECT
     destination_company_org_id,
     destination_company_name,
     transporters_org_ids
-FROM trusted_zone_trackdechets.registry_outgoing_texs
+FROM trusted_zone_trackdechets.latest_registry_outgoing_texs
 where
     report_for_company_siret = :siret
     or has(transporters_org_ids,:siret)
@@ -629,7 +738,7 @@ SELECT
     dispatch_date,
     destination_company_org_id,
     destination_company_name
-FROM trusted_zone_trackdechets.registry_ssd
+FROM trusted_zone_trackdechets.latest_registry_ssd
 where
     report_for_company_siret = :siret
 """
@@ -641,4 +750,12 @@ select
     trusted_zone_trackdechets.company
 where
     siret = :siret
+"""
+
+sql_get_eco_organisme_partners_data = """
+SELECT
+    siret,
+    name
+FROM trusted_zone_trackdechets.eco_organisme
+WHERE id IN :partner_ids
 """

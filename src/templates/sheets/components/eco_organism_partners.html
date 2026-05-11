@@ -1,0 +1,10 @@
+{% if is_vhu_company %}
+    <h3 class="cell__title">Eco-organismes et systèmes individuels sélectionnés</h3>        
+    {% if eco_organisme_partners_data %}
+        {% for partner in eco_organisme_partners_data %}
+            <p>{{ partner.name }} : {{ partner.siret }}</p>
+        {% endfor %}
+    {% else %}
+        <p>Pas d'éco-organisme ou système individuel sélectionné.</p>
+    {% endif %}
+{% endif %}

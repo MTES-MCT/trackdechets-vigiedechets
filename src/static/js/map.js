@@ -1,4 +1,6 @@
+// Rubriques annuelles et quotidiennes - alignées avec ANNUAL_ICPE_RUBRIQUES et DAILY_ICPE_RUBRIQUES du backend
 var annualRubriques = ["2760-1", "2760-2"];
+var dailyRubriques = ["2790", "2791","2770", "2771"];
 
 // Fonction pour charger les données GeoJSON
 async function loadGeoJSONData(url) {
@@ -21,7 +23,6 @@ async function loadFeaturesStats(layer, year, rubrique) {
     featuresStats[`${layer}.${year}.${rubrique}`] = data["data"];
   }
 }
-
 async function loadFeaturesGraph(layer, year, rubrique, code) {
   if (featuresStats[`${layer}.${year}.${rubrique}`][code] == undefined) {
     return;
@@ -37,6 +38,8 @@ async function loadFeaturesGraph(layer, year, rubrique, code) {
     data = await response.json();
     featuresStats[`${layer}.${year}.${rubrique}`][code]["graph"] =
       data["graph"];
+    featuresStats[`${layer}.${year}.${rubrique}`][code]["graph_cumul"] =
+      data["graph_cumul"];
   }
 }
 
@@ -96,16 +99,28 @@ async function showRegionInfo(event, rubrique, featureType) {
   const regionTitleDiv = document.getElementById("region-title");
   regionTitleDiv.replaceChildren();
 
-  let processedQuantityKey = "moyenne_quantite_journaliere_traitee";
-  let unit = "t/j";
-  let processedQuantityPrefix = "Quantité journalière traitée en moyenne :";
-  let usedQuantityPrefix = "Quantité journalière consommée en moyenne :";
+
+  //
+  let dailyProcessedQuantityKey = "moyenne_quantite_journaliere_traitee";
+  let dailyUnit = "t/j";
+  let dailyProcessedQuantityPrefix = "Quantité journalière traitée en moyenne :";
+  let annualProcessedQuantityKey = "cumul_quantite_traitee";
+  let annualUnit = "t/an";
+  let annualProcessedQuantityPrefix = "Quantité traitée en cumulé :";
+
+  let dailyUsedQuantityPrefix = "Quantité journalière consommée en moyenne :";
+  let annualUsedQuantityPrefix = "Quantité consommée sur l'année :";
+
+  // Pour les rubriques quotidiennes on affiche le taux de consommation journalière
+  let usedQuantityPrefix = dailyUsedQuantityPrefix;
+  let authorizedQuantityUnit = dailyUnit;
+
+  // Pour les rubriques annuelles on affiche le taux de consommation sur l'année
   if (annualRubriques.includes(rubrique)) {
-    processedQuantityKey = "cumul_quantite_traitee";
-    unit = "t/an";
-    processedQuantityPrefix = "Quantité traitée en cummulé :";
-    usedQuantityPrefix = "Quantité consommée sur l'année :";
+      usedQuantityPrefix = annualUsedQuantityPrefix
+      authorizedQuantityUnit = annualUnit
   }
+  //
 
   if (featureType == "installation") {
     e = document.createElement("h5");
@@ -150,20 +165,33 @@ async function showRegionInfo(event, rubrique, featureType) {
         : "N/A";
     e.textContent = `Quantité autorisée : `;
     const authorizedQuantitySpan = document.createElement("span");
-    authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${unit}`;
+    authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${authorizedQuantityUnit}`;
     e.appendChild(authorizedQuantitySpan);
     traitementDiv.append(e);
 
-    e = document.createElement("p");
-    const processedQuantity = stats[processedQuantityKey];
-    e.textContent = `${processedQuantityPrefix} `;
-    const processedQuantitySpan = document.createElement("span");
-    processedQuantitySpan.innerHTML = `${formatFloat(
-      processedQuantity,
-    )} ${unit}`;
-    e.appendChild(processedQuantitySpan);
-    traitementDiv.append(e);
+    // Daily
+    if (dailyRubriques.includes(rubrique)) {
+      e = document.createElement("p");
+      const dailyProcessedQuantity = stats[dailyProcessedQuantityKey];
+      e.textContent = `${dailyProcessedQuantityPrefix} `;
+      const dailyProcessedQuantitySpan = document.createElement("span");
+      dailyProcessedQuantitySpan.innerHTML = `${formatInt(dailyProcessedQuantity)} ${dailyUnit}`;
+      e.appendChild(dailyProcessedQuantitySpan);
+      traitementDiv.append(e);
+    }
 
+
+    // Annual
+    e = document.createElement("p");
+    const annualProcessedQuantity = stats[annualProcessedQuantityKey];
+    e.textContent = `${annualProcessedQuantityPrefix} `;
+    const annualProcessedQuantitySpan = document.createElement("span");
+    annualProcessedQuantitySpan.innerHTML = `${formatInt(annualProcessedQuantity)} ${annualUnit}`;
+    e.appendChild(annualProcessedQuantitySpan);
+    traitementDiv.append(e);
+  
+
+    // Consumption rate
     e = document.createElement("p");
     const usedQuantity =
       stats.taux_consommation != null
@@ -196,20 +224,34 @@ async function showRegionInfo(event, rubrique, featureType) {
           : "N/A";
       e.textContent = `Quantité autorisée : `;
       const authorizedQuantitySpan = document.createElement("span");
-      authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${unit}`;
+      authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${authorizedQuantityUnit}`;
       e.appendChild(authorizedQuantitySpan);
       traitementDiv.append(e);
 
+
+      // Daily
+      if (dailyRubriques.includes(rubrique)) {
+        e = document.createElement("p");
+        const dailyProcessedQuantity = stats[dailyProcessedQuantityKey];
+        e.textContent = `${dailyProcessedQuantityPrefix} `;
+        const dailyProcessedQuantitySpan = document.createElement("span");
+        dailyProcessedQuantitySpan.innerHTML = `${formatInt(dailyProcessedQuantity)} ${dailyUnit}`;
+        e.appendChild(dailyProcessedQuantitySpan);
+        traitementDiv.append(e);
+      }
+
+
+      // Annual
       e = document.createElement("p");
-      const processedQuantity = stats[processedQuantityKey];
-      e.textContent = `${processedQuantityPrefix} `;
-      const processedQuantitySpan = document.createElement("span");
-      processedQuantitySpan.innerHTML = `${formatFloat(
-        processedQuantity,
-      )} ${unit}`;
-      e.appendChild(processedQuantitySpan);
+      const annualProcessedQuantity = stats[annualProcessedQuantityKey];
+      e.textContent = `${annualProcessedQuantityPrefix} `;
+      const annualProcessedQuantitySpan = document.createElement("span");
+      annualProcessedQuantitySpan.innerHTML = `${formatInt(annualProcessedQuantity)} ${annualUnit}`;
+      e.appendChild(annualProcessedQuantitySpan);
       traitementDiv.append(e);
 
+
+      // Consumption rate
       e = document.createElement("p");
       const usedQuantity =
         stats.taux_consommation != null
@@ -234,7 +276,9 @@ async function showRegionInfo(event, rubrique, featureType) {
   }
 
   idDivGraph = "region-graph";
+  const idDivGraphCumul = "region-graph-cumul";
   Plotly.purge(idDivGraph);
+  Plotly.purge(idDivGraphCumul);
   await loadFeaturesGraph(layer, selectedYear, selectedRubrique, key);
   if (stats && stats.graph) {
     e = document.createElement("div");
@@ -276,9 +320,10 @@ async function showRegionInfo(event, rubrique, featureType) {
 
       // wait for the end of the animation
       setTimeout(() => {
-        Plotly.relayout(idDivGraph, {
-          autosize: true,
-        });
+        Plotly.relayout(idDivGraph, { autosize: true });
+        if (stats.graph_cumul) {
+          Plotly.relayout(idDivGraphCumul, { autosize: true });
+        }
       }, "250");
     });
     e.append(dataTitleButton);
@@ -294,6 +339,15 @@ async function showRegionInfo(event, rubrique, featureType) {
     Plotly.relayout(idDivGraph, {
       autosize: true,
     });
+
+    if (stats.graph_cumul) {
+      const plotDataCumul = stats.graph_cumul;
+      Plotly.newPlot(idDivGraphCumul, plotDataCumul.data, plotDataCumul.layout, {
+        responsive: true,
+        autosize: true,
+      });
+      Plotly.relayout(idDivGraphCumul, { autosize: true });
+    }
   }
 
   document
@@ -450,16 +504,26 @@ async function showFranceStats(rubrique, year) {
 
   const stats = featuresStats[`france.${selectedYear}.${selectedRubrique}`];
 
-  let processedQuantityKey = "moyenne_quantite_journaliere_traitee";
-  let unit = "t/j";
-  let processedQuantityPrefix = "Quantité journalière traitée en moyenne :";
-  let usedQuantityPrefix = "Quantité journalière consommée en moyenne :";
+  let dailyProcessedQuantityKey = "moyenne_quantite_journaliere_traitee";
+  let dailyUnit = "t/j";
+  let dailyProcessedQuantityPrefix = "Quantité journalière traitée en moyenne :";
+  let annualProcessedQuantityKey = "cumul_quantite_traitee";
+  let annualUnit = "t/an";
+  let annualProcessedQuantityPrefix = "Quantité annuelle cumulée :";
+
+  let dailyUsedQuantityPrefix = "Quantité journalière consommée en moyenne :";
+  let annualUsedQuantityPrefix = "Quantité consommée sur l'année :";
+
+  // Pour les rubriques quotidiennes on affiche le taux de consommation journalière
+  let usedQuantityPrefix = dailyUsedQuantityPrefix;
+  let authorizedQuantityUnit = dailyUnit;
+
+  // Pour les rubriques annuelles on affiche le taux de consommation sur l'année
   if (annualRubriques.includes(rubrique)) {
-    processedQuantityKey = "cumul_quantite_traitee";
-    unit = "t/an";
-    processedQuantityPrefix = "Quantité traitée en cummulé :";
-    usedQuantityPrefix = "Quantité consommée sur l'année :";
+      usedQuantityPrefix = annualUsedQuantityPrefix
+      authorizedQuantityUnit = annualUnit
   }
+
 
   const franceInfoDiv = document.getElementById("region-info");
   franceInfoDiv.replaceChildren();
@@ -478,6 +542,7 @@ async function showFranceStats(rubrique, year) {
   const traitementDiv = document.createElement("div");
   traitementDiv.classList.add("grouped-info");
 
+  // Add authorized quantity (daily or annual)
   e = document.createElement("p");
   const authorizedQuantity =
     stats.quantite_autorisee != null
@@ -485,18 +550,32 @@ async function showFranceStats(rubrique, year) {
       : "N/A";
   e.textContent = `Quantité autorisée : `;
   const authorizedQuantitySpan = document.createElement("span");
-  authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${unit}`;
+  authorizedQuantitySpan.innerHTML = `${authorizedQuantity} ${authorizedQuantityUnit}`;
   e.appendChild(authorizedQuantitySpan);
   traitementDiv.append(e);
 
+  
+  // For daily rubriques: add daily processed quantity
+  if (dailyRubriques.includes(rubrique)) {
+    e = document.createElement("p");
+    const dailyProcessedQuantity = stats[dailyProcessedQuantityKey];
+    e.textContent = `${dailyProcessedQuantityPrefix} `;
+    const dailyProcessedQuantitySpan = document.createElement("span");
+    dailyProcessedQuantitySpan.innerHTML = `${formatInt(dailyProcessedQuantity)} ${dailyUnit}`;
+    e.appendChild(dailyProcessedQuantitySpan);
+    traitementDiv.append(e);
+  }
+
+  // For all rubriques: add annual processed quantity
   e = document.createElement("p");
-  const processedQuantity = stats[processedQuantityKey];
-  e.textContent = `${processedQuantityPrefix} `;
-  const processedQuantitySpan = document.createElement("span");
-  processedQuantitySpan.innerHTML = `${formatFloat(processedQuantity)} ${unit}`;
-  e.appendChild(processedQuantitySpan);
+  const annualProcessedQuantity = stats[annualProcessedQuantityKey];
+  e.textContent = `${annualProcessedQuantityPrefix} `;
+  const annualProcessedQuantitySpan = document.createElement("span");
+  annualProcessedQuantitySpan.innerHTML = `${formatInt(annualProcessedQuantity)} ${annualUnit}`;
+  e.appendChild(annualProcessedQuantitySpan);
   traitementDiv.append(e);
 
+  // Add consumption rate
   e = document.createElement("p");
   const usedQuantity =
     stats.taux_consommation != null
@@ -511,7 +590,9 @@ async function showFranceStats(rubrique, year) {
   franceInfoDiv.append(traitementDiv);
 
   idDivGraph = "region-graph";
+  const idDivGraphCumulFrance = "region-graph-cumul";
   Plotly.purge(idDivGraph);
+  Plotly.purge(idDivGraphCumulFrance);
   if (stats && stats.graph) {
     e = document.createElement("div");
     e.classList.add("data-title", "fr-pt-2w");
@@ -552,9 +633,10 @@ async function showFranceStats(rubrique, year) {
 
       // wait for the end of the animation
       setTimeout(() => {
-        Plotly.relayout(idDivGraph, {
-          autosize: true,
-        });
+        Plotly.relayout(idDivGraph, { autosize: true });
+        if (stats.graph_cumul) {
+          Plotly.relayout(idDivGraphCumulFrance, { autosize: true });
+        }
       }, "250");
     });
     e.append(dataTitleButton);
@@ -570,6 +652,15 @@ async function showFranceStats(rubrique, year) {
     Plotly.relayout(idDivGraph, {
       autosize: true,
     });
+
+    if (stats.graph_cumul) {
+      const plotDataCumulFrance = stats.graph_cumul;
+      Plotly.newPlot(idDivGraphCumulFrance, plotDataCumulFrance.data, plotDataCumulFrance.layout, {
+        responsive: true,
+        autosize: true,
+      });
+      Plotly.relayout(idDivGraphCumulFrance, { autosize: true });
+    }
   }
 
   document
