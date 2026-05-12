@@ -74,7 +74,7 @@ export const useFileDownload = () => {
       if (response?.data instanceof Blob) {
         // Check if this is actually a JSON error response
         const contentType = response.headers["content-type"];
-        if (contentType && contentType.includes("application/json")) {
+        if (contentType && contentType === "application/json") {
           return await extractErrorMessageFromBlob(response.data);
         }
 
@@ -126,7 +126,7 @@ export const useFileDownload = () => {
 
       // Check if we might have received an error response in JSON format
       const contentType = response.headers["content-type"];
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType && contentType === "application/json") {
         const errorMessage = await extractErrorMessageFromBlob(response.data);
         setDownloadError(errorMessage);
         return false;
@@ -167,7 +167,7 @@ export const useFileDownload = () => {
 
       // Check if we might have received an error response in JSON format
       const contentType = response.headers["content-type"];
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType && contentType === "application/json") {
         const errorMessage = await extractErrorMessageFromBlob(response.data);
         setDownloadError(errorMessage);
         return false;
