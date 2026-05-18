@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
-    "axios": "^1.15.2",
+    "axios": "^1.16.0",
     "classnames": "^2.5.1",
-    "maplibre-gl": "^5.23.0",
+    "maplibre-gl": "^5.24.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-map-gl": "^8.1.1",
