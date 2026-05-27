@@ -4,12 +4,15 @@ from braces.views import LoginRequiredMixin
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import LoginView as BaseLoginView
+from django.contrib.auth.views import PasswordResetView
 from django.http import HttpResponseRedirect, QueryDict
 from django.shortcuts import resolve_url
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.generic import FormView
 from django_otp import login as otp_login
 from django_otp.plugins.otp_email.models import EmailDevice
+from django_ratelimit.decorators import ratelimit
 
 from accounts.forms import ResendTokenEmailForm, SecondFactorTokenForm
 from common.redis import gen_otp_email_key, redis_client
@@ -112,6 +115,16 @@ class ResendTokenEmail(SendSecondFactorMailMixin, LoginRequiredMixin, FormView):
         kw = super().get_form_kwargs()
         kw.update({"user": self.request.user})
         return kw
+
+
+class PasswordResetBruteForceProtectedView(PasswordResetView):
+    @method_decorator(ratelimit(key="ip", rate="3/h", method="GET"))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @method_decorator(ratelimit(key="ip", rate="3/h", method="POST"))
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 def proconnect_logout(request):

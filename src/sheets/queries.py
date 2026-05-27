@@ -608,6 +608,18 @@ where
     substring(c.siret,1,9) = substring(:siret,1,9)
 """
 
+sql_get_linked_companies_data_from_siren = """
+select
+    siret,
+    created_at,
+    name,
+    address
+from
+    trusted_zone_trackdechets.company c
+where
+    substring(c.siret,1,9) = substring(:siren,1,9)
+"""
+
 sql_get_gistrid_data = """
 select
     numero_notification,

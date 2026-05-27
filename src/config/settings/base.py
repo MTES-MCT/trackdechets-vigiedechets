@@ -117,6 +117,10 @@ DATABASES = {
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 REDIS_URL = env.str("REDIS_URL", "redis://localhost:6379/0")
+
+# For local development, you can disable the SSH tunnel by setting
+# USE_SSH_TUNNEL=false in your .env file.
+USE_SSH_TUNNEL = env.bool("USE_SSH_TUNNEL", default=True)
 DWH_USERNAME = env.str("DWH_USERNAME")
 DWH_PASSWORD = env.str("DWH_PASSWORD")
 DWH_PORT = env.str("DWH_PORT")
@@ -359,6 +363,7 @@ RNDTS_DATA_UPDATE_DATE_STRING = env("RNDTS_DATA_UPDATE_DATE_STRING")
 MATOMO_SITE_ID = env("MATOMO_SITE_ID", default=None)
 
 ALLOWED_USER_FOR_SENTINEL = [email.lower() for email in env.list("ALLOWED_USER_FOR_SENTINEL")]
+ALLOWED_CATEGORIES_FOR_SENTINEL = env.list("ALLOWED_CATEGORIES_FOR_SENTINEL", default=[])
 ALLOWED_EMAILS_FOR_DATA_EXPORT = [email.lower() for email in env.list("ALLOWED_EMAILS_FOR_DATA_EXPORT")]
 
 # Doc available here: https://docs.celeryq.dev/en/latest/userguide/configuration.html

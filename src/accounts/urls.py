@@ -2,13 +2,12 @@ from django.contrib.auth.views import (
     PasswordResetCompleteView,
     PasswordResetConfirmView,
     PasswordResetDoneView,
-    PasswordResetView,
     logout_then_login,
 )
 from django.urls import path
 
 from .forms import EmailAuthenticationForm, RestrictedPasswordResetForm
-from .views import LoginView, ResendTokenEmail, VerifyView
+from .views import LoginView, PasswordResetBruteForceProtectedView, ResendTokenEmail, VerifyView
 
 urlpatterns = [
     path(
@@ -33,7 +32,7 @@ urlpatterns = [
     path("logout/", logout_then_login, name="logout"),
     path(
         "password-reset/",
-        PasswordResetView.as_view(
+        PasswordResetBruteForceProtectedView.as_view(
             template_name="accounts/password_reset_form.html",
             email_template_name="emails/password_reset/body.txt",
             html_email_template_name="emails/password_reset/body.html",

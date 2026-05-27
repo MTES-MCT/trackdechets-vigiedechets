@@ -4,10 +4,7 @@ import time
 
 import polars as pl
 from django.conf import settings
-from sqlalchemy import create_engine
-
-from sheets.ssh import get_tunnel_port, ssh_tunnel
-
+from sheets.datawarehouse import get_wh_sqlachemy_engine
 from ..utils import format_waste_codes
 
 SQL_PATH = settings.BASE_DIR / "data" / "sql"
@@ -45,21 +42,15 @@ def run_query_polars(sql_string: str, schema_overrides: dict = None) -> pl.DataF
 
     Notes
     -----
-    This function uses SSH tunneling to securely connect to the ClickHouse database.
-    It relies on the `ssh_tunnel` context manager to establish and close the SSH connection.
+    This function connects to the ClickHouse database using `get_wh_sqlachemy_engine()`.
+    The connection method (direct or via SSH tunnel) is determined by the `USE_SSH_TUNNEL`
+    setting in your configuration. By default, the SSH tunnel is used for secure remote connections.
+    To disable the tunnel for local development, set `USE_SSH_TUNNEL=false` in your .env file.
     The function also logs the duration of the query execution using the `logger`.
     """
     started_time = time.time()
 
-    ssh_tunnel(settings)
-    local_port = get_tunnel_port()
-    dwh_ssh_local_bind_host = settings.DWH_SSH_LOCAL_BIND_HOST
-
-    SQLALCHEMY_DATABASE_URL = (
-        f"clickhouse+native://{settings.DWH_USERNAME}:{settings.DWH_PASSWORD}@{dwh_ssh_local_bind_host}:{local_port}"
-    )
-
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    engine = get_wh_sqlachemy_engine()
     data_df = pl.read_database(sql_string, connection=engine, schema_overrides=schema_overrides)
 
     logger.info(
