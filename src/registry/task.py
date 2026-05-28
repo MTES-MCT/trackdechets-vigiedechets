@@ -146,8 +146,8 @@ def generate_registry_export(self, registry_v2_export_pk):
             return None
 
     try:
-        registry_export_id = resp["data"]["generateRegistryV2Export"]["id"]
-        status = resp["data"]["generateRegistryV2Export"]["status"]
+        registry_export_id = resp["data"]["generateRegistryV2ExportAsAdmin"]["id"]
+        status = resp["data"]["generateRegistryV2ExportAsAdmin"]["status"]
     except (TypeError, KeyError) as e:
         logger.error(f"Api response error: {e}, response: {resp}")
         try:
