@@ -79,6 +79,13 @@ class RegistryV2DeclarationType(models.TextChoices):
     REGISTRY = "REGISTRY", "Déclaré (registre national)"
 
 
+class RegistryV2IdentifierType(models.TextChoices):
+    """Type of identifier used for export."""
+
+    SIRET = "SIRET", "SIRET (établissement)"
+    SIREN = "SIREN", "SIREN (entreprise - tous les établissements)"
+
+
 class RegistryV2WasteCode(models.TextChoices):
     WASTE_01_01_01 = "01 01 01", "01 01 01 - déchets provenant de l'extraction des minéraux métallifères"
     WASTE_01_01_02 = "01 01 02", "01 01 02 - déchets provenant de l'extraction des minéraux non métallifères"

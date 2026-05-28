@@ -50,6 +50,7 @@ dependencies = [
     "django-htmx>=1.26.0",
     "django-multiupload>=0.6.1",
     "pandera>=0.29.0",
+    "django-ratelimit>=4.1.0",
 ]
 
 [dependency-groups]
@@ -58,6 +59,7 @@ dev = [
     "djade>=1.6.0",
     "django-debug-toolbar<6",
     "django-extensions>=4.1",
+    "debugpy>=1.7.0",
     "isort>=7.0.0",
     "mypy>=1.18.2",
     "pywatchman",
