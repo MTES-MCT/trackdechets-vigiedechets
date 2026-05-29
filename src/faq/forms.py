@@ -32,9 +32,7 @@ class ValidableMultiFileField(MultiFileField):
 
         # 2. Vérification du nombre maximum de fichiers
         if self.data_max_files and len(files) > self.data_max_files:
-            raise ValidationError(
-                f"Vous ne pouvez pas envoyer plus de {self.data_max_files} fichiers."
-            )
+            raise ValidationError(f"Vous ne pouvez pas envoyer plus de {self.data_max_files} fichiers.")
 
         # 3. Vérification de la taille pour chaque fichier
         if self.data_max_size:
