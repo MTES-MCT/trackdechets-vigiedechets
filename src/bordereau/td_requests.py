@@ -5,26 +5,371 @@ from django.conf import settings
 
 from roadcontrol.constants import TYPE_BSDA, TYPE_BSDASRI, TYPE_BSDD, TYPE_BSFF, TYPE_BSPAOH, TYPE_BSVHU
 
-def query_td_search_bsds(siret=None, bsd_id=None, code_postal=None, code_dechet=None, code_aiot=None, start_date_rep=None, end_date_rep=None, start_date_exp=None, end_date_exp=None, start_cursor=None, end_cursor=None):
+bsdd_fragment = """
+fragment BsddFragment on Form {
+  __typename
+  id
+  readableId
+  updatedAt
+  bsddStatus: status
+  receivedAt
+  emittedAt
+  wasteDetails {
+    code
+    name
+    onuCode
+    quantity
+    packagingInfos {
+      type
+      other
+      quantity
+    }
+  }
+  stateSummary {
+    quantity
+  }
+  emitter {
+    company {
+      name
+    }
+    workSite {
+      name
+    }
+  }
+  intermediaries {
+    name
+  }
+  recipient {
+    company {
+      name
+    }
+  }
+  transporters {
+    company {
+      name
+    }
+    numberPlate
+  }
+  transporter {
+    company {
+      siret
+      name
+    }
+    numberPlate
+  }
+}
+"""
+
+bsdasri_fragment = """
+fragment BsdasriFragment on Bsdasri {
+  __typename
+  id
+  bsdasriUpdatedAt: updatedAt
+  bsdasriStatus: status
+  bsdasriWaste: waste {
+    code
+    adr
+  }
+  emitter {
+    company {
+      name
+    }
+  }
+  transporter {
+    company {
+      siret
+      name
+    }
+    transport {
+      plates
+      weight {
+        value
+      }
+      packagings {
+        type
+        other
+        quantity
+        volume
+      }
+    }
+  }
+  destination {
+    company {
+      name
+    }
+    reception {
+      date
+    }
+  }
+}
+"""
+
+bsda_fragment = """
+fragment BsdaFragment on Bsda {
+  __typename
+  id
+  bsdaUpdatedAt: updatedAt
+  bsdaStatus: status
+  waste {
+    bsdaWasteCode: code
+    adr
+    materialName
+  }
+  emitter {
+    company {
+      name
+    }
+  }
+  transporter {
+    company {
+      siret
+      name
+    }
+    transport {
+      plates
+    }
+  }
+  destination {
+    company {
+      name
+    }
+    reception {
+      date
+    }
+  }
+  bsdaPackagings: packagings {
+    other
+    quantity
+    type
+  }
+  weight {
+    value
+  }
+}
+"""
+
+bsff_fragment = """
+fragment BsffFragment on Bsff {
+  __typename
+  id
+  bsffUpdatedAt: updatedAt
+  bsffStatus: status
+  emitter {
+    company {
+      name
+    }
+  }
+  bsffTransporter: transporter {
+    company {
+      siret
+      name
+    }
+    transport {
+      plates
+    }
+  }
+  waste {
+    code
+    description
+    adr
+  }
+  bsffDestination: destination {
+    company {
+      name
+    }
+    reception {
+      date
+    }
+  }
+  packagings {
+    numero
+    type
+    volume
+    weight
+  }
+  bsffWeight: weight {
+    value
+  }
+}
+"""
+
+bsvhu_fragment = """
+fragment BsvhuFragment on Bsvhu {
+  __typename
+  id
+  wasteCode
+  bsvhuStatus: status
+  bsvhuUpdatedAt: updatedAt
+  weight {
+    value
+  }
+  emitter {
+    company {
+      name
+    }
+  }
+  transporter {
+    company {
+      siret
+      name
+    }
+    transport {
+      plates
+    }
+  }
+  destination {
+    company {
+      name
+    }
+    reception {
+      weight
+      date
+    }
+  }
+}
+"""
+
+bspaoh_fragment = """
+fragment BspaohFragment on Bspaoh {
+  __typename
+  id
+  bspaohStatus: status
+  emitter {
+    company {
+      name
+    }
+    emission {
+      detail {
+        weight {
+          value
+        }
+      }
+    }
+  }
+  transporter {
+    company {
+      siret
+      name
+    }
+    transport {
+      plates
+    }
+  }
+  destination {
+    company {
+      name
+    }
+    reception {
+      date
+    }
+  }
+  bspaohWaste: waste {
+    code
+    type
+    packagings {
+      type
+      volume
+      quantity
+    }
+  }
+}
+"""
+
+graphql_query_bordereaux_search = Template("""
+ $bsdd_fragment
+ $bsdasri_fragment
+ $bsda_fragment
+ $bsvhu_fragment
+ $bspaoh_fragment
+ $bsff_fragment
+
+query BordereauxSearch {
+  bordereauxSearch(
+    where: {
+      $where
+    }
+    $first
+    $after
+  ) {
+    totalCount
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
+      hasPreviousPage
+    }
+    edges {
+      node {
+        ... on Bsdasri {
+          ...BsdasriFragment
+        }
+        ... on Bsda {
+          ...BsdaFragment
+        }
+        ... on Bsvhu {
+          ...BsvhuFragment
+        }
+        ... on Bspaoh {
+          ...BspaohFragment
+        }
+        ... on Bsff {
+          ...BsffFragment
+        }
+        ... on Form {
+          ...BsddFragment
+        }
+      }
+    }
+  }
+}
+""")
+
+
+def query_td_bordereaux_search(
+    siret=None,
+    tva=None,
+    bsd_id=None,
+    code_dechet=None,
+    code_aiot=None,
+    start_date_rep=None,
+    end_date_rep=None,
+    start_date_exp=None,
+    end_date_exp=None,
+    end_cursor=None,
+    page_size=20,
+):
     """
-    Requete de recherche de BSDs dans Trackdéchets en fonction de différents critères (SIRET, code postal, numéro de bordereau, code déchet, code aiot et plages de dates). Seuls les critères SIRET et numéro de bordereau sont actuellement pris en compte dans la requête GraphQL, les autres critères sont ignorés pour l'instant car non supportés par l'API Trackdéchets.
+    Recherche multicritères de bordereaux via bordereauxSearch.
+    Supporte : siret, tva, readableId, code_dechet, plages de dates réception/expédition.
+    Accessible uniquement aux comptes gouvernementaux (BSDS_CAN_READ_ALL).
     """
     where_clauses = []
 
     if siret:
         where_clauses.append(f'siret: "{siret}"')
+    if tva:
+        where_clauses.append(f'tva: "{tva}"')
     if bsd_id:
         where_clauses.append(f'readableId: "{bsd_id}"')
-
-    # Les autres filtres ne sont pas supportés par ControlBsdWhere
-    # code_postal, code_dechet, code_aiot, dates -> ignorés pour l'instant
+    if code_dechet:
+        where_clauses.append(f'code_dechet: "{code_dechet}"')
+    if start_date_rep:
+        where_clauses.append(f'date_reception_debut: "{start_date_rep}"')
+    if end_date_rep:
+        where_clauses.append(f'date_reception_fin: "{end_date_rep}"')
+    if start_date_exp:
+        where_clauses.append(f'date_expedition_debut: "{start_date_exp}"')
+    if end_date_exp:
+        where_clauses.append(f'date_expedition_fin: "{end_date_exp}"')
 
     where = "\n".join(where_clauses)
     after = f'after: "{end_cursor}"' if end_cursor else ""
+    first = f'first: {page_size}'
 
-    query = graphql_query_control_bsds.substitute(
+    query = graphql_query_bordereaux_search.substitute(
         where=where,
         after=after,
+        first=first,
         bsdd_fragment=bsdd_fragment,
         bsdasri_fragment=bsdasri_fragment,
         bsda_fragment=bsda_fragment,
@@ -41,6 +386,7 @@ def query_td_search_bsds(siret=None, bsd_id=None, code_postal=None, code_dechet=
             json={"query": query},
         )
         res.raise_for_status()
+        print(res.json(), flush=True)
         return res.json()
     except (httpx.HTTPError, ValueError):
         return None
@@ -76,10 +422,10 @@ def query_td_search_companies(clue,department=None):
         return None
       return data.get("data", {}).get("searchCompanies", [])
 
-    auth_headers = {"Authorization": f"Bearer {settings.TD_API_TOKEN}"}
+    auth_headers = {"Authorization": f"Bearer gqL6MkwJIR7xPPDfwpOKlDiLjziO1Dh4n3x6OCed"}
 
     try:
-      res = client.post(url=settings.TD_API_URL, headers=auth_headers, json=payload)
+      res = client.post(url="https://api.sandbox.trackdechets.beta.gouv.fr/", headers=auth_headers, json=payload)
       res.raise_for_status()
       companies = _extract_companies(res)
       if companies is not None:
@@ -112,7 +458,7 @@ def query_td_company_infos(siret):
     client = httpx.Client(timeout=60)
     try:
         res = client.post(
-            url=settings.TD_API_URL,
+            url="https://api.sandbox.trackdechets.beta.gouv.fr/",
             json={
                 "query": query,
                 "variables": {"siret": siret},
@@ -126,177 +472,3 @@ def query_td_company_infos(siret):
         return None
     except (httpx.HTTPError, ValueError):
         return None
-
-bsdd_forms_fragment = """
-fragment BsddFragment on Form {
-  __typename
-  id
-  readableId
-  customId
-  status
-  createdAt
-  updatedAt
-  emittedAt
-  takenOverAt
-  receivedAt
-  processedAt
-  wasteAcceptationStatus
-  wasteRefusalReason
-  quantityReceived
-  processingOperationDone
-  processingOperationDescription
-  noTraceability
-  emitter {
-    company { siret name address contact phone mail }
-  }
-  recipient {
-    company { siret name address contact phone mail }
-  }
-  transporter {
-    company { siret name }
-    numberPlate
-  }
-  wasteDetails {
-    code
-    name
-    quantity
-    quantityType
-  }
-  trader {
-    company { siret name }
-  }
-  broker {
-    company { siret name }
-  }
-  intermediaries {
-    siret
-    name
-    address
-    contact
-    phone
-    mail
-  }
-}
-"""
-
-graphql_query_forms = Template("""
-$bsdd_fragment
-
-query Forms(
-  $$siret: String
-  $$cursorAfter: ID
-  $$first: Int
-  $$status: [FormStatus!]
-  $$roles: [FormRole!]
-  $$updatedAfter: String
-  $$sentAfter: String
-  $$wasteCode: String
-  $$customId: String
-) {
-  forms(
-    siret: $$siret
-    cursorAfter: $$cursorAfter
-    first: $$first
-    status: $$status
-    roles: $$roles
-    updatedAfter: $$updatedAfter
-    sentAfter: $$sentAfter
-    wasteCode: $$wasteCode
-    customId: $$customId
-  ) {
-    ...BsddFragment
-  }
-}
-""")
-
-
-def query_td_forms(
-    siret=None,
-    bsd_id=None,
-    start_cursor=None,
-    end_cursor=None,
-    status=None,
-    roles=None,
-    custom_id=None,
-    first=50,
-    updated_after=None,
-    sent_after=None,
-    code_postal=None,
-    code_dechet=None,
-    code_aiot=None,
-    start_date_rep=None,
-    end_date_rep=None,
-    start_date_exp=None,
-    end_date_exp=None,
-):
-    variables = {}
-    if siret:
-        variables["siret"] = siret
-    if end_cursor:
-        variables["cursorAfter"] = end_cursor
-    if custom_id:
-        variables["customId"] = custom_id
-    if status:
-        variables["status"] = status
-    if roles:
-        variables["roles"] = roles
-    if code_dechet:
-        variables["wasteCode"] = code_dechet
-    if first:
-        variables["first"] = first
-    if updated_after:
-        variables["updatedAfter"] = updated_after
-    if sent_after:
-        variables["sentAfter"] = sent_after
-
-    query = graphql_query_forms.substitute(bsdd_fragment=bsdd_forms_fragment)
-
-    client = httpx.Client(timeout=60)
-    try:
-        res = client.post(
-            url=settings.TD_API_URL,
-            headers={"Authorization": f"Bearer {settings.TD_API_TOKEN}"},
-            json={"query": query, "variables": variables},
-        )
-        rep = res.json()
-    except httpx.HTTPError:
-        return []
-
-    forms = rep.get("data", {}).get("forms", []) or []
-
-    # Filtrage par readableId côté Python si bsd_id est un BSD-XXXXXXXX
-    if bsd_id:
-        forms = [f for f in forms if f.get("readableId") == bsd_id]
-
-    if not forms:
-        return {
-            "data": {
-                "controlBsds": {
-                    "totalCount": 0,
-                    "pageInfo": {
-                        "startCursor": None,
-                        "endCursor": None,
-                        "hasNextPage": False,
-                        "hasPreviousPage": False,
-                    },
-                    "edges": [],
-                }
-            }
-        }
-
-    has_next_page = len(forms) == first
-
-    return {
-        "data": {
-            "controlBsds": {
-                "totalCount": len(forms),
-                "pageInfo": {
-                    "startCursor": forms[0]["id"],
-                    "endCursor": forms[-1]["id"],
-                    "hasNextPage": has_next_page,
-                    "hasPreviousPage": end_cursor is not None,
-                },
-                "edges": [{"node": form} for form in forms],
-            }
-        }
-    }

@@ -3,6 +3,8 @@
       hx-target="#id_search_results"
       hx-indicator="#id_spinner_wrapper">
     {% csrf_token %}
+
+    <input type="hidden" name="search_mode" value="advanced" />
     
     {% if form.non_field_errors %}
         <div class="fr-alert fr-alert--error fr-mb-2w">

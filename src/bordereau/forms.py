@@ -33,15 +33,15 @@ class BsdSearchForm(Form):
         "placeholder": "BSD-",
     }),
     )
+    search_mode = CharField(required=False, widget=HiddenInput())
 
     def clean(self):
         cleaned_data = super().clean()
         siret = self.data.get("siret")
-        code_postal = self.data.get("code_postal")
         bsd_id = self.data.get("bsd_id")
 
-        if not any([siret, code_postal, bsd_id]):
-            raise ValidationError("Au moins un champ de recherche est requis (SIRET, Code postal ou N° de bordereau).")
+        if not any([siret, bsd_id]):
+            raise ValidationError("Au moins un champ de recherche est requis (Sélection d'une entreprise ou N° de bordereau).")
 
         return cleaned_data
 
@@ -109,10 +109,12 @@ class BsdAvancedSearchForm(Form):
         required=False,
     )
 
+    search_mode = CharField(required=False, widget=HiddenInput())
+
     def clean(self):
         cleaned_data = super().clean()
         fields_to_check = [
-            "siret", "code_postal", "bsd_id", "code_dechet", "code_aiot",
+            "siret", "bsd_id", "code_dechet", "code_aiot",
             "start_date_rep", "end_date_rep", "start_date_exp", "end_date_exp"
         ]
         

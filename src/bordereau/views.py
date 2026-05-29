@@ -13,9 +13,8 @@ from .forms import BsdSearchForm, BsdAvancedSearchForm
 from roadcontrol.models import BsdPdf
 
 from .td_requests import (
-    query_td_search_bsds,
+    query_td_bordereaux_search,
     query_td_search_companies,
-    query_td_forms,
 )
 
 class BsdSearch(FullyLoggedMixin, TemplateView):
@@ -120,38 +119,56 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
     allowed_user_categories = PERMS_BSD_SEARCH
 
     def get_form_class(self):
-        """
-        On choisit le formulaire à instancier en fonction des champs présents dans la requête POST.
-        S'il y a des champs spécifiques à la recherche avancée, on instancie le formulaire de recherche avancée, sinon le formulaire de recherche simple.
-        """
-        if any(key in self.request.POST for key in ["code_dechet", "code_aiot", "start_date_rep", "end_date_rep", "start_date_exp", "end_date_exp"]):
+        if self.request.POST.get("search_mode") == "advanced":
             return BsdAvancedSearchForm
         return BsdSearchForm
 
     def form_valid(self, form):
-        search_params = form.cleaned_data
-        search_params.pop("search_clue") # on n'en a plus besoin(barre de recherche)
-        query_name = "controlBsds" # ici il faut utiliser une autre query, mais l'API n'a pas implémentée une recherche comme celle ci  
+        print("POST complet:", dict(self.request.POST), flush=True)
 
-        resp = query_td_forms(**search_params) # autre query avec juste **search_params une fois que l'API est prête
+        form_end_cursor = self.request.POST.get("end_cursor") or None
+        current_page = int(self.request.POST.get("current_page", 1))
+        page_size = 20
+        
+        # 1. On sauvegarde le mode de recherche avant nettoyage
+        search_mode = self.request.POST.get("search_mode")
 
+        search_params = form.cleaned_data.copy()
+        search_params.pop("search_clue", None)
+        search_params.pop("code_postal", None)
+        search_params.pop("search_mode", None)
+
+        query_name = "bordereauxSearch"
+
+        # Appel à l'API Trackdéchets
+        resp = query_td_bordereaux_search(**search_params, end_cursor=form_end_cursor, page_size=page_size)
+
+        # 2. On réinjecte le mode APRÈS l'appel API pour que le template s'en souvienne au clic suivant
+        search_params["search_mode"] = search_mode
+
+        # 3. Initialisation sécurisée pour éviter les crashs 500 si l'API échoue
         nodes = []
         total_count = 0
-        start_cursor = None
-        end_cursor = None
         has_next_page = False
         has_previous_page = False
+        start_cursor = None
+        end_cursor = None
+        next_page = current_page
+        prev_page = current_page
 
         if resp and "data" in resp and resp["data"].get(query_name):
-            bsds = resp["data"][query_name]
-            total_count = bsds["totalCount"]
-            page_info = bsds["pageInfo"]
+            bsds_resp = resp["data"][query_name]
+            total_count = bsds_resp["totalCount"]
+            page_info = bsds_resp["pageInfo"]
+            
             start_cursor = page_info["startCursor"]
-            end_cursor = page_info["endCursor"]
+            # 4. Attention ici : aucune virgule à la fin de cette ligne !
+            end_cursor = page_info["endCursor"] 
             has_next_page = page_info["hasNextPage"]
-            has_previous_page = page_info["hasPreviousPage"]
-            edges = bsds["edges"]
-            nodes = [edge["node"] for edge in edges]
+            has_previous_page = bool(form_end_cursor)
+            next_page = current_page + 1 if has_next_page else current_page
+            prev_page = current_page - 1 if has_previous_page else current_page
+            nodes = [edge["node"] for edge in bsds_resp["edges"]]
 
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
@@ -169,8 +186,13 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
                 end_cursor=end_cursor,
                 has_next_page=has_next_page,
                 has_previous_page=has_previous_page,
-                bundle_download_available=False,
+                bundle_download_available=True,
                 request_type=BsdPdf.RequestTypeChoice.BSD,
+                current_page=current_page,
+                next_page=next_page,
+                prev_page=prev_page,
+                page_size=page_size,
+                total_pages=max(1, -(-total_count // page_size)),
             )
         )
 

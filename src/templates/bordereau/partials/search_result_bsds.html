@@ -1,39 +1,45 @@
-{% load partials static %}
-
-{% partialdef bundle-form-partial %}
-{% if bundle_download_available %}
-    {% if search_params.siret and total_count <= 100 %}
-        <form action="{% url "roadcontrol_pdf_bundle" %}" method="post">
-            {% csrf_token %}
-            {% for bsd in bsds %}
-                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
-                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
-                <input type="hidden" name="bsd_types[]" value="{{ bsd.bsd_type }}" />
-                <input type="hidden" name="bsd_ids[]" value="{{ bsd.id }}" />
-                <input type="hidden" name="readable_ids[]" value="{{ bsd.readable_id }}" />
-                <input type="hidden" name="waste_codes[]" value="{{ bsd.waste_details.code }}" />
-                <input type="hidden" name="weights[]" value="{{ bsd.waste_details.weight }}" />
-                <input type="hidden" name="adr_codes[]" value="{{ bsd.adr }}" />
-                <input type="hidden" name="packagings[]" value="{{ bsd.packagings }}" />
-            {% endfor %}
-            <div class="fr-grid-row fr-grid-row--right">
-                <button class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-file-text-line">
-                    Télécharger tous les pdf
-                </button>
-            </div>
-        </form>
-    {% else %}
-        <div class="fr-grid-row fr-grid-row--right">Export de dossier indisponible - trop de résultats</div>
-    {% endif %}
-{% endif %}
-{% endpartialdef %}
+{% load partials static bordereau_tags %}
 
 {% if bsds %}
-    <p class="fr-mt-3w">
-        <strong>{{ total_count }} bordereau{% if total_count > 1 %}x{% endif %} de déchet{% if total_count > 1 %}s{% endif %} trouvé{% if total_count > 1 %}s{% endif %}</strong>
-    </p>
+    <div class="fr-grid-row fr-grid-row--middle fr-mt-3w fr-mb-2w">
+    
+    {# Colonne de gauche (prend tout l'espace disponible) #}
+    <div class="fr-col">
+        <p class="fr-mb-0">
+            <strong>{{ total_count }} bordereau{% if total_count > 1 %}x{% endif %} de déchet{% if total_count > 1 %}s{% endif %} trouvé{% if total_count > 1 %}s{% endif %}</strong>
+        </p>
+    </div>
 
-    <div>{% partial bundle-form-partial %}</div>
+    {# Colonne de droite (s'adapte à la taille de son contenu) #}
+    {% if bundle_download_available %}
+        <div class="fr-col-auto">
+            {% if total_count <= 100 %}
+                <form action="{% url 'roadcontrol_pdf_bundle' %}" method="post" class="fr-mb-0">
+                    {% csrf_token %}
+                    {% for bsd in bsds %}
+                        <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                        <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                        <input type="hidden" name="bsd_types[]" value="{{ bsd.bsd_type }}" />
+                        <input type="hidden" name="bsd_ids[]" value="{{ bsd.id }}" />
+                        <input type="hidden" name="readable_ids[]" value="{{ bsd.readable_id }}" />
+                        <input type="hidden" name="waste_codes[]" value="{{ bsd.waste_details.code }}" />
+                        <input type="hidden" name="weights[]" value="{{ bsd.waste_details.weight }}" />
+                        <input type="hidden" name="adr_codes[]" value="{{ bsd.adr }}" />
+                        <input type="hidden" name="packagings[]" value="{{ bsd.packagings }}" />
+                    {% endfor %}
+                    <button class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-file-text-line">
+                        Télécharger tous les pdf
+                    </button>
+                </form>
+            {% else %}
+                <div class="fr-text--sm fr-text-default--warning fr-mb-0">
+                    <strong>Export de dossier indisponible - trop de résultats</strong>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    </div>
 
     <table id="bsd-table" class="bsd-table">
         <thead>
@@ -56,32 +62,98 @@
         </tbody>
     </table>
 
-    <div class="fr-mb-4w">{% partial bundle-form-partial %}</div>
+    {# Macro pour les inputs cachés communs à tous les formulaires de pagination #}
+    {% with sm=search_params %}
 
-    <div class="fr-grid-row fr-mt-2w" style="gap: 8px;">
-        {% if has_previous_page %}
-            <form hx-post="{% url "search_result" %}"
-                  hx-target="#id_search_results"
-                  hx-indicator="#id_spinner__wrapper">
-                {% csrf_token %}
-                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
-                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
-                <input type="hidden" name="start_cursor" value="{{ start_cursor }}" />
-                <button class="fr-btn fr-btn--secondary fr-mr-1w">Précédent</button>
-            </form>
-        {% endif %}
-        {% if has_next_page %}
-            <form hx-post="{% url "search_result" %}"
-                  hx-target="#id_search_results"
-                  hx-indicator="#id_spinner__wrapper">
-                {% csrf_token %}
-                <input type="hidden" name="siret" value="{{ search_params.siret }}" />
-                <input type="hidden" name="plate" value="{{ search_params.plate }}" />
-                <input type="hidden" name="end_cursor" value="{{ end_cursor }}" />
-                <button class="fr-btn fr-btn--secondary">Suivant</button>
-            </form>
-        {% endif %}
-    </div>
+    {# Pagination DSFR #}
+    <nav role="navigation" class="fr-pagination fr-mt-4w" aria-label="Pagination">
+        {# On ajoute le style justify-content: center ici 👇 #}
+        <ul class="fr-pagination__list" style="justify-content: center;">
+
+            {# Page précédente #}
+            <li>
+                {% if has_previous_page %}
+                    <form hx-post="{% url 'bordereau_search_result' %}"
+                          hx-target="#id_search_results"
+                          hx-indicator="#id_spinner_wrapper"
+                          style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="siret" value="{{ sm.siret }}" />
+                        <input type="hidden" name="bsd_id" value="{{ sm.bsd_id }}" />
+                        <input type="hidden" name="code_dechet" value="{{ sm.code_dechet }}" />
+                        <input type="hidden" name="code_aiot" value="{{ sm.code_aiot }}" />
+                        <input type="hidden" name="start_date_rep" value="{{ sm.start_date_rep }}" />
+                        <input type="hidden" name="end_date_rep" value="{{ sm.end_date_rep }}" />
+                        <input type="hidden" name="start_date_exp" value="{{ sm.start_date_exp }}" />
+                        <input type="hidden" name="end_date_exp" value="{{ sm.end_date_exp }}" />
+                        <input type="hidden" name="search_mode" value="{{ sm.search_mode }}" />
+                        <input type="hidden" name="page_size" value="20" />
+                        <input type="hidden" name="current_page" value="{{ prev_page }}" />
+                        <input type="hidden" name="start_cursor" value="{{ start_cursor }}" />
+                        <input type="hidden" name="end_cursor" value="{{ end_cursor }}" />
+                        <button type="submit" class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--label">
+                            Précédent
+                        </button>
+                    </form>
+                {% else %}
+                    <a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--label" aria-disabled="true" role="link">
+                        Précédent
+                    </a>
+                {% endif %}
+            </li>
+
+            {# Numéros de pages #}
+            {% for p in total_pages|to_range %}
+                {% if p == current_page %}
+                    <li>
+                        <a class="fr-pagination__link" aria-current="page" title="Page {{ p }}">{{ p }}</a>
+                    </li>
+                {% elif p == 1 or p == total_pages or p >= current_page|add:"-2" and p <= current_page|add:"2" %}
+                    <li>
+                        <a class="fr-pagination__link" title="Page {{ p }}" style="cursor: default;">{{ p }}</a>
+                    </li>
+                {% elif p == current_page|add:"-3" or p == current_page|add:"3" %}
+                    <li>
+                        <a class="fr-pagination__link" aria-hidden="true" style="cursor: default;">…</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {# Page suivante #}
+            <li>
+                {% if has_next_page %}
+                    <form hx-post="{% url 'bordereau_search_result' %}"
+                          hx-target="#id_search_results"
+                          hx-indicator="#id_spinner_wrapper"
+                          style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="siret" value="{{ sm.siret }}" />
+                        <input type="hidden" name="bsd_id" value="{{ sm.bsd_id }}" />
+                        <input type="hidden" name="code_dechet" value="{{ sm.code_dechet }}" />
+                        <input type="hidden" name="code_aiot" value="{{ sm.code_aiot }}" />
+                        <input type="hidden" name="start_date_rep" value="{{ sm.start_date_rep }}" />
+                        <input type="hidden" name="end_date_rep" value="{{ sm.end_date_rep }}" />
+                        <input type="hidden" name="start_date_exp" value="{{ sm.start_date_exp }}" />
+                        <input type="hidden" name="end_date_exp" value="{{ sm.end_date_exp }}" />
+                        <input type="hidden" name="search_mode" value="{{ sm.search_mode }}" />
+                        <input type="hidden" name="page_size" value="20" />
+                        <input type="hidden" name="current_page" value="{{ next_page }}" />
+                        <input type="hidden" name="end_cursor" value="{{ end_cursor }}" />
+                        <button type="submit" class="fr-pagination__link fr-pagination__link--next fr-pagination__link--label">
+                            Suivant
+                        </button>
+                    </form>
+                {% else %}
+                    <a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--label" aria-disabled="true" role="link">
+                        Suivant
+                    </a>
+                {% endif %}
+            </li>
+
+        </ul>
+    </nav>
+
+    {% endwith %}
 
 {% else %}
     <div id="no-results-alert" class="fr-alert fr-alert--warning fr-mt-4w fr-mb-4w">
@@ -106,11 +178,6 @@
                 </ul>
             {% endif %}
         {% endfor %}
-        <ul>
-            {% if value %}
-                {% for fn, value in form.cleaned_data.items %}<li>{{ fn }}: {{ value }}</li>{% endfor %}
-            {% endif %}
-        </ul>
     </div>
 {% endif %}
 
