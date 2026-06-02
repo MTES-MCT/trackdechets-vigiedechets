@@ -124,7 +124,6 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
         return BsdSearchForm
 
     def form_valid(self, form):
-        print("POST complet:", dict(self.request.POST), flush=True)
 
         form_end_cursor = self.request.POST.get("end_cursor") or None
         current_page = int(self.request.POST.get("current_page", 1))

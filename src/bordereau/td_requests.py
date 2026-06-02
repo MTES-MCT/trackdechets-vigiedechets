@@ -386,7 +386,6 @@ def query_td_bordereaux_search(
             json={"query": query},
         )
         res.raise_for_status()
-        print(res.json(), flush=True)
         return res.json()
     except (httpx.HTTPError, ValueError):
         return None
@@ -422,7 +421,7 @@ def query_td_search_companies(clue,department=None):
         return None
       return data.get("data", {}).get("searchCompanies", [])
 
-    auth_headers = {"Authorization": f"Bearer gqL6MkwJIR7xPPDfwpOKlDiLjziO1Dh4n3x6OCed"}
+    auth_headers = {"Authorization": f"Bearer jLDJukhL3DaeGsjvAQcLBFzv3CNiUuBf4pZLkUBv"}
 
     try:
       res = client.post(url="https://api.sandbox.trackdechets.beta.gouv.fr/", headers=auth_headers, json=payload)
