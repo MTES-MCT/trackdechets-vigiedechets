@@ -12,11 +12,11 @@
                     {{ download.bsd_id }}
                 {% else %}
                     <span class="fr-icon-folder-2-line fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
-                    {{ download.verbose_type }} ({% if download.transporter_plate != "Tous" %}{{ download.transporter_plate }}{% else %}{{ download.params|length }} bsd{% endif %})
+                    {{ download.verbose_type }} ({% if download.transporter_plate and download.transporter_plate != "Tous" %}{{ download.transporter_plate }}{% else %}{{ download.params|length }} bsd{% endif %})
                 {% endif %}
             </p>
-            <p class="fr-text--xs fr-text-mention--grey fr-mb-1v" title="{{ download.company_name }} - {{ download.company_siret }}">
-                {{ download.company_name|default:"Critères multiples"|truncatechars:35 }} ({{ download.company_siret }})
+            <p class="fr-text--xs fr-text-mention--grey fr-mb-1v" title="{{ download.company_name|default:"Critères multiples" }}{% if download.company_siret %} - {{ download.company_siret }}{% endif %}">
+                {{ download.company_name|default:"Critères multiples"|truncatechars:35 }}{% if download.company_siret %} ({{ download.company_siret }}){% endif %}
             </p>
             <p class="fr-text--xs fr-text-mention--grey fr-mb-0">
                 {{ download.created_at|date:"SHORT_DATETIME_FORMAT" }}

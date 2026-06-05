@@ -5,10 +5,8 @@ import pytest
 from django.urls import reverse
 
 from accounts.factories import UserFactory
-from roadcontrol.factories import BsdPdfFactory, PdfBundleFactory
-from roadcontrol.models import PdfBundle
-
-from roadcontrol.models import BsdPdf, PdfBundle
+from bordereau.factories import BsdPdfFactory, PdfBundleFactory
+from bordereau.models import BsdPdf, PdfBundle
 
 pytestmark = pytest.mark.django_db
 
@@ -51,9 +49,8 @@ def test_bordereau_recent_search_anon(anon_client):
 def test_bordereau_recent_search(verified_user):
     other_user = UserFactory()
     BsdPdfFactory(created_by=other_user)
-    BsdPdfFactory(created_by=verified_user.user, request_type="BSD", bsd_id="BSD-RECENT-1")
+    BsdPdfFactory(created_by=verified_user.user, bsd_id="BSD-RECENT-1")
     PdfBundleFactory(created_by=other_user, state=PdfBundle.BundleChoice.READY)
-    BsdPdfFactory(created_by=verified_user.user, request_type="ROAD_CONTROL")
     PdfBundleFactory(created_by=verified_user.user, state=PdfBundle.BundleChoice.PROCESSING)
 
     res = verified_user.get(reverse("bordereau_recent_search"))

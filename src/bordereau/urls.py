@@ -9,6 +9,7 @@ from .views import (
     BsdFragmentBundleProcessingView,
     BsdPdfBundleResult,
     BsdRecentSearch,
+    SingleBordereauPdfDownload,
 )
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
     path("company-search/", CompanySearchView.as_view(), name="bordereau_company_search"),
     path("bsd-search-result/", BsdSearchResult.as_view(), name="bordereau_search_result"),
     path("bsd-id-search-result/", BsdSearchResultById.as_view(), name="bordereau_bsd_id_search_result"),
+    path("single-pdf-download/", SingleBordereauPdfDownload.as_view(), name="bordereau_single_bsd_pdf_download"),
     path(
         "bsd-search/pdf-bundle-process/",
         BsdPdfBundle.as_view(),

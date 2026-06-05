@@ -10,7 +10,7 @@ from common.mixins import FullyLoggedMixin
 from .converters import BsdsToBsdsDisplaySearchResult
 from .forms import BsdSearchForm
 
-from roadcontrol.models import BsdPdf,PdfBundle 
+from bordereau.models import BsdPdf, PdfBundle
 from bordereau.tasks import prepare_bordereau_bundle
 
 from .td_requests import (
@@ -35,7 +35,7 @@ class BsdSearch(FullyLoggedMixin, TemplateView):
         context["form"] = BsdSearchForm(
             initial={"siret": siret, "selected_company_json": selected_company_json}
         )
-        context["recent_downloads"] = BsdPdf.objects.bsd().filter(created_by=self.request.user)[:5]
+        context["recent_downloads"] = BsdPdf.objects.filter(created_by=self.request.user)[:5]
         context["download_column_name"] = "N° de bordereau"
         return context
 
@@ -161,7 +161,6 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
                 has_next_page=has_next_page,
                 has_previous_page=has_previous_page,
                 bundle_download_available=True,
-                request_type=BsdPdf.RequestTypeChoice.BSD,
                 current_page=current_page,
                 next_page=next_page,
                 prev_page=prev_page,
@@ -233,14 +232,12 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
             for bsd in converter.bsds_display
         ]
 
-        #print(bsd_display := converter.bsds_display)  # Debug: affiche les données converties pour vérification
-
         return self.render_to_response(
             self.get_context_data(
                 form=form,
                 bsds=converter.bsds_display,
                 bsds_ids=bsds_ids,
-                search_params={**search_params, "search_by_company": search_by_company},  # ← réinjecté
+                search_params={**search_params, "search_by_company": search_by_company},
                 total_count=total_count,
                 start_cursor=start_cursor,
                 end_cursor=end_cursor,
@@ -249,7 +246,6 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
                 has_next_page=has_next_page,
                 has_previous_page=has_previous_page,
                 bundle_download_available=True,
-                request_type=BsdPdf.RequestTypeChoice.BSD,
                 current_page=current_page,
                 next_page=next_page,
                 prev_page=prev_page,
@@ -265,8 +261,8 @@ class BsdRecentSearch(FullyLoggedMixin, TemplateView):
 
     def get_recent_downloads(self):
         user = self.request.user
-        bundles = PdfBundle.objects.bsd().ready().filter(created_by=user)[:5]
-        pdfs = BsdPdf.objects.bsd().filter(bundle=None, created_by=user)[:5]
+        bundles = PdfBundle.objects.ready().filter(created_by=user)[:5]
+        pdfs = BsdPdf.objects.filter(bundle=None, created_by=user)[:5]
 
         return sorted(list(bundles) + list(pdfs), key=lambda i: getattr(i, "created_at"), reverse=True)[:5]
 
@@ -295,55 +291,82 @@ class BsdPdfBundle(FullyLoggedMixin, TemplateView):
         end_exp = request.POST.get("end_date_exp")
         dates_expedition = f"Du {start_exp} au {end_exp}" if (start_exp or end_exp) else "Toutes dates"
 
-        # 2. Préparation des paramètres de recherche pour requêter l'API Trackdéchets
-        search_params = {
-            "siret": request.POST.get("siret"),
-            "bsd_id": request.POST.get("bsd_id"),
-            "search_by_company": request.POST.get("search_by_company") == "true",
-            "code_dechet": request.POST.getlist("code_dechet"),
-            "code_aiot": request.POST.getlist("code_aiot"),
-            "start_date_rep": request.POST.get("start_date_rep"),
-            "end_date_rep": request.POST.get("end_date_rep"),
-            "start_date_exp": request.POST.get("start_date_exp"),
-            "end_date_exp": request.POST.get("end_date_exp"),
-        }
+        # Check if precise ids were given
+        bsd_ids = request.POST.getlist("bsd_ids[]")
         
-        search_params = {k: v for k, v in search_params.items() if v}
-        search_params.pop("search_by_company", None)
+        if bsd_ids:
+            bsd_types = request.POST.getlist("bsd_types[]")
+            readable_ids = request.POST.getlist("readable_ids[]")
+            waste_codes = request.POST.getlist("waste_codes[]")
+            weights = request.POST.getlist("weights[]")
+            adr_codes = request.POST.getlist("adr_codes[]")
+            packagings = request.POST.getlist("packagings[]")
 
-        resp = query_td_bordereaux_search(**search_params, page_size=100)
-        
-        nodes = []
-        if resp and resp.get("data") and resp["data"].get("bordereauxSearch"):
-            nodes = [edge["node"] for edge in resp["data"]["bordereauxSearch"]["edges"]]
-
-        converter = BsdsToBsdsDisplaySearchResult(nodes)
-        converter.convert()
-        
-        bundle_params = [
-            {
-                "bsd_type": bsd.get("bsd_type"),
-                "bsd_id": bsd.get("id"),
-                "readable_id": bsd.get("readable_id"),
-                "waste_code": bsd.get("waste_details", {}).get("code") or "",
-                "weight": bsd.get("waste_details", {}).get("weight") or "0",
-                "adr_code": bsd.get("adr") or "",
-                "packagings": bsd.get("packagings") or "",
+            bundle_params = [
+                {
+                    "bsd_type": bsd_type,
+                    "bsd_id": bsd_id,
+                    "readable_id": readable_id,
+                    "waste_code": waste_code,
+                    "weight": weight,
+                    "adr_code": adr_code,
+                    "packagings": packaging,
+                }
+                for bsd_type, bsd_id, readable_id, waste_code, weight, adr_code, packaging in zip(
+                    bsd_types, bsd_ids, readable_ids, waste_codes, weights, adr_codes, packagings
+                )
+            ]
+        else:
+            # 2. Préparation des paramètres de recherche pour requêter l'API Trackdéchets
+            search_params = {
+                "siret": request.POST.get("siret"),
+                "bsd_id": request.POST.get("bsd_id"),
+                "search_by_company": request.POST.get("search_by_company") == "true",
+                "code_dechet": request.POST.getlist("code_dechet"),
+                "code_aiot": request.POST.getlist("code_aiot"),
+                "start_date_rep": request.POST.get("start_date_rep"),
+                "end_date_rep": request.POST.get("end_date_rep"),
+                "start_date_exp": request.POST.get("start_date_exp"),
+                "end_date_exp": request.POST.get("end_date_exp"),
             }
-            for bsd in converter.bsds_display
-        ]
+            
+            search_params = {k: v for k, v in search_params.items() if v}
+            search_params.pop("search_by_company", None)
+
+            resp = query_td_bordereaux_search(**search_params, page_size=100)
+            
+            nodes = []
+            if resp and resp.get("data") and resp["data"].get("bordereauxSearch"):
+                nodes = [edge["node"] for edge in resp["data"]["bordereauxSearch"]["edges"]]
+
+            converter = BsdsToBsdsDisplaySearchResult(nodes)
+            converter.convert()
+            
+            bundle_params = [
+                {
+                    "bsd_type": bsd.get("bsd_type"),
+                    "bsd_id": bsd.get("id"),
+                    "readable_id": bsd.get("readable_id"),
+                    "waste_code": bsd.get("waste_details", {}).get("code") or "",
+                    "weight": bsd.get("waste_details", {}).get("weight") or "0",
+                    "adr_code": bsd.get("adr") or "",
+                    "packagings": bsd.get("packagings") or "",
+                }
+                for bsd in converter.bsds_display
+            ]
 
         # 3. Association des critères de recherche aux attributs du modèle PdfBundle
         bundle = PdfBundle.objects.create(
             created_by=request.user,
-            company_siret=siret_searched,          # Devient N° SIRET
-            transporter_plate=bsd_id_searched,      # Devient N° de bordereau
-            company_name=codes_dechet_searched,     # Devient Codes Déchets
-            company_address=code_aiot_searched,     # Devient Code MonAIOT
-            company_contact=dates_reception,        # Devient Dates de réception
-            company_email=dates_expedition,         # Devient Dates d'expédition
+            search_params={
+                "siret": siret_searched,
+                "bsd_id": bsd_id_searched,
+                "code_dechet": codes_dechet_searched,
+                "code_aiot": code_aiot_searched,
+                "dates_reception": dates_reception,
+                "dates_expedition": dates_expedition,
+            },
             params=bundle_params,
-            request_type=BsdPdf.RequestTypeChoice.BSD,
         )
 
         task = prepare_bordereau_bundle.delay(bundle.pk)
@@ -413,3 +436,55 @@ class BsdPdfBundleResult(FullyLoggedMixin, DetailView):
 
     def get_queryset(self):
         return super().get_queryset().filter(created_by=self.request.user)
+
+
+from django.core.files.base import ContentFile
+from roadcontrol.exceptions import FormDownloadException
+from roadcontrol.td_requests import query_td_pdf
+
+class SingleBordereauPdfDownload(FullyLoggedMixin, TemplateView):
+    """Pdf download view used by bordereau views"""
+
+    template_name = "bordereau/bordereau_pdf.html"
+    allowed_user_categories = PERMS_BSD_SEARCH
+
+    def get_pdf_download_link(self, bsd_type, bsd_id):
+        return query_td_pdf(bsd_type=bsd_type, bsd_id=bsd_id)
+
+    def get_pdf_download_content(self, link):
+        try:
+            r = self.client.get(link)
+        except httpx.RequestError:
+            raise FormDownloadException()
+        return r.content
+
+    def post(self, request, *args, **kwargs):
+        bsd_id = request.POST.get("bsd_id")
+        bsd_type = request.POST.get("bsd_type")
+        bsd_readable_id = request.POST.get("bsd_readable_id", None) or bsd_id
+
+        waste_code = request.POST.get("waste_code", "")
+        weight = request.POST.get("weight", "0")
+        packagings = request.POST.get("packagings", "")
+        adr_code = request.POST.get("adr", "") or request.POST.get("adr_code", "")
+
+        self.client = httpx.Client(timeout=60)
+        download_link = self.get_pdf_download_link(bsd_type=bsd_type, bsd_id=bsd_id)
+
+        pdfdata = self.get_pdf_download_content(download_link)
+
+        file = ContentFile(pdfdata, name="bsd.pdf")
+
+        bsd_pdf = BsdPdf.objects.create(
+            bsd_id=bsd_readable_id,
+            pdf_file=file,
+            waste_code=waste_code,
+            weight=weight,
+            packagings=packagings,
+            adr_code=adr_code,
+            created_by=request.user,
+        )
+
+        res = self.render_to_response(context={"bsd_pdf": bsd_pdf})
+        res["HX-Trigger"] = "reloadRecentPdfs"
+        return res

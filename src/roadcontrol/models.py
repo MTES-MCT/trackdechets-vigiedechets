@@ -11,12 +11,6 @@ from accounts.models import User
 
 
 class PdfBundleQuerySet(models.QuerySet):
-    def road_control(self):
-        return self.filter(request_type="ROAD_CONTROL")
-
-    def bsd(self):
-        return self.filter(request_type="BSD")
-
     def ready(self):
         return self.filter(state="READY")
 
@@ -51,9 +45,6 @@ def bundle_path(instance, _):
 
 
 class PdfBundle(Base):
-    class RequestTypeChoice(models.TextChoices):
-        ROAD_CONTROL = "ROAD_CONTROL", _("Road control")
-        BSD = "BSD", _("Bsd")
 
     class BundleChoice(models.TextChoices):
         INITIAL = "INITIAL", _("Initial")
@@ -63,6 +54,7 @@ class PdfBundle(Base):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     params = models.JSONField(default=dict)
+    search_params = models.JSONField(default=dict, blank=True)
 
     state = models.CharField(
         _("State"),
@@ -72,13 +64,10 @@ class PdfBundle(Base):
     )
     created_at = models.DateTimeField(_("Downloaded at"), default=timezone.now)
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True
+        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="roadcontrol_pdfbundles"
     )
     zip_file = models.FileField(
         _("Zip File"), upload_to=bundle_path, blank=True, max_length=512, storage=storages["private_s3"]
-    )
-    request_type = models.CharField(
-        _("Request Type"), max_length=20, default=RequestTypeChoice.ROAD_CONTROL, choices=RequestTypeChoice.choices
     )
     objects = PdfBundleManager()
 
@@ -104,21 +93,10 @@ def bsd_path(instance, _):
     return f"bsds/{now.year}/{now.month}/{now.day}/bsd-{instance.id}.pdf"
 
 
-class BsdPdfManager(models.Manager):
-    def road_control(self):
-        """Pdf created from raod control queries"""
-        return self.filter(request_type="ROAD_CONTROL")
-
-    def bsd(self):
-        """Pdf created from individual pdf queries"""
-
-        return self.filter(request_type="BSD")
+# class BsdPdfManager(models.Manager): removed as no longer needed
 
 
 class BsdPdf(Base):
-    class RequestTypeChoice(models.TextChoices):
-        ROAD_CONTROL = "ROAD_CONTROL", _("Road control")
-        BSD = "BSD", _("Bsd")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bsd_id = models.CharField(_("Bsd Id "), max_length=30)
@@ -132,28 +110,16 @@ class BsdPdf(Base):
     )
 
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True
+        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="roadcontrol_bsdpdfs"
     )
     bundle = models.ForeignKey(
         PdfBundle, verbose_name=_("Bundle"), blank=True, null=True, on_delete=models.CASCADE, related_name="pdfs"
     )
-    request_type = models.CharField(
-        _("Request Type"), max_length=20, default=RequestTypeChoice.ROAD_CONTROL, choices=RequestTypeChoice.choices
-    )
-    objects = BsdPdfManager()
 
     class Meta:
         verbose_name = _("Pdf Bsd")
         verbose_name_plural = _("Pdfs Bsds")
         ordering = ("-created_at",)
-
-        indexes = [
-            models.Index(
-                fields=[
-                    "request_type",
-                ]
-            )
-        ]
 
     def __str__(self):
         return f"Pdf {self.bsd_id}"

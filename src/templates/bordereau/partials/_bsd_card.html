@@ -32,24 +32,26 @@
                 <div class="actors__item">
                     <img src="{% static "custom-icons/icon-map-pin-2.svg" %}" alt="">
                     <p class="actors__label">
-                        <span>{{ bsd.emitter.company.name|truncatechars:78 }} ({{ bsd.emitter.company.siret }})</span>
+                        <span title="{{ bsd.emitter.company.name}} ({{ bsd.emitter.company.siret }})">{{ bsd.emitter.company.name|truncatechars:50 }} ({{ bsd.emitter.company.siret }})</span>
                     </p>
                 </div>
                 <div class="actors__item">
                     <img src="{% static "custom-icons/icon-truck.svg" %}" alt="">
                     <p class="actors__label">
-                        <span>{{ bsd.transporter.company.name|truncatechars:78 }} ({{ bsd.transporter.company.siret }})</span>
-                    </div>
-                    <div class="actors__item">
-                        <img src="{% static "custom-icons/icon-arrow-line.svg" %}" alt="">
-                        <p class="actors__label">
-                            <span>{{ bsd.destination.company.name|truncatechars:78 }} ({{ bsd.destination.company.siret }})</span>
-                        </p>
-                    </div>
+                        <span title="{{ bsd.transporter.company.name}} ({{ bsd.transporter.company.siret }})">{{ bsd.transporter.company.name|truncatechars:50 }} ({{ bsd.transporter.company.siret }})</span>
+                    </p>
+                </div>
+                <div class="actors__item">
+                    <img src="{% static "custom-icons/icon-arrow-line.svg" %}" alt="">
+                    <p class="actors__label">
+                        <span title="{{ bsd.destination.company.name}} ({{ bsd.destination.company.siret }})"
+                            >{{ bsd.destination.company.name|truncatechars:50 }} ({{ bsd.destination.company.siret }})</span>
+                    </p>
+                </div>
                 </div>
             </div>
             <div class="bsd-card__content__cta">
-                <form hx-post="{% url "single_bsd_pdf_download" %}"
+                <form hx-post="{% url "bordereau_single_bsd_pdf_download" %}"
                       hx-indicator="#id_bsd_spinner-{{ bsd.id }}">
                     {% csrf_token %}
                     <input type="hidden" value="{{ bsd.id }}" name="bsd_id" />

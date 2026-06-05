@@ -21,27 +21,27 @@
             <h3 class="vehicle-info__title">Critères de recherche appliqués</h3>
             <p class="vehicle-info__row">
                 <span class="vehicle-info__label">N° SIRET :</span> 
-                <span class="vehicle-info__value">{{ bundle.company_siret }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.siret }}</span>
             </p>
             <p class="fr-text--sm vehicle-info__row">
                 <span class="vehicle-info__label">N° de bordereau :</span> 
-                <span class="vehicle-info__value">{{ bundle.transporter_plate }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.bsd_id }}</span>
             </p>
             <p class="vehicle-info__row">
                 <span class="vehicle-info__label">Codes Déchets :</span> 
-                <span class="vehicle-info__value">{{ bundle.company_name }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.code_dechet }}</span>
             </p>
             <p class="vehicle-info__row">
                 <span class="vehicle-info__label">Code MonAIOT :</span> 
-                <span class="vehicle-info__value">{{ bundle.company_address }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.code_aiot }}</span>
             </p>
             <p class="vehicle-info__row">
                 <span class="vehicle-info__label">Dates de réception :</span> 
-                <span class="vehicle-info__value">{{ bundle.company_contact }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.dates_reception }}</span>
             </p>
             <p class="vehicle-info__row">
                 <span class="vehicle-info__label">Dates d'expédition :</span> 
-                <span class="vehicle-info__value">{{ bundle.company_email }}</span>
+                <span class="vehicle-info__value">{{ bundle.search_params.dates_expedition }}</span>
             </p>
         </div>
     </div>

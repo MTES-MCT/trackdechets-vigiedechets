@@ -89,7 +89,6 @@ class RoadControlSearchResult(FullyLoggedMixin, FormView):
                 has_next_page=has_next_page,
                 has_previous_page=has_previous_page,
                 bundle_download_available=True,
-                request_type=BsdPdf.RequestTypeChoice.ROAD_CONTROL,
             )
         )
 
@@ -167,7 +166,6 @@ class SingleBsdPdfDownload(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
         bsd_id = request.POST.get("bsd_id")
         bsd_type = request.POST.get("bsd_type")
         bsd_readable_id = request.POST.get("bsd_readable_id", None) or bsd_id
-        request_type = request.POST.get("request_type", BsdPdf.RequestTypeChoice.ROAD_CONTROL)
 
         search_params = self.get_search_params(request)
         siret = search_params["siret"]
@@ -190,7 +188,6 @@ class SingleBsdPdfDownload(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
             **company_data,
             **bsd_data,
             created_by=request.user,
-            request_type=request_type,
         )
 
         res = self.render_to_response(context={"bsd_pdf": bsd_pdf})
@@ -220,7 +217,6 @@ class RoadControlPdfBundle(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
             company_siret=siret,
             transporter_plate=plate,
             **company_data,
-            request_type=BsdPdf.RequestTypeChoice.ROAD_CONTROL,
             params=[
                 {
                     "bsd_type": bsd_type,
@@ -315,8 +311,8 @@ class RoadControlRecentPdfs(FullyLoggedMixin, TemplateView):
     def get_recent_downloads(self):
         user = self.request.user
 
-        bundles = PdfBundle.objects.road_control().ready().filter(created_by=user)[:5]
-        pdfs = BsdPdf.objects.road_control().filter(bundle=None, created_by=user)[:5]
+        bundles = PdfBundle.objects.ready().filter(created_by=user)[:5]
+        pdfs = BsdPdf.objects.filter(bundle=None, created_by=user)[:5]
 
         return sorted(list(bundles) + list(pdfs), key=lambda i: getattr(i, "created_at"), reverse=True)[:5]
 

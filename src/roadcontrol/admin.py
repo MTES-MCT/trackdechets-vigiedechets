@@ -5,7 +5,7 @@ from .models import BsdPdf, PdfBundle
 
 @admin.register(BsdPdf)
 class BsdPdfAdmin(admin.ModelAdmin):
-    list_display = ["bsd_id", "company_name", "pdf_file", "created_by", "created_at", "request_type"]
+    list_display = ["bsd_id", "company_name", "pdf_file", "created_by", "created_at"]
     list_select_related = [
         "created_by",
     ]

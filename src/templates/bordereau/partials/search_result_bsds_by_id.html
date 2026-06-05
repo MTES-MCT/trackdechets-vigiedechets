@@ -16,9 +16,9 @@
             {% if total_count <= 100 %}
                 <form action="{% url 'bordereau_pdf_bundle' %}" method="post" class="fr-mb-0">
                     {% csrf_token %}
+                    <input type="hidden" name="siret" value="{{ search_params.siret|default_if_none:'' }}" />
+                    <input type="hidden" name="bsd_id" value="{{ search_params.bsd_id|default_if_none:'' }}" />
                     {% for bsd in bsds %}
-                        <input type="hidden" name="siret" value="{{ search_params.siret }}" />
-                        <input type="hidden" name="plate" value="{{ search_params.plate }}" />
                         <input type="hidden" name="bsd_types[]" value="{{ bsd.bsd_type }}" />
                         <input type="hidden" name="bsd_ids[]" value="{{ bsd.id }}" />
                         <input type="hidden" name="readable_ids[]" value="{{ bsd.readable_id }}" />

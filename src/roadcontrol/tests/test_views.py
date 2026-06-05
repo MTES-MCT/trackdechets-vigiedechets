@@ -71,7 +71,6 @@ def test_roadcontrol_recent_pdfs_observatoires(verified_observatoire):
 def test_roadcontrol_recent_pdfs(verified_user):
     other_user = UserFactory()
     other_bsd = BsdPdfFactory(created_by=other_user)
-    individual_bsd = BsdPdfFactory(created_by=verified_user.user, request_type="BSD")
     other_bundle = PdfBundleFactory(created_by=other_user, state=PdfBundle.BundleChoice.READY)
 
     bsd = BsdPdfFactory(created_by=verified_user.user)
@@ -87,9 +86,7 @@ def test_roadcontrol_recent_pdfs(verified_user):
 
     assert str(other_bsd.id) not in res.content.decode()
     assert str(other_bundle.id) not in res.content.decode()
-    assert str(other_bundle.id) not in res.content.decode()
     assert str(non_ready_bundle.id) not in res.content.decode()
-    assert str(individual_bsd.id) not in res.content.decode()
 
 
 def test_roadcontrol_pdf_bundle_result_anon(anon_client):

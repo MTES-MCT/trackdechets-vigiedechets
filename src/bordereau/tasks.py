@@ -7,9 +7,9 @@ from celery import current_task
 from django.core.files.base import ContentFile
 
 from config.celery_app import app
-
 from roadcontrol.exceptions import FormDownloadException
-from roadcontrol.models import BsdPdf, PdfBundle
+
+from bordereau.models import BsdPdf, PdfBundle
 from roadcontrol.td_requests import query_td_pdf
 from .rendering_helpers import render_pdf_bordereau_fn
 
@@ -70,11 +70,6 @@ class Process:
                 pdf_file=file,
                 created_by=bundle.created_by,
                 bundle=bundle,
-                company_name=bundle.company_name,
-                company_address=bundle.company_address,
-                company_contact=bundle.company_contact,
-                company_email=bundle.company_email,
-                company_phone=bundle.company_phone,
             )
             bsds_count += 1
             current_task.update_state(

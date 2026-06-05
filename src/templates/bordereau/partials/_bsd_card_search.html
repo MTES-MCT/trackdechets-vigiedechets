@@ -24,7 +24,7 @@
         <span class="fr-text--sm">{{ bsd.waste_details.weight|default:"—" }} t</span>
     </td>
     <td>
-        <form hx-post="{% url "single_bsd_pdf_download" %}"
+        <form hx-post="{% url "bordereau_single_bsd_pdf_download" %}"
               hx-indicator="#id_bsd_spinner-{{ bsd.id }}">
             {% csrf_token %}
             <input type="hidden" value="{{ bsd.id }}" name="bsd_id" />

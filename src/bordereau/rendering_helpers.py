@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 from weasyprint import CSS, HTML
 from weasyprint.text.fonts import FontConfiguration
 
-from roadcontrol.models import PdfBundle
+from bordereau.models import PdfBundle
 
 
 def render_pdf(content):
