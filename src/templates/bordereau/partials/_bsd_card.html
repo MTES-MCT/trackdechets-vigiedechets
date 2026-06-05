@@ -1,0 +1,74 @@
+{% load road_control_tags static %}
+<div class="bsd-card fr-mb-2w" tabindex="0">
+    <div class="bsd-card__header">
+        <div>
+            <p class="bsd-number">N°: {{ bsd.readable_id }}</p>
+            <div class="bsd-card__header__infos">
+                <p class="label-icon label-icon__LastModificationDate">Modifié le {{ bsd.updated_at }}</p>
+                <p class="label-icon label-icon__TransporterNumberPlate">{{ bsd.transporter_plate|default:"N/A" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bsd-card__content">
+        <div class="bsd-card__content__infos">
+            <div class="waste-details">
+                <div>
+                    <img src="{% bsd_icon bsd.bsd_type %}"
+                         alt="{% bsd_icon_alt bsd.bsd_type %}">
+                </div>
+                <div class="waste-details__infos">
+                    <p class="waste-details__infos__code">{{ bsd.waste_details.code }}</p>
+                    <p class="waste-details__infos__name">{{ bsd.waste_details.name }}</p>
+                    <p class="waste-details__infos__weight">
+                        <img src="{% static "custom-icons/icon-weight.svg" %}">
+                        <span>{{ bsd.waste_details.weight }} {% weight_unit bsd.bsd_type %}</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bsd-card__content__infos__status">
+                <p class="fr-badge fr-badge--sm fr-badge--SENT">{% status_badge bsd.status bsd.bsd_type %}</p>
+            </div>
+            <div class="actors">
+                <div class="actors__item">
+                    <img src="{% static "custom-icons/icon-map-pin-2.svg" %}" alt="">
+                    <p class="actors__label">
+                        <span>{{ bsd.emitter.company.name|truncatechars:78 }} ({{ bsd.emitter.company.siret }})</span>
+                    </p>
+                </div>
+                <div class="actors__item">
+                    <img src="{% static "custom-icons/icon-truck.svg" %}" alt="">
+                    <p class="actors__label">
+                        <span>{{ bsd.transporter.company.name|truncatechars:78 }} ({{ bsd.transporter.company.siret }})</span>
+                    </div>
+                    <div class="actors__item">
+                        <img src="{% static "custom-icons/icon-arrow-line.svg" %}" alt="">
+                        <p class="actors__label">
+                            <span>{{ bsd.destination.company.name|truncatechars:78 }} ({{ bsd.destination.company.siret }})</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="bsd-card__content__cta">
+                <form hx-post="{% url "single_bsd_pdf_download" %}"
+                      hx-indicator="#id_bsd_spinner-{{ bsd.id }}">
+                    {% csrf_token %}
+                    <input type="hidden" value="{{ bsd.id }}" name="bsd_id" />
+                    <input type="hidden" value="{{ bsd.bsd_type }}" name="bsd_type" />
+                    <input type="hidden" value="{{ bsd.readable_id }}" name="bsd_readable_id" />
+                    <input type="hidden" value="{{ request_type }}" name="request_type" />
+                    <input type="hidden" name="siret" value="{{ search_params.siret }}" />
+                    <input type="hidden" name="plate" value="{{ search_params.plate }}" />
+                    <input type="hidden" name="adr" value="{{ bsd.adr }}" />
+                    <input type="hidden" name="weight" value="{{ bsd.waste_details.weight }}" />
+                    <input type="hidden" name="waste_code" value="{{ bsd.waste_details.code }}" />
+                    <input type="hidden" name="packagings" value="{{ bsd.packagings }}" />
+                    <button type="submit" class="fr-btn fr-btn--sm">
+                        PDF<span class="bsd-card__content__spinner" id="id_bsd_spinner-{{ bsd.id }}"><span class="fr-icon-refresh-line" aria-hidden="true"></span> </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="bsd-card__footer">
+            <p>Code ADR: {{ bsd.adr }}</p>
+        </div>
+    </div>

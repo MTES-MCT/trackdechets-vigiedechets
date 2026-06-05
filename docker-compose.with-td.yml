@@ -74,7 +74,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    extra_hosts:                           
+    extra_hosts:
+      - "api.trackdechets.local:host-gateway"
       - "s3.trackdechets.local:host-gateway"
 
   # Vite React app

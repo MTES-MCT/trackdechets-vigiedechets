@@ -1,16 +1,23 @@
-from django.conf import settings
 from django.forms import CharField, Form, HiddenInput, ValidationError, DateField, MultipleChoiceField, SelectMultiple, TextInput
-from sqlalchemy.sql import text
 from sheets.forms import TypedDateInput
-
-from sheets.data_extraction import get_wh_sqlachemy_engine
-
 from registry.constants import RegistryV2WasteCode
+
 
 class BsdSearchForm(Form):
     """
-    Formulaire de recherche de BSD pour la recherche simple (par SIRET, code postal ou numéro de bordereau)
+    Formulaire de recherche de BSD unifié.
+    Le toggle 'search_by_company' active les champs établissement + champs avancés.
     """
+    bsd_id = CharField(
+        label="N° de bordereau",
+        required=False,
+        widget=TextInput(attrs={
+            "autocomplete": "off",
+            "placeholder": "BSD-",
+        }),
+    )
+
+    # Champs établissement (visibles si toggle ON)
     search_clue = CharField(
         label="Numéro de SIRET ou raison sociale",
         help_text="ou numéro TVA pour un transport dans l'UE",
@@ -24,55 +31,7 @@ class BsdSearchForm(Form):
         required=False,
     )
 
-    bsd_id = CharField(
-    label="N° de bordereau",
-    required=False,
-    widget=TextInput(attrs={
-        "list": "recent-bsds-list",
-        "autocomplete": "off",
-        "placeholder": "BSD-",
-    }),
-    )
-    search_mode = CharField(required=False, widget=HiddenInput())
-
-    def clean(self):
-        cleaned_data = super().clean()
-        siret = self.data.get("siret")
-        bsd_id = self.data.get("bsd_id")
-
-        if not any([siret, bsd_id]):
-            raise ValidationError("Au moins un champ de recherche est requis (Sélection d'une entreprise ou N° de bordereau).")
-
-        return cleaned_data
-
-
-class BsdAvancedSearchForm(Form):
-    """
-    Formulaire de recherche de BSD pour la recherche avancée (par SIRET, code postal, numéro de bordereau, code déchet, code aiot et plages de dates)
-    """
-    search_clue = CharField(
-        label="Numéro de SIRET ou raison sociale",
-        help_text="ou numéro TVA pour un transport dans l'UE",
-        required=False,
-    )
-    siret = CharField(widget=HiddenInput(), required=False)
-
-    code_postal = CharField(
-        label="Code postal",
-        help_text="Si l'entreprise est française",
-        required=False,
-    )
-
-    bsd_id = CharField(
-    label="N° de bordereau",
-    required=False,
-    widget=TextInput(attrs={
-        "list": "recent-bsds-list",
-        "autocomplete": "off",
-        "placeholder": "BSD-",
-    }),
-    )
-
+    # Champs avancés (visibles si toggle ON)
     code_dechet = MultipleChoiceField(
         choices=[(choice.value, choice.value) for choice in RegistryV2WasteCode],
         label="Code déchet",
@@ -90,36 +49,43 @@ class BsdAvancedSearchForm(Form):
         widget=TypedDateInput,
         required=False,
     )
-
     end_date_rep = DateField(
         label="Date de fin",
         widget=TypedDateInput,
         required=False,
     )
-
     start_date_exp = DateField(
         label="Date de début",
         widget=TypedDateInput,
         required=False,
     )
-
     end_date_exp = DateField(
         label="Date de fin",
         widget=TypedDateInput,
         required=False,
     )
 
-    search_mode = CharField(required=False, widget=HiddenInput())
+    # Toggle caché
+    search_by_company = CharField(required=False, widget=HiddenInput())
 
     def clean(self):
         cleaned_data = super().clean()
-        fields_to_check = [
-            "siret", "bsd_id", "code_dechet", "code_aiot",
-            "start_date_rep", "end_date_rep", "start_date_exp", "end_date_exp"
+        siret = self.data.get("siret")
+        bsd_id = self.data.get("bsd_id")
+        search_by_company = self.data.get("search_by_company") == "true"
+
+        advanced_fields = [
+            "code_dechet", "code_aiot",
+            "start_date_rep", "end_date_rep",
+            "start_date_exp", "end_date_exp",
         ]
-        
-        if not any(self.data.get(f) for f in fields_to_check):
-            raise ValidationError("Au moins un champ de recherche est requis.")
+
+        has_any = bsd_id or (search_by_company and (siret or any(self.data.get(f) for f in advanced_fields)))
+
+        if not has_any:
+            raise ValidationError(
+                "Au moins un champ de recherche est requis (N° de bordereau ou sélection d'un établissement)."
+            )
 
         start_rep = cleaned_data.get("start_date_rep")
         end_rep = cleaned_data.get("end_date_rep")

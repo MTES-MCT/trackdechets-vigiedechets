@@ -1,21 +1,21 @@
 <tr class="bsd-table-row">
     <td>
-        <span class="fr-text--sm">{{ bsd.received_at|default:"—" }}</span>
+        <span class="fr-text--sm" title="{{ bsd.received_at|default:'' }}">{{ bsd.received_at|slice:":10"|default:"—" }}</span>
     </td>
     <td>
-        <span class="fr-text--sm">{{ bsd.emitted_at|default:"—" }}</span>
+        <span class="fr-text--sm" title="{{ bsd.emitted_at|default:'' }}">{{ bsd.emitted_at|slice:":10"|default:"—" }}</span>
     </td>
     <td>
         <span class="fr-text--sm">{{ bsd.readable_id }}</span>
     </td>
     <td>
-        <span class="fr-text--sm">{{ bsd.aiot_code|default:"—" }}</span>
+        <span class="fr-text--sm">{{ bsd.emitter.company.gerepId|default:"—" }}</span>
     </td>
     <td>
-        <span class="fr-text--sm">{{ bsd.intermediaries.0.name|default:"—" }}</span>
+        <span class="fr-text--sm" title="{{ bsd.intermediaries.0.name|default:'' }}">{{ bsd.intermediaries.0.name|default:"—"|truncatechars:20 }}</span>
     </td>
     <td>
-        <span class="fr-text--sm">{{ bsd.destination.company.name|default:"—" }}</span>
+        <span class="fr-text--sm" title="{{ bsd.destination.company.name|default:'' }}">{{ bsd.destination.company.name|default:"—"|truncatechars:20 }}</span>
     </td>
     <td>
         <span class="fr-text--sm">{{ bsd.waste_details.code|default:"—" }}</span>
@@ -46,7 +46,7 @@
 </tr>
 <style>
 .bsd-table-row td {
-    padding: 0.75rem;
+    padding: 0.5rem 0.25rem;
     border-bottom: 1px solid #dddddd;
 }
 </style>

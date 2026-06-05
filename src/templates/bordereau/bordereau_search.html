@@ -1,30 +1,33 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Recherche Bordereau - Vigiedéchets{% endblock %}
+
 {% block extra_head %}
-
     <link rel="stylesheet" href="{% static 'js/choicejs-11.1.0/styles/choices.min.css' %}"/>
-
 {% endblock extra_head %}
+
 {% block main %}
-    <div class="fr-container fr-mt-1v">
-        <div class="fr-container--fluid fr-pl-1w">
-            <div class="fr-grid-row fr-grid-row--gutters fr-mt-1w">
-                <div class="fr-col-12">
-                    <h4 class="fr-mb-1w">Bordereaux</h4>
-                    
-                    <div id="search-form-container">
-                       {% include initial_form_template %}
-                    </div>
-                    
+<div class="fr-container fr-mt-1v">
+    <div class="fr-container--fluid fr-pl-1w">
+        <div class="fr-grid-row fr-grid-row--gutters fr-mt-1w">
+            <div class="fr-col-12 fr-col-md-8">
+                <h4 class="fr-mb-1w">Bordereaux</h4>
+                <div id="search-form-container">
+                    {% include "bordereau/partials/_search_form.html" %}
                 </div>
             </div>
-            <div class="fr-grid-row fr-grid-row--center">
-                <div class="htmx-indicator" id="id_spinner_wrapper">{% include "spinner.html" %}</div>
-                <div id="id_search_results" class="search-results"></div>
+            <div class="fr-col-12 fr-col-md-4">
+                <div hx-get="{% url "bordereau_recent_pdfs" %}"
+                         hx-trigger="load,reloadRecentPdfs from:body"></div>
+                </div>
             </div>
         </div>
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="htmx-indicator" id="id_spinner_wrapper">{% include "spinner.html" %}</div>
+            <div id="id_search_results" class="search-results"></div>
+        </div>
     </div>
+</div>
 {% endblock main %}
 
 {% block scripts %}
@@ -33,27 +36,18 @@
     <script>
         function initChoices() {
             const element = document.querySelector('#id_code_dechet');
-            if (element) {
+            if (element && !element.dataset.choicesInitialized) {
                 new Choices(element, {
                     removeItems: true,
                     removeItemButton: true,
                     searchEnabled: true,
-                    searchChoices: true,
                     noResultsText: 'Pas de résultat',
                     noChoicesText: 'Pas de résultat',
-                    itemSelectText: 'Cliquer pour sélectionner'
+                    itemSelectText: 'Cliquer pour sélectionner',
                 });
+                element.dataset.choicesInitialized = "true";
             }
         }
-
-        // Initialisation au chargement de la page
         document.addEventListener('DOMContentLoaded', initChoices);
-
-        // Ré-initialisation après chaque swap HTMX (important pour le passage simple <-> avancé)
-        document.body.addEventListener('htmx:afterSwap', function(evt) {
-            if (evt.detail.target.id === 'search-form-container') {
-                initChoices();
-            }
-        });
     </script>
 {% endblock scripts %}

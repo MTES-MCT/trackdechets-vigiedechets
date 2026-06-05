@@ -1,23 +1,41 @@
 {% if recent_downloads %}
-<div style="background: white; border: 1px solid #dddddd; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: visible;">
-    <div style="padding: 1px 7px 1px; border-bottom: 2px solid #dddddd; background-color: #e3e2f2;">
-        <span style="font-size: 0.7rem; font-weight: 700; color: #3e1399; letter-spacing: 0.05em; text-transform: uppercase;">
-            Recherche récente
-        </span>
-    </div>
+<h3 class="fr-h6 fr-mb-2w">Derniers téléchargements</h3>
+
+<div class="recent-downloads-list">
     {% for download in recent_downloads %}
-    <input type="hidden" class="data-test-id" value="{{ download.pk }}">
-    <button
-        type="button"
-        style="display:block; width:100%; text-align:left; background:none; border:none; border-bottom: 1px solid #eeeeee; padding: 4px 7px 4px; font-size: 0.875rem; color: #1e1e1e; cursor:pointer;"
-        onmouseover="this.style.background='#f6f6f6'"
-        onmouseout="this.style.background='none'"
-        onclick="
-            document.getElementById('id_bsd_id').value = '{{ download.bsd_id }}';
-            document.getElementById('recent-bsds-list').innerHTML = '';
-        ">
-        <strong>Bord. n°</strong>{{ download.bsd_id }}
-    </button>
+    <div class="fr-grid-row fr-grid-row--middle fr-p-2v fr-mb-2v" style="border: 1px solid var(--border-default-grey, #e5e5e5); border-radius: 4px; background-color: var(--background-default-grey, #fff);" data-test-id="{{ download.pk }}">
+        
+        <div class="fr-col">
+            <p class="fr-text--sm fr-text--bold fr-mb-1v">
+                {% if download.pdf_file %}
+                    <span class="fr-icon-file-pdf-line fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
+                    {{ download.bsd_id }}
+                {% else %}
+                    <span class="fr-icon-folder-2-line fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
+                    {{ download.verbose_type }} ({% if download.transporter_plate != "Tous" %}{{ download.transporter_plate }}{% else %}{{ download.params|length }} bsd{% endif %})
+                {% endif %}
+            </p>
+            <p class="fr-text--xs fr-text-mention--grey fr-mb-1v" title="{{ download.company_name }} - {{ download.company_siret }}">
+                {{ download.company_name|default:"Critères multiples"|truncatechars:35 }} ({{ download.company_siret }})
+            </p>
+            <p class="fr-text--xs fr-text-mention--grey fr-mb-0">
+                {{ download.created_at|date:"SHORT_DATETIME_FORMAT" }}
+            </p>
+        </div>
+        
+        <div class="fr-col-auto fr-ml-2w">
+            {% if download.pdf_file %}
+                <a href="{{ download.pdf_file.url }}" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line" target="_blank" title="Télécharger le PDF"></a>
+            {% elif download.zip_file %}
+                <a href="{{ download.zip_file.url }}" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line" target="_blank" title="Télécharger l'archive ZIP"></a>
+            {% endif %}
+        </div>
+        
+    </div>
     {% endfor %}
+</div>
+{% else %}
+<div class="fr-alert fr-alert--info fr-alert--sm fr-mt-2w">
+    <p>Aucun téléchargement récent.</p>
 </div>
 {% endif %}

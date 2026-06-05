@@ -10,7 +10,18 @@ from django.utils.translation import gettext_lazy as _
 from accounts.models import User
 
 
-class PdfBundleManager(models.Manager):
+class PdfBundleQuerySet(models.QuerySet):
+    def road_control(self):
+        return self.filter(request_type="ROAD_CONTROL")
+
+    def bsd(self):
+        return self.filter(request_type="BSD")
+
+    def ready(self):
+        return self.filter(state="READY")
+
+
+class PdfBundleManager(models.Manager.from_queryset(PdfBundleQuerySet)):
     def mark_as_failed(self, pk):
         self.filter(pk=pk).update(state="ERROR")
 
@@ -19,10 +30,6 @@ class PdfBundleManager(models.Manager):
 
     def mark_as_ready(self, pk):
         self.filter(pk=pk).update(state="READY")
-
-    def ready(self):
-        return self.filter(state="READY")
-
 
 class Base(models.Model):
     company_siret = models.CharField(_("Company Siret"), max_length=20, blank=True)
@@ -44,6 +51,10 @@ def bundle_path(instance, _):
 
 
 class PdfBundle(Base):
+    class RequestTypeChoice(models.TextChoices):
+        ROAD_CONTROL = "ROAD_CONTROL", _("Road control")
+        BSD = "BSD", _("Bsd")
+
     class BundleChoice(models.TextChoices):
         INITIAL = "INITIAL", _("Initial")
         PROCESSING = "PROCESSING", _("Processing")
@@ -65,6 +76,9 @@ class PdfBundle(Base):
     )
     zip_file = models.FileField(
         _("Zip File"), upload_to=bundle_path, blank=True, max_length=512, storage=storages["private_s3"]
+    )
+    request_type = models.CharField(
+        _("Request Type"), max_length=20, default=RequestTypeChoice.ROAD_CONTROL, choices=RequestTypeChoice.choices
     )
     objects = PdfBundleManager()
 
@@ -159,6 +173,12 @@ class BsdPdf(Base):
 
 @receiver(pre_delete, sender=PdfBundle)
 def delete_pdf_bundle_files(sender, instance, *args, **kwargs):
-    """Delete S3 files on model deletion"""
-    instance.zip_file.delete()
-    instance.pdf_file.delete()
+    """Supprime le fichier ZIP sur S3 lors de la suppression du bundle"""
+    if instance.zip_file:
+        instance.zip_file.delete(save=False)
+
+@receiver(pre_delete, sender=BsdPdf)
+def delete_bsd_pdf_files(sender, instance, *args, **kwargs):
+    """Supprime le fichier PDF sur S3 lors de la suppression d'un bordereau individuel"""
+    if instance.pdf_file:
+        instance.pdf_file.delete(save=False)

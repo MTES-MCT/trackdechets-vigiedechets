@@ -220,6 +220,7 @@ class RoadControlPdfBundle(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
             company_siret=siret,
             transporter_plate=plate,
             **company_data,
+            request_type=BsdPdf.RequestTypeChoice.ROAD_CONTROL,
             params=[
                 {
                     "bsd_type": bsd_type,
@@ -313,7 +314,8 @@ class RoadControlRecentPdfs(FullyLoggedMixin, TemplateView):
 
     def get_recent_downloads(self):
         user = self.request.user
-        bundles = PdfBundle.objects.ready().filter(created_by=user)[:5]
+
+        bundles = PdfBundle.objects.road_control().ready().filter(created_by=user)[:5]
         pdfs = BsdPdf.objects.road_control().filter(bundle=None, created_by=user)[:5]
 
         return sorted(list(bundles) + list(pdfs), key=lambda i: getattr(i, "created_at"), reverse=True)[:5]

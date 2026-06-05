@@ -30,7 +30,9 @@ fragment BsddFragment on Form {
   }
   emitter {
     company {
+      siret
       name
+      gerepId
     }
     workSite {
       name
@@ -46,6 +48,7 @@ fragment BsddFragment on Form {
   }
   transporters {
     company {
+      siret
       name
     }
     numberPlate
@@ -72,7 +75,9 @@ fragment BsdasriFragment on Bsdasri {
   }
   emitter {
     company {
+      siret
       name
+      gerepId
     }
   }
   transporter {
@@ -95,6 +100,7 @@ fragment BsdasriFragment on Bsdasri {
   }
   destination {
     company {
+      siret
       name
     }
     reception {
@@ -117,7 +123,9 @@ fragment BsdaFragment on Bsda {
   }
   emitter {
     company {
+      siret
       name
+      gerepId
     }
   }
   transporter {
@@ -131,6 +139,7 @@ fragment BsdaFragment on Bsda {
   }
   destination {
     company {
+      siret
       name
     }
     reception {
@@ -156,7 +165,9 @@ fragment BsffFragment on Bsff {
   bsffStatus: status
   emitter {
     company {
+      siret
       name
+      gerepId
     }
   }
   bsffTransporter: transporter {
@@ -175,6 +186,7 @@ fragment BsffFragment on Bsff {
   }
   bsffDestination: destination {
     company {
+      siret
       name
     }
     reception {
@@ -205,7 +217,9 @@ fragment BsvhuFragment on Bsvhu {
   }
   emitter {
     company {
+      siret
       name
+      gerepId
     }
   }
   transporter {
@@ -219,6 +233,7 @@ fragment BsvhuFragment on Bsvhu {
   }
   destination {
     company {
+      siret
       name
     }
     reception {
@@ -236,7 +251,9 @@ fragment BspaohFragment on Bspaoh {
   bspaohStatus: status
   emitter {
     company {
+      siret
       name
+      gerepId
     }
     emission {
       detail {
@@ -257,6 +274,7 @@ fragment BspaohFragment on Bspaoh {
   }
   destination {
     company {
+      siret
       name
     }
     reception {
@@ -336,7 +354,7 @@ def query_td_bordereaux_search(
     start_date_exp=None,
     end_date_exp=None,
     end_cursor=None,
-    page_size=20,
+    page_size=None,
 ):
     """
     Recherche multicritères de bordereaux via bordereauxSearch.
@@ -346,21 +364,23 @@ def query_td_bordereaux_search(
     where_clauses = []
 
     if siret:
-        where_clauses.append(f'siret: "{siret}"')
-    if tva:
-        where_clauses.append(f'tva: "{tva}"')
+        where_clauses.append(f'clue: "{siret}"')
+    elif tva:
+        where_clauses.append(f'clue: "{tva}"')
     if bsd_id:
         where_clauses.append(f'readableId: "{bsd_id}"')
     if code_dechet:
         where_clauses.append(f'code_dechet: "{code_dechet}"')
+    if code_aiot:
+        where_clauses.append(f'code_aiot: "{code_aiot}"')
     if start_date_rep:
-        where_clauses.append(f'date_reception_debut: "{start_date_rep}"')
+        where_clauses.append(f'date_reception_debut: "{start_date_rep}T00:00:00Z"')
     if end_date_rep:
-        where_clauses.append(f'date_reception_fin: "{end_date_rep}"')
+        where_clauses.append(f'date_reception_fin: "{end_date_rep}T23:59:59Z"')
     if start_date_exp:
-        where_clauses.append(f'date_expedition_debut: "{start_date_exp}"')
+        where_clauses.append(f'date_expedition_debut: "{start_date_exp}T00:00:00Z"')
     if end_date_exp:
-        where_clauses.append(f'date_expedition_fin: "{end_date_exp}"')
+        where_clauses.append(f'date_expedition_fin: "{end_date_exp}T23:59:59Z"')
 
     where = "\n".join(where_clauses)
     after = f'after: "{end_cursor}"' if end_cursor else ""
@@ -386,6 +406,7 @@ def query_td_bordereaux_search(
             json={"query": query},
         )
         res.raise_for_status()
+        #print(res.json())
         return res.json()
     except (httpx.HTTPError, ValueError):
         return None

@@ -1,19 +1,40 @@
 from django.urls import path
-
 from .views import (
     BsdSearch,
-    BsdSimpleSearch,
-    BsdAdvancedSearch,
     CompanySearchView,
+    BsdSearchResultById,
     BsdSearchResult,
+    BsdPdfBundle,
+    BsdBundleProcessingView,
+    BsdFragmentBundleProcessingView,
+    BsdPdfBundleResult,
     BsdRecentSearch,
 )
 
 urlpatterns = [
     path("bsd-search/", BsdSearch.as_view(), name="bordereau_search"),
-    path("bsd-simple-search/", BsdSimpleSearch.as_view(), name="bordereau_simple_search"),
-    path("bsd-advanced-search/", BsdAdvancedSearch.as_view(), name="bordereau_advanced_search"),
+    path("recent-bordereau-pdfs/", BsdRecentSearch.as_view(), name="bordereau_recent_pdfs"),
     path("company-search/", CompanySearchView.as_view(), name="bordereau_company_search"),
     path("bsd-search-result/", BsdSearchResult.as_view(), name="bordereau_search_result"),
-    path("bsd-recent-search/", BsdRecentSearch.as_view(), name="bordereau_recent_search"),
+    path("bsd-id-search-result/", BsdSearchResultById.as_view(), name="bordereau_bsd_id_search_result"),
+    path(
+        "bsd-search/pdf-bundle-process/",
+        BsdPdfBundle.as_view(),
+        name="bordereau_pdf_bundle",
+    ),
+    path(
+        "bsd-search/pdf-bundle-processing/<str:task_id>/<uuid:bundle_pk>/",
+        BsdBundleProcessingView.as_view(),
+        name="bordereau_pdf_bundle_processing",
+    ),
+    path(
+        "bsd-search/pdf-bundle-processing-fragment/<str:task_id>/<uuid:bundle_pk>/",
+        BsdFragmentBundleProcessingView.as_view(),
+        name="bordereau_pdf_bundle_processing_fragment",
+    ),
+    path(
+        "bsd-search/pdf-bundle-result/<uuid:pk>/",
+        BsdPdfBundleResult.as_view(),
+        name="bordereau_pdf_bundle_result",
+    ),
 ]

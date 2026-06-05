@@ -9,65 +9,73 @@
             </div>
         </div>
     {% endif %}
-    <div id="company-choices" class="fr-grid-row fr-grid-row--gutters">
-        {% for company in companies %}
-            <div class="fr-col-12 company-item fr-pb-1v fr-pt-1v" data-is-closed="{% if company.etatAdministratif == 'F' or company.isClosed == True %}true{% else %}false{% endif %}">
-                 <article
-                        class="company-choice-button fr-p-3v"
-                        role="button"
-                        tabindex="0"
-                        style="cursor: pointer; border: 1px solid #ebeff3; background: #ebeff3; display: flex; justify-content: space-between; align-items: center;"
-                        data-company-siret="{% firstof company.siret company.vatNumber %}"
-                        data-company-name="{{ company.name|default_if_none:''|safe }}"
-                        data-company-address="{{ company.address|default_if_none:''|safe }}"
-                        data-company-registered="{% if company.isRegistered %}true{% else %}false{% endif %}"
-                        data-company-country="{{ company.codePaysEtrangerEtablissement|default_if_none:'FR'|safe }}"
-                        data-company-closed="{% if company.etatAdministratif == 'F' or company.isClosed == True %}true{% else %}false{% endif %}"
-                        data-is-selected="{% if selected_siret and company.siret == selected_siret or selected_siret and company.vatNumber == selected_siret %}true{% else %}false{% endif %}">
-                    <div>
-                        <p class="fr-mb-0">
-                            {{company.name|default:"Non renseignée" }}
-                            {% if company.isRegistered %}
-                                <span class="fr-badge fr-badge--success fr-badge--sm fr-badge--no-icon" title="Inscrit sur Trackdéchets" style="color: #00a95f; background-color: transparent; padding: 0;">
-                                    <span class="fr-icon-check-line" aria-hidden="true" style="vertical-align: middle;"></span>
-                                    <span style="font-size: 0.75rem; font-weight: bold; vertical-align: middle; margin-left: -0.2rem;">TD</span>
-                                </span>
-                            {% endif %}
-                            {% if company.etatAdministratif == 'F' or company.isClosed == True %}
-                                <span style="color: var(--text-default-error); font-weight: normal;">Etablissement fermé</span>
-                            {% endif %}
-                        </p>
-                        <p class="fr-mb-0">
-                            {% firstof company.siret company.vatNumber "Non renseigné" %}
-                            {% if company.address %} - {{ company.address }}{% endif %}
-                            {% if company.codePaysEtrangerEtablissement %} - {{ company.codePaysEtrangerEtablissement }}{% else %} - FR{% endif %}
-                        </p>
-                        {% if company.siret %}
-                            <a class="fr-link fr-icon-external-link-line fr-link--icon-right fr-text--sm"
-                               href="https://app.trackdechets.beta.gouv.fr/company/{{ company.siret }}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               onclick="event.stopPropagation();">
-                                Informations sur l'établissement
-                            </a>
-                        {% endif %}
-                    </div>
 
-                    <div class="company-choice-indicator" style="flex-shrink: 0; margin-left: 1rem; position: relative; width: 1.5rem; height: 1.5rem;">
-                        <span class="indicator-selected fr-icon-success-line" style="display: none; color: var(--text-default-success); font-size: 1.5rem; line-height: 1.5rem;"></span>
-                        <span class="indicator-unselected" style="display: inline-block; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1px solid;"></span>
-                    </div>
-                </article>
-            </div>
-        {% endfor %}
-    </div>
+    {# 👇 CONDITION JALOUSE : On n'applique le scroll que s'il y a plus de 5 entreprises 👇 #}
+    {% if companies|length > 5 %}
+        <div class="company-list-scroll-wrapper" style="max-height: 420px; overflow-y: auto; overflow-x: hidden; padding-top: 0.75rem; padding-right: 0.5rem; margin-bottom: 1.5rem;">
+    {% else %}
+        <div class="company-list-static-wrapper" style="padding-top: 0.5rem; margin-bottom: 1.5rem;">
+    {% endif %}
+        
+        <div id="company-choices" class="fr-grid-row fr-grid-row--gutters">
+            {% for company in companies %}
+                <div class="fr-col-12 company-item fr-pb-1v fr-pt-1v" data-is-closed="{% if company.etatAdministratif == 'F' or company.isClosed == True %}true{% else %}false{% endif %}">
+                     <article
+                            class="company-choice-button fr-p-3v"
+                            role="button"
+                            tabindex="0"
+                            style="cursor: pointer; border: 1px solid #ebeff3; background: #ebeff3; display: flex; justify-content: space-between; align-items: center;"
+                            data-company-siret="{% firstof company.siret company.vatNumber %}"
+                            data-company-name="{{ company.name|default_if_none:''|safe }}"
+                            data-company-address="{{ company.address|default_if_none:''|safe }}"
+                            data-company-registered="{% if company.isRegistered %}true{% else %}false{% endif %}"
+                            data-company-country="{{ company.codePaysEtrangerEtablissement|default_if_none:'FR'|safe }}"
+                            data-company-closed="{% if company.etatAdministratif == 'F' or company.isClosed == True %}true{% else %}false{% endif %}"
+                            data-is-selected="{% if selected_siret and company.siret == selected_siret or selected_siret and company.vatNumber == selected_siret %}true{% else %}false{% endif %}">
+                        <div>
+                            <p class="fr-mb-0">
+                                <strong>{{ company.name|default:"Non renseignée" }}</strong>
+                                {% if company.isRegistered %}
+                                    <span class="fr-badge fr-badge--success fr-badge--sm fr-badge--no-icon" title="Inscrit sur Trackdéchets" style="color: #00a95f; background-color: transparent; padding: 0;">
+                                        <span class="fr-icon-check-line" aria-hidden="true" style="vertical-align: middle;"></span>
+                                        <span style="font-size: 0.75rem; font-weight: bold; vertical-align: middle; margin-left: -0.2rem;">TD</span>
+                                    </span>
+                                {% endif %}
+                                {% if company.etatAdministratif == 'F' or company.isClosed == True %}
+                                    <span style="color: var(--text-default-error); font-weight: normal; margin-left: 0.5rem;">Établissement fermé</span>
+                                {% endif %}
+                            </p>
+                            <p class="fr-mb-0 fr-text--sm" style="color: var(--text-mention-grey, #666);">
+                                {% firstof company.siret company.vatNumber "Non renseigné" %}
+                                {% if company.address %} - {{ company.address }}{% endif %}
+                                {% if company.codePaysEtrangerEtablissement %} - {{ company.codePaysEtrangerEtablissement }}{% else %} - FR{% endif %}
+                            </p>
+                            {% if company.siret %}
+                                <a class="fr-link fr-icon-external-link-line fr-link--icon-right fr-text--sm fr-mt-1v"
+                                   href="https://app.trackdechets.beta.gouv.fr/company/{{ company.siret }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   onclick="event.stopPropagation();">
+                                     Informations sur l'établissement
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="company-choice-indicator" style="flex-shrink: 0; margin-left: 1rem; position: relative; width: 1.5rem; height: 1.5rem;">
+                            <span class="indicator-selected fr-icon-success-line" style="display: none; color: var(--text-default-success); font-size: 1.5rem; line-height: 1.5rem;"></span>
+                            <span class="indicator-unselected" style="display: inline-block; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1px solid var(--border-default-grey, #ddd);"></span>
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+    </div> {# <-- Fermeture propre du bloc dynamique #}
 
     <script>
         (function() {
             const choicesContainer = document.getElementById('company-choices');
             if (!choicesContainer) return;
 
-            // Au chargement, on met en évidence l'entreprise sélectionnée si elle existe déjà
             const highlightedEl = choicesContainer.querySelector('.company-choice-button[data-is-selected="true"]');
             if (highlightedEl) {
                 highlightedEl.style.borderColor = '#03bd5b';
@@ -77,10 +85,8 @@
             }
 
             const toggleSwitch = document.getElementById('toggle-closed-companies');
-            if (!choicesContainer) return;
 
-            // Gestion de l'affichage des établissements fermés
-           if (toggleSwitch) {
+            if (toggleSwitch) {
                 const updateClosedVisibility = (showClosed) => {
                     choicesContainer.querySelectorAll('.company-item').forEach(item => {
                         if (item.dataset.isClosed === 'true') {
@@ -89,7 +95,6 @@
                     });
                 };
 
-                // Appliquer l'état initial (false puisque décoché)
                 updateClosedVisibility(toggleSwitch.checked);
 
                 toggleSwitch.addEventListener('change', function() {
@@ -110,21 +115,18 @@
                     if (siretInput) siretInput.value = "";
                     if (company_json) company_json.value = "";
 
-                    // Si la barre de recherche est vide, on fait disparaître l'élément immédiatement
                     if (!searchInput || searchInput.value.trim() === "") {
                         const item = button.closest('.company-item');
                         if (item) item.style.display = 'none';
                     } else {
-                        // Sinon on remet juste le style normal
                         button.style.borderColor = '#ebeff3';
                         button.style.background = '#ebeff3';
                         button.querySelector('.indicator-selected').style.display = 'none';
                         button.querySelector('.indicator-unselected').style.display = 'inline-block';
                     }
-                return;
-            }
+                    return;
+                }
 
-                // réinitialiser le style de tous les boutons
                 choicesContainer.querySelectorAll('.company-choice-button').forEach((el) => {
                     el.style.borderColor = '#ebeff3';
                     el.style.background = '#ebeff3';
@@ -133,17 +135,14 @@
                     el.querySelector('.indicator-unselected').style.display = 'inline-block';
                 });
 
-                // mettre en évidence le bouton sélectionné
                 button.dataset.isSelected = "true";
                 button.style.borderColor = '#03bd5b';
                 button.style.background = '#daf5e7';
                 button.querySelector('.indicator-selected').style.display = 'inline-block';
                 button.querySelector('.indicator-unselected').style.display = 'none';
 
-                // mettre à jour les champs du formulaire
-                document.getElementById("id_siret").value = button.dataset.companySiret;
+                if (siretInput) siretInput.value = button.dataset.companySiret;
 
-                // création du json
                 const companyData = {
                     siret: button.dataset.companySiret,
                     name: button.dataset.companyName,
@@ -154,8 +153,6 @@
                     isClosed: button.dataset.companyClosed === 'true'
                 };
                 
-
-                // On crée ou on met à jour un input caché pour le JSON complet
                 let jsonInput = document.getElementById("selected_company_json");
                 if (!jsonInput) {
                     jsonInput = document.createElement("input");

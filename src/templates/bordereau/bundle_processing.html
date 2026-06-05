@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Préparation du téléchargement - Trackdéchets{% endblock %}
+
+{% block main %}
+    <div class="fr-container fr-mt-4w">
+        {% if task_id %}
+            {% include "bordereau/partials/_prepare_bundle.html" %}
+        {% else %}
+            <div class="fr-alert fr-alert--error">
+                <p>Erreur : Aucune tâche en cours.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock main %}
