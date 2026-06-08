@@ -107,6 +107,8 @@ def format_bspaoh_packagings(packagings):
         return ""
     return ", ".join([f"{p.get('quantity')} {p.get('type')} vol:{p.get('volume')}" for p in packagings])
 
+def format_weight(val):
+    return "N/A" if val is None else str(val)
 
 def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
     return {
@@ -120,7 +122,7 @@ def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": deep_get(bsdd, "wasteDetails.code"),
             "name": deep_get(bsdd, "wasteDetails.name"),
-            "weight": str(deep_get(bsdd, "stateSummary.quantity") or deep_get(bsdd, "wasteDetails.quantity") or "N/A"),
+            "weight": format_weight(deep_get(bsdd, "stateSummary.quantity") or deep_get(bsdd, "wasteDetails.quantity") or "N/A"),
         },
         "intermediaries": [
             {"name": i.get("name")} for i in (deep_get(bsdd, "intermediaries") or [])
@@ -149,7 +151,6 @@ def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
         "packagings": format_bsdd_packagings(deep_get(bsdd, "wasteDetails.packagingInfos")),
     }
 
-
 def bsdasri_to_bsd_display_search_result(bsdasri) -> BsdDisplaySearchResult:
     waste_code = deep_get(bsdasri, "bsdasriWaste.code")
     return {
@@ -163,7 +164,7 @@ def bsdasri_to_bsd_display_search_result(bsdasri) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": waste_code,
             "name": "DASRI origine humaine" if waste_code == BSDASRI_HUMAN_WASTE_CODE else "DASRI origine animale",
-            "weight": str(deep_get(bsdasri, "transporter.transport.weight.value", default="N/A")),
+            "weight": format_weight(deep_get(bsdasri, "transporter.transport.weight.value") or "N/A"),
         },
         "intermediaries": [],
         "destination": {
@@ -203,7 +204,7 @@ def bsff_to_bsd_display_search_result(bsff) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": deep_get(bsff, "waste.code"),
             "name": deep_get(bsff, "waste.description"),
-            "weight": str(deep_get(bsff, "bsffWeight.value") or "N/A"),
+            "weight": format_weight(deep_get(bsff, "bsffWeight.value") or "N/A"),
         },
         "intermediaries": [],
         "destination": {
@@ -244,7 +245,7 @@ def bsda_to_bsd_display_search_result(bsda) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": waste_code,
             "name": deep_get(bsda, "waste.materialName"),
-            "weight": str(deep_get(bsda, "weight.value", default="N/A")),
+            "weight": format_weight(deep_get(bsda, "weight.value", default="N/A")),
         },
         "intermediaries": [],
         "destination": {
@@ -286,7 +287,7 @@ def bspaoh_to_bsd_display_search_result(bspaoh) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": waste_code,
             "name": "Foetus" if waste_type == "FOETUS" else "Pièces anatomiques d'origine humaine",
-            "weight": str(deep_get(bspaoh, "emitter.emission.detail.weight.value", default="N/A")),
+            "weight": format_weight(deep_get(bspaoh, "emitter.emission.detail.weight.value", default="N/A")),
         },
         "intermediaries": [],
         "destination": {
@@ -327,7 +328,7 @@ def bsvhu_to_bsd_display_search_result(bsvhu) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": waste_code,
             "name": "VHU non dépollués" if waste_code == "16 01 04*" else "VHU dépollués",
-            "weight": str(
+            "weight": format_weight(
                 deep_get(bsvhu, "destination.reception.weight", default="N/A")
                 or deep_get(bsvhu, "weight.value", default="N/A")
             ),
