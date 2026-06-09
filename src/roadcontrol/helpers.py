@@ -1,4 +1,5 @@
 from typing import TypedDict
+
 import httpx
 from django.conf import settings
 from sqlalchemy.sql import text
@@ -70,7 +71,7 @@ def get_company_data(siret) -> CompanyData:
         res = client.post(url=settings.TD_API_URL, headers=auth_headers, json=payload)
         res.raise_for_status()
         companies = _extract_companies(res)
-        
+
         if companies:
             company = companies[0]
             return {
@@ -82,7 +83,7 @@ def get_company_data(siret) -> CompanyData:
             }
     except (httpx.HTTPError, ValueError):
         pass
-        
+
     return {
         "company_name": "Établissement inconnu",
         "company_address": "Adresse non renseignée",

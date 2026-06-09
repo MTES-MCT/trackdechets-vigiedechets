@@ -9,9 +9,11 @@ from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
 
+
 class PdfBundleQuerySet(models.QuerySet):
     def ready(self):
         return self.filter(state="READY")
+
 
 class PdfBundleManager(models.Manager.from_queryset(PdfBundleQuerySet)):
     def mark_as_failed(self, pk):
@@ -49,7 +51,12 @@ class PdfBundle(models.Model):
     )
     created_at = models.DateTimeField(_("Downloaded at"), default=timezone.now)
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="bordereau_pdfbundles"
+        User,
+        verbose_name=_("Created by"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="bordereau_pdfbundles",
     )
     zip_file = models.FileField(
         _("Zip File"), upload_to=bundle_path, blank=True, max_length=512, storage=storages["private_s3"]
@@ -91,7 +98,12 @@ class BsdPdf(models.Model):
         _("Pdf"), upload_to=bsd_path, blank=True, max_length=512, storage=storages["private_s3"]
     )
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="bordereau_bsdpdfs"
+        User,
+        verbose_name=_("Created by"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="bordereau_bsdpdfs",
     )
     bundle = models.ForeignKey(
         PdfBundle, verbose_name=_("Bundle"), blank=True, null=True, on_delete=models.CASCADE, related_name="pdfs"
@@ -123,6 +135,7 @@ def delete_pdf_bundle_files(sender, instance, *args, **kwargs):
     """Supprime le fichier ZIP sur S3 lors de la suppression du bundle"""
     if instance.zip_file:
         instance.zip_file.delete(save=False)
+
 
 @receiver(pre_delete, sender=BsdPdf)
 def delete_bsd_pdf_files(sender, instance, *args, **kwargs):

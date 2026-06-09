@@ -4,7 +4,9 @@ import time
 
 import polars as pl
 from django.conf import settings
+
 from sheets.datawarehouse import get_wh_sqlachemy_engine
+
 from ..utils import format_waste_codes
 
 SQL_PATH = settings.BASE_DIR / "data" / "sql"

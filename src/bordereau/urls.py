@@ -1,14 +1,15 @@
 from django.urls import path
+
 from .views import (
-    BsdSearch,
-    CompanySearchView,
-    BsdSearchResultById,
-    BsdSearchResult,
-    BsdPdfBundle,
     BsdBundleProcessingView,
     BsdFragmentBundleProcessingView,
+    BsdPdfBundle,
     BsdPdfBundleResult,
     BsdRecentSearch,
+    BsdSearch,
+    BsdSearchResult,
+    BsdSearchResultById,
+    CompanySearchView,
     SingleBordereauPdfDownload,
 )
 

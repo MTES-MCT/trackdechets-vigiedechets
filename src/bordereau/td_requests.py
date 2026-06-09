@@ -384,7 +384,7 @@ def query_td_bordereaux_search(
 
     where = "\n".join(where_clauses)
     after = f'after: "{end_cursor}"' if end_cursor else ""
-    first = f'first: {page_size}'
+    first = f"first: {page_size}"
 
     query = graphql_query_bordereaux_search.substitute(
         where=where,
@@ -406,12 +406,13 @@ def query_td_bordereaux_search(
             json={"query": query},
         )
         res.raise_for_status()
-        #print(res.json())
+        # print(res.json())
         return res.json()
     except (httpx.HTTPError, ValueError):
         return None
 
-def query_td_search_companies(clue,department=None):
+
+def query_td_search_companies(clue, department=None):
     """
     Requête de recherche d'entreprises dans Trackdéchets en fonction d'une "clue" qui peut être un numéro de SIRET, un numéro de TVA,
     une raison sociale ou une partie de raison sociale. La requête retourne une liste d'entreprises correspondant à la clue,
@@ -433,26 +434,25 @@ def query_td_search_companies(clue,department=None):
     payload = {"query": query, "variables": {"clue": clue, "department": department}}
     client = httpx.Client(timeout=30)
 
-
     def _extract_companies(response):
-      data = response.json()
-      if not isinstance(data, dict):
-        return None
-      if data.get("errors"):
-        return None
-      return data.get("data", {}).get("searchCompanies", [])
+        data = response.json()
+        if not isinstance(data, dict):
+            return None
+        if data.get("errors"):
+            return None
+        return data.get("data", {}).get("searchCompanies", [])
 
     auth_headers = {"Authorization": f"Bearer jLDJukhL3DaeGsjvAQcLBFzv3CNiUuBf4pZLkUBv"}
 
     try:
-      res = client.post(url="https://api.sandbox.trackdechets.beta.gouv.fr/", headers=auth_headers, json=payload)
-      res.raise_for_status()
-      companies = _extract_companies(res)
-      if companies is not None:
-        return companies
+        res = client.post(url="https://api.sandbox.trackdechets.beta.gouv.fr/", headers=auth_headers, json=payload)
+        res.raise_for_status()
+        companies = _extract_companies(res)
+        if companies is not None:
+            return companies
     except (httpx.HTTPError, ValueError):
-      pass
-      
+        pass
+
     return []
 
 

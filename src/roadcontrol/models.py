@@ -25,6 +25,7 @@ class PdfBundleManager(models.Manager.from_queryset(PdfBundleQuerySet)):
     def mark_as_ready(self, pk):
         self.filter(pk=pk).update(state="READY")
 
+
 class Base(models.Model):
     company_siret = models.CharField(_("Company Siret"), max_length=20, blank=True)
     company_name = models.CharField(_("Company Name"), max_length=255, blank=True)
@@ -45,7 +46,6 @@ def bundle_path(instance, _):
 
 
 class PdfBundle(Base):
-
     class BundleChoice(models.TextChoices):
         INITIAL = "INITIAL", _("Initial")
         PROCESSING = "PROCESSING", _("Processing")
@@ -64,7 +64,12 @@ class PdfBundle(Base):
     )
     created_at = models.DateTimeField(_("Downloaded at"), default=timezone.now)
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="roadcontrol_pdfbundles"
+        User,
+        verbose_name=_("Created by"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="roadcontrol_pdfbundles",
     )
     zip_file = models.FileField(
         _("Zip File"), upload_to=bundle_path, blank=True, max_length=512, storage=storages["private_s3"]
@@ -97,7 +102,6 @@ def bsd_path(instance, _):
 
 
 class BsdPdf(Base):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bsd_id = models.CharField(_("Bsd Id "), max_length=30)
     packagings = models.CharField(_("Packagings"), max_length=255, blank=True)
@@ -110,7 +114,12 @@ class BsdPdf(Base):
     )
 
     created_by = models.ForeignKey(
-        User, verbose_name=_("Created by"), on_delete=models.SET_NULL, blank=True, null=True, related_name="roadcontrol_bsdpdfs"
+        User,
+        verbose_name=_("Created by"),
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="roadcontrol_bsdpdfs",
     )
     bundle = models.ForeignKey(
         PdfBundle, verbose_name=_("Bundle"), blank=True, null=True, on_delete=models.CASCADE, related_name="pdfs"
@@ -142,6 +151,7 @@ def delete_pdf_bundle_files(sender, instance, *args, **kwargs):
     """Supprime le fichier ZIP sur S3 lors de la suppression du bundle"""
     if instance.zip_file:
         instance.zip_file.delete(save=False)
+
 
 @receiver(pre_delete, sender=BsdPdf)
 def delete_bsd_pdf_files(sender, instance, *args, **kwargs):

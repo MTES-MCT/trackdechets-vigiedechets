@@ -19,10 +19,7 @@ from .helpers import get_company_data
 from .models import BsdPdf, PdfBundle
 from .rendering_helpers import render_pdf
 from .task import prepare_bundle
-from .td_requests import (
-    query_td_control_bsds,
-    query_td_pdf,
-)
+from .td_requests import query_td_control_bsds, query_td_pdf
 
 
 class RoadControlSearch(FullyLoggedMixin, TemplateView):

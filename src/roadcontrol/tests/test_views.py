@@ -110,6 +110,7 @@ def test_roadcontrol_pdf_bundle_result(verified_user):
     res = verified_user.get(url)
     assert res.status_code == 404
 
+
 def test_single_bsd_pdf_download_anon(anon_client):
     url = reverse("single_bsd_pdf_download")
     res = anon_client.get(url)

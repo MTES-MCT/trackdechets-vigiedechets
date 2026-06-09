@@ -6,11 +6,11 @@ import httpx
 from celery import current_task
 from django.core.files.base import ContentFile
 
+from bordereau.models import BsdPdf, PdfBundle
 from config.celery_app import app
 from roadcontrol.exceptions import FormDownloadException
-
-from bordereau.models import BsdPdf, PdfBundle
 from roadcontrol.td_requests import query_td_pdf
+
 from .rendering_helpers import render_pdf_bordereau_fn
 
 logger = logging.getLogger(__name__)

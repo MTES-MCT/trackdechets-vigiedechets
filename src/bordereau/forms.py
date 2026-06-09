@@ -1,6 +1,16 @@
-from django.forms import CharField, Form, HiddenInput, ValidationError, DateField, MultipleChoiceField, SelectMultiple, TextInput
-from sheets.forms import TypedDateInput
+from django.forms import (
+    CharField,
+    DateField,
+    Form,
+    HiddenInput,
+    MultipleChoiceField,
+    SelectMultiple,
+    TextInput,
+    ValidationError,
+)
+
 from registry.constants import RegistryV2WasteCode
+from sheets.forms import TypedDateInput
 
 
 class BsdSearchForm(Form):
@@ -8,13 +18,16 @@ class BsdSearchForm(Form):
     Formulaire de recherche de BSD unifié.
     Le toggle 'search_by_company' active les champs établissement + champs avancés.
     """
+
     bsd_id = CharField(
         label="N° de bordereau",
         required=False,
-        widget=TextInput(attrs={
-            "autocomplete": "off",
-            "placeholder": "BSD-",
-        }),
+        widget=TextInput(
+            attrs={
+                "autocomplete": "off",
+                "placeholder": "BSD-",
+            }
+        ),
     )
 
     # Champs établissement (visibles si toggle ON)
@@ -75,9 +88,12 @@ class BsdSearchForm(Form):
         search_by_company = self.data.get("search_by_company") == "true"
 
         advanced_fields = [
-            "code_dechet", "code_aiot",
-            "start_date_rep", "end_date_rep",
-            "start_date_exp", "end_date_exp",
+            "code_dechet",
+            "code_aiot",
+            "start_date_rep",
+            "end_date_rep",
+            "start_date_exp",
+            "end_date_exp",
         ]
 
         has_any = bsd_id or (search_by_company and (siret or any(self.data.get(f) for f in advanced_fields)))

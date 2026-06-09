@@ -1,10 +1,20 @@
 from django.conf import settings
-from django.forms import CharField, Form, HiddenInput, ValidationError, DateField, MultipleChoiceField, SelectMultiple, TextInput
+from django.forms import (
+    CharField,
+    DateField,
+    Form,
+    HiddenInput,
+    MultipleChoiceField,
+    SelectMultiple,
+    TextInput,
+    ValidationError,
+)
 from sqlalchemy.sql import text
-from sheets.forms import TypedDateInput
 
 from sheets.data_extraction import get_wh_sqlachemy_engine
+from sheets.forms import TypedDateInput
 from sheets.queries import sql_company_query_exists_str
+
 
 class RoadControlSearchForm(Form):
     siret = CharField(

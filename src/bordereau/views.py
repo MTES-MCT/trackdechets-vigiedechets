@@ -1,27 +1,21 @@
 import json
+
 import httpx
+from celery.result import AsyncResult
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic import DetailView, FormView, TemplateView
 
 from accounts.constants import PERMS_BSD_SEARCH
+from bordereau.models import BsdPdf, PdfBundle
+from bordereau.tasks import prepare_bordereau_bundle
+from common.constants import STATE_DONE, STATE_RUNNING
 from common.mixins import FullyLoggedMixin
+from config.celery_app import app
 
 from .converters import BsdsToBsdsDisplaySearchResult
 from .forms import BsdSearchForm
-
-from bordereau.models import BsdPdf, PdfBundle
-from bordereau.tasks import prepare_bordereau_bundle
-
-from .td_requests import (
-    query_td_bordereaux_search,
-    query_td_search_companies,
-)
-
-from celery.result import AsyncResult
-from config.celery_app import app
-from common.constants import STATE_DONE, STATE_RUNNING
-
+from .td_requests import query_td_bordereaux_search, query_td_search_companies
 
 
 class BsdSearch(FullyLoggedMixin, TemplateView):
@@ -32,9 +26,7 @@ class BsdSearch(FullyLoggedMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         siret = self.request.GET.get("siret")
         selected_company_json = self.request.GET.get("selected_company_json")
-        context["form"] = BsdSearchForm(
-            initial={"siret": siret, "selected_company_json": selected_company_json}
-        )
+        context["form"] = BsdSearchForm(initial={"siret": siret, "selected_company_json": selected_company_json})
         context["recent_downloads"] = BsdPdf.objects.filter(created_by=self.request.user)[:5]
         context["download_column_name"] = "N° de bordereau"
         return context
@@ -55,18 +47,20 @@ class CompanySearchView(FullyLoggedMixin, TemplateView):
 
         if len(clue) < 3 and selected_siret:
             if selected_company_json:
-                return self.render_to_response({
-                    "companies": [json.loads(selected_company_json)],
-                    "selected_siret": selected_siret,
-                    "toggle": False,
-                })
+                return self.render_to_response(
+                    {
+                        "companies": [json.loads(selected_company_json)],
+                        "selected_siret": selected_siret,
+                        "toggle": False,
+                    }
+                )
 
         companies = query_td_search_companies(clue=clue, department=department)
 
         if selected_siret:
             selected_company = next(
                 (c for c in companies if c.get("siret") == selected_siret or c.get("vatNumber") == selected_siret),
-                None
+                None,
             )
             if selected_company:
                 companies.remove(selected_company)
@@ -74,11 +68,13 @@ class CompanySearchView(FullyLoggedMixin, TemplateView):
             elif selected_company_json:
                 companies.insert(0, json.loads(selected_company_json))
 
-        return self.render_to_response({
-            "companies": companies,
-            "selected_siret": selected_siret,
-            "toggle": True,
-        })
+        return self.render_to_response(
+            {
+                "companies": companies,
+                "selected_siret": selected_siret,
+                "toggle": True,
+            }
+        )
 
 
 class BsdSearchResultById(FullyLoggedMixin, FormView):
@@ -99,12 +95,10 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
         search_params.pop("search_clue", None)
         search_params.pop("code_postal", None)
         search_params.pop("search_by_company", None)
-        
+
         fetch_cursor = cursors[-1] if cursors else None
 
-        resp = query_td_bordereaux_search(
-            **search_params, end_cursor=fetch_cursor, page_size=page_size
-        )
+        resp = query_td_bordereaux_search(**search_params, end_cursor=fetch_cursor, page_size=page_size)
 
         nodes = []
         total_count = 0
@@ -122,13 +116,13 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
             page_info = bsds_resp["pageInfo"]
             start_cursor = page_info["startCursor"]
             end_cursor = page_info["endCursor"]
-            
+
             next_cursors = cursors + [end_cursor] if end_cursor else cursors
             next_cursors_str = ",".join(next_cursors)
-            
+
             prev_cursors = cursors[:-1] if cursors else []
             prev_cursors_str = ",".join(prev_cursors)
-            
+
             has_next_page = page_info["hasNextPage"]
             has_previous_page = current_page > 1
             next_page = current_page + 1 if has_next_page else current_page
@@ -138,10 +132,7 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
 
-        bsds_ids = [
-            {"bsd_id": bsd["id"], "readable_id": bsd["readable_id"]}
-            for bsd in converter.bsds_display
-        ]
+        bsds_ids = [{"bsd_id": bsd["id"], "readable_id": bsd["readable_id"]} for bsd in converter.bsds_display]
 
         custom_error_message = None
         if total_count == 0:
@@ -170,6 +161,7 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
             )
         )
 
+
 class BsdSearchResult(FullyLoggedMixin, FormView):
     success_url = ""
     template_name = "bordereau/partials/search_result_bsds.html"
@@ -186,14 +178,12 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
         search_params.pop("search_clue", None)
         search_params.pop("code_postal", None)
         search_by_company = search_params.pop("search_by_company", None)
-        
+
         fetch_cursor = cursors[-1] if cursors else None
 
         print("search params:", search_params)
 
-        resp = query_td_bordereaux_search(
-            **search_params, end_cursor=fetch_cursor, page_size=page_size
-        )
+        resp = query_td_bordereaux_search(**search_params, end_cursor=fetch_cursor, page_size=page_size)
 
         nodes = []
         total_count = 0
@@ -211,13 +201,13 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
             page_info = bsds_resp["pageInfo"]
             start_cursor = page_info["startCursor"]
             end_cursor = page_info["endCursor"]
-            
+
             next_cursors = cursors + [end_cursor] if end_cursor else cursors
             next_cursors_str = ",".join(next_cursors)
-            
+
             prev_cursors = cursors[:-1] if cursors else []
             prev_cursors_str = ",".join(prev_cursors)
-            
+
             has_next_page = page_info["hasNextPage"]
             has_previous_page = current_page > 1
             next_page = current_page + 1 if has_next_page else current_page
@@ -227,10 +217,7 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
 
-        bsds_ids = [
-            {"bsd_id": bsd["id"], "readable_id": bsd["readable_id"]}
-            for bsd in converter.bsds_display
-        ]
+        bsds_ids = [{"bsd_id": bsd["id"], "readable_id": bsd["readable_id"]} for bsd in converter.bsds_display]
 
         return self.render_to_response(
             self.get_context_data(
@@ -267,10 +254,8 @@ class BsdRecentSearch(FullyLoggedMixin, TemplateView):
         return sorted(list(bundles) + list(pdfs), key=lambda i: getattr(i, "created_at"), reverse=True)[:5]
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(
-            **kwargs, 
-            recent_downloads=self.get_recent_downloads()
-        )
+        return super().get_context_data(**kwargs, recent_downloads=self.get_recent_downloads())
+
 
 class BsdPdfBundle(FullyLoggedMixin, TemplateView):
     template_name = "dummy.html"
@@ -282,18 +267,18 @@ class BsdPdfBundle(FullyLoggedMixin, TemplateView):
         bsd_id_searched = request.POST.get("bsd_id") or "Tous"
         codes_dechet_searched = ", ".join(request.POST.getlist("code_dechet")) or "Tous"
         code_aiot_searched = request.POST.get("code_aiot") or "Tous"
-        
+
         start_rep = request.POST.get("start_date_rep")
         end_rep = request.POST.get("end_date_rep")
         dates_reception = f"Du {start_rep} au {end_rep}" if (start_rep or end_rep) else "Toutes dates"
-        
+
         start_exp = request.POST.get("start_date_exp")
         end_exp = request.POST.get("end_date_exp")
         dates_expedition = f"Du {start_exp} au {end_exp}" if (start_exp or end_exp) else "Toutes dates"
 
         # Check if precise ids were given
         bsd_ids = request.POST.getlist("bsd_ids[]")
-        
+
         if bsd_ids:
             bsd_types = request.POST.getlist("bsd_types[]")
             readable_ids = request.POST.getlist("readable_ids[]")
@@ -329,19 +314,19 @@ class BsdPdfBundle(FullyLoggedMixin, TemplateView):
                 "start_date_exp": request.POST.get("start_date_exp"),
                 "end_date_exp": request.POST.get("end_date_exp"),
             }
-            
+
             search_params = {k: v for k, v in search_params.items() if v}
             search_params.pop("search_by_company", None)
 
             resp = query_td_bordereaux_search(**search_params, page_size=100)
-            
+
             nodes = []
             if resp and resp.get("data") and resp["data"].get("bordereauxSearch"):
                 nodes = [edge["node"] for edge in resp["data"]["bordereauxSearch"]["edges"]]
 
             converter = BsdsToBsdsDisplaySearchResult(nodes)
             converter.convert()
-            
+
             bundle_params = [
                 {
                     "bsd_type": bsd.get("bsd_type"),
@@ -380,10 +365,12 @@ class BsdBundleProcessingView(FullyLoggedMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx.update({
-            "task_id": self.kwargs.get("task_id", None),
-            "bundle_pk": self.kwargs.get("bundle_pk", None),
-        })
+        ctx.update(
+            {
+                "task_id": self.kwargs.get("task_id", None),
+                "bundle_pk": self.kwargs.get("bundle_pk", None),
+            }
+        )
         return ctx
 
 
@@ -400,7 +387,7 @@ class BsdFragmentBundleProcessingView(FullyLoggedMixin, TemplateView):
         job = AsyncResult(self.task_id, app=app)
         done = job.ready()
         result = job.result
-        
+
         bsds_count = "N/A"
         bsds_total_count = "N/A"
         if isinstance(result, dict):
@@ -409,22 +396,24 @@ class BsdFragmentBundleProcessingView(FullyLoggedMixin, TemplateView):
             bsds_total_count = result.get("bsds_total_count", 0)
         else:
             progress = 100.0 if done else 0.0
-            
+
         custom_message = "Préparation en cours"
         if bsds_count and bsds_total_count:
             custom_message = f"{progress} % : {bsds_count}/{bsds_total_count} bordereaux"
-            
+
         ctx.update({"custom_message": custom_message})
 
         if not job.ready():
             ctx.update({"state": STATE_RUNNING})
         else:
             result = job.get() if job.successful() else {}
-            ctx.update({
-                "errors": result.get("errors", []),
-                "state": STATE_DONE,
-                "redirect_to": result.get("redirect", ""),
-            })
+            ctx.update(
+                {
+                    "errors": result.get("errors", []),
+                    "state": STATE_DONE,
+                    "redirect_to": result.get("redirect", ""),
+                }
+            )
         return ctx
 
 
@@ -439,8 +428,10 @@ class BsdPdfBundleResult(FullyLoggedMixin, DetailView):
 
 
 from django.core.files.base import ContentFile
+
 from roadcontrol.exceptions import FormDownloadException
 from roadcontrol.td_requests import query_td_pdf
+
 
 class SingleBordereauPdfDownload(FullyLoggedMixin, TemplateView):
     """Pdf download view used by bordereau views"""

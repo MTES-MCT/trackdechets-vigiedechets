@@ -107,8 +107,10 @@ def format_bspaoh_packagings(packagings):
         return ""
     return ", ".join([f"{p.get('quantity')} {p.get('type')} vol:{p.get('volume')}" for p in packagings])
 
+
 def format_weight(val):
     return "N/A" if val is None else str(val)
+
 
 def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
     return {
@@ -122,11 +124,11 @@ def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
         "waste_details": {
             "code": deep_get(bsdd, "wasteDetails.code"),
             "name": deep_get(bsdd, "wasteDetails.name"),
-            "weight": format_weight(deep_get(bsdd, "stateSummary.quantity") or deep_get(bsdd, "wasteDetails.quantity") or "N/A"),
+            "weight": format_weight(
+                deep_get(bsdd, "stateSummary.quantity") or deep_get(bsdd, "wasteDetails.quantity") or "N/A"
+            ),
         },
-        "intermediaries": [
-            {"name": i.get("name")} for i in (deep_get(bsdd, "intermediaries") or [])
-        ],
+        "intermediaries": [{"name": i.get("name")} for i in (deep_get(bsdd, "intermediaries") or [])],
         "destination": {
             "company": {
                 "name": deep_get(bsdd, "recipient.company.name"),
@@ -150,6 +152,7 @@ def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
         "transporter_plate": deep_get(bsdd, "transporter.numberPlate"),
         "packagings": format_bsdd_packagings(deep_get(bsdd, "wasteDetails.packagingInfos")),
     }
+
 
 def bsdasri_to_bsd_display_search_result(bsdasri) -> BsdDisplaySearchResult:
     waste_code = deep_get(bsdasri, "bsdasriWaste.code")

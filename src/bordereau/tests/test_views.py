@@ -1,5 +1,5 @@
-from unittest.mock import patch
 import json
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -65,21 +65,26 @@ def test_bsd_search_result_form_selection(verified_user):
     res_adv = verified_user.post(reverse("bordereau_search_result"), data={"code_dechet": "01 01 01"})
     assert res_adv.status_code == 200
 
+
 @patch("bordereau.views.query_td_search_companies")
 def test_company_search_view_with_clue(mock_search, verified_user):
-    mock_search.return_value = [
-        {"siret": "12345678901234", "name": "TEST COMPANY", "address": "PARIS"}
-    ]
+    mock_search.return_value = [{"siret": "12345678901234", "name": "TEST COMPANY", "address": "PARIS"}]
     res = verified_user.get(reverse("bordereau_company_search"), {"search_clue": "test", "code_postal": ""})
     assert res.status_code == 200
     assert "TEST COMPANY" in res.content.decode()
+
 
 @patch("bordereau.views.query_td_search_companies")
 def test_company_search_view_persistence_json(mock_search, verified_user):
     company_data = {"siret": "99999999999999", "name": "CACHED COMPANY", "address": "LYON"}
     res = verified_user.get(
         reverse("bordereau_company_search"),
-        {"search_clue": "", "code_postal": "", "selected_siret": "99999999999999", "selected_company_json": json.dumps(company_data)},
+        {
+            "search_clue": "",
+            "code_postal": "",
+            "selected_siret": "99999999999999",
+            "selected_company_json": json.dumps(company_data),
+        },
     )
     assert res.status_code == 200
     assert "CACHED COMPANY" in res.content.decode()
