@@ -67,6 +67,8 @@ class BsdDisplaySearchResult(TypedDict):
     transporter_plate: str
     packagings: str
     adr: str
+    grouping: str
+    grouping_list: list
 
 
 def deep_get(dictionary, keys, default=None):
@@ -151,6 +153,7 @@ def bsdd_to_bsd_display_search_result(bsdd) -> BsdDisplaySearchResult:
         "adr": deep_get(bsdd, "wasteDetails.onuCode"),
         "transporter_plate": deep_get(bsdd, "transporter.numberPlate"),
         "packagings": format_bsdd_packagings(deep_get(bsdd, "wasteDetails.packagingInfos")),
+        "grouping_list": [{"id": f.get("form", {}).get("id")} for f in (deep_get(bsdd, "grouping_bsdd") or []) if f.get("form") and f["form"].get("id")],
     }
 
 
@@ -192,6 +195,7 @@ def bsdasri_to_bsd_display_search_result(bsdasri) -> BsdDisplaySearchResult:
         "adr": deep_get(bsdasri, "bsdasriWaste.adr"),
         "transporter_plate": (deep_get(bsdasri, "transporter.transport.plates") or [""])[0],
         "packagings": format_bsdasri_packagings(deep_get(bsdasri, "transporter.transport.packagings")),
+        "grouping_list": deep_get(bsdasri, "grouping_bsdasri") or [],
     }
 
 
@@ -232,6 +236,7 @@ def bsff_to_bsd_display_search_result(bsff) -> BsdDisplaySearchResult:
         "adr": deep_get(bsff, "waste.adr"),
         "transporter_plate": (deep_get(bsff, "bsffTransporter.transport.plates") or [""])[0],
         "packagings": format_bsff_packagings(deep_get(bsff, "packagings")),
+        "grouping_list": [{"id": prev.get("id")} for pkg in (deep_get(bsff, "grouping_bsff") or []) for prev in (pkg.get("previousBsffs") or []) if prev.get("id")],
     }
 
 
@@ -273,6 +278,8 @@ def bsda_to_bsd_display_search_result(bsda) -> BsdDisplaySearchResult:
         "adr": deep_get(bsda, "waste.adr"),
         "transporter_plate": (deep_get(bsda, "transporter.transport.plates") or [""])[0],
         "packagings": format_bsdd_packagings(deep_get(bsda, "bsdaPackagings")),
+        "grouping": ", ".join([g.get("id", "") for g in (deep_get(bsda, "grouping_bsda") or [])]),
+        "grouping_list": deep_get(bsda, "grouping_bsda") or [],
     }
 
 
@@ -315,6 +322,7 @@ def bspaoh_to_bsd_display_search_result(bspaoh) -> BsdDisplaySearchResult:
         "adr": None,
         "transporter_plate": (deep_get(bspaoh, "transporter.transport.plates") or [""])[0],
         "packagings": format_bspaoh_packagings(deep_get(bspaoh, "bspaohWaste.packagings")),
+        "grouping_list": [],
     }
 
 
@@ -359,6 +367,7 @@ def bsvhu_to_bsd_display_search_result(bsvhu) -> BsdDisplaySearchResult:
         "adr": None,
         "transporter_plate": (deep_get(bsvhu, "transporter.transport.plates") or [""])[0],
         "packagings": "",
+        "grouping_list": [],
     }
 
 

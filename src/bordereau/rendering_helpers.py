@@ -25,6 +25,12 @@ def render_pdf(content):
 
 def render_pdf_bordereau_fn(bundle: PdfBundle):
     ctx = {"bundle": bundle}
-    content = render_to_string("bordereau/pdf/bordereau_bundle_digest.html", ctx)
+    
+    if bundle.search_params and bundle.search_params.get("is_grouping"):
+        template_name = "bordereau/pdf/bordereau_bundle_grouping_digest.html"
+    else:
+        template_name = "bordereau/pdf/bordereau_bundle_digest.html"
+        
+    content = render_to_string(template_name, ctx)
 
     return render_pdf(content)

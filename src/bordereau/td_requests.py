@@ -60,6 +60,11 @@ fragment BsddFragment on Form {
     }
     numberPlate
   }
+  grouping_bsdd: grouping {
+    form {
+      id
+    }
+  }
 }
 """
 
@@ -106,6 +111,9 @@ fragment BsdasriFragment on Bsdasri {
     reception {
       date
     }
+  }
+  grouping_bsdasri: grouping {
+    id
   }
 }
 """
@@ -154,6 +162,12 @@ fragment BsdaFragment on Bsda {
   weight {
     value
   }
+  grouping_bsda: grouping {
+    id
+    waste {
+      code
+    }
+  }
 }
 """
 
@@ -201,6 +215,11 @@ fragment BsffFragment on Bsff {
   }
   bsffWeight: weight {
     value
+  }
+  grouping_bsff: grouping {
+    previousBsffs {
+      id
+    }
   }
 }
 """

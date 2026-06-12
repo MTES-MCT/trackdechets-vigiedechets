@@ -128,7 +128,7 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
             next_page = current_page + 1 if has_next_page else current_page
             prev_page = current_page - 1 if has_previous_page else current_page
             nodes = [edge["node"] for edge in bsds_resp["edges"]]
-
+            
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
 
@@ -181,8 +181,6 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
 
         fetch_cursor = cursors[-1] if cursors else None
 
-        print("search params:", search_params)
-
         resp = query_td_bordereaux_search(**search_params, end_cursor=fetch_cursor, page_size=page_size)
 
         nodes = []
@@ -191,6 +189,8 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
         has_previous_page = False
         start_cursor = None
         end_cursor = None
+        next_cursors_str = ""
+        prev_cursors_str = ""
         next_page = current_page
         prev_page = current_page
 
@@ -213,6 +213,10 @@ class BsdSearchResult(FullyLoggedMixin, FormView):
             next_page = current_page + 1 if has_next_page else current_page
             prev_page = current_page - 1 if has_previous_page else current_page
             nodes = [edge["node"] for edge in bsds_resp["edges"]]
+
+            for node in nodes:
+                if node.get("grouping"):
+                    print(f"Bordereau {node.get('id')} has grouping: {node['grouping']}")
 
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
@@ -341,9 +345,14 @@ class BsdPdfBundle(FullyLoggedMixin, TemplateView):
             ]
 
         # 3. Association des critères de recherche aux attributs du modèle PdfBundle
+        is_grouping = request.POST.get("is_grouping") == "true"
+        parent_readable_id = request.POST.get("parent_readable_id")
+        
         bundle = PdfBundle.objects.create(
             created_by=request.user,
             search_params={
+                "is_grouping": is_grouping,
+                "parent_readable_id": parent_readable_id,
                 "siret": siret_searched,
                 "bsd_id": bsd_id_searched,
                 "code_dechet": codes_dechet_searched,

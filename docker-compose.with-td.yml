@@ -114,6 +114,5 @@ volumes:
   clickhouse_data:
   postgres_data:
   redis_data:
-  minio_data:
   static_volume:
   media_volume:
