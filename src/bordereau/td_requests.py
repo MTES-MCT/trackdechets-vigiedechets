@@ -3,8 +3,6 @@ from string import Template
 import httpx
 from django.conf import settings
 
-from roadcontrol.constants import TYPE_BSDA, TYPE_BSDASRI, TYPE_BSDD, TYPE_BSFF, TYPE_BSPAOH, TYPE_BSVHU
-
 bsdd_fragment = """
 fragment BsddFragment on Form {
   __typename
@@ -461,10 +459,10 @@ def query_td_search_companies(clue, department=None):
             return None
         return data.get("data", {}).get("searchCompanies", [])
 
-    auth_headers = {"Authorization": f"Bearer jLDJukhL3DaeGsjvAQcLBFzv3CNiUuBf4pZLkUBv"}
+    auth_headers = {"Authorization": f"Bearer {settings.TD_API_TOKEN}"}
 
     try:
-        res = client.post(url="https://api.sandbox.trackdechets.beta.gouv.fr/", headers=auth_headers, json=payload)
+        res = client.post(url=settings.TD_API_URL, headers=auth_headers, json=payload)
         res.raise_for_status()
         companies = _extract_companies(res)
         if companies is not None:
@@ -497,7 +495,7 @@ def query_td_company_infos(siret):
     client = httpx.Client(timeout=60)
     try:
         res = client.post(
-            url="https://api.sandbox.trackdechets.beta.gouv.fr/",
+            url=settings.TD_API_URL,
             json={
                 "query": query,
                 "variables": {"siret": siret},

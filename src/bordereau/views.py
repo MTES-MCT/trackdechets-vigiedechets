@@ -128,7 +128,7 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
             next_page = current_page + 1 if has_next_page else current_page
             prev_page = current_page - 1 if has_previous_page else current_page
             nodes = [edge["node"] for edge in bsds_resp["edges"]]
-            
+
         converter = BsdsToBsdsDisplaySearchResult(nodes)
         converter.convert()
 
@@ -137,6 +137,8 @@ class BsdSearchResultById(FullyLoggedMixin, FormView):
         custom_error_message = None
         if total_count == 0:
             custom_error_message = f"Aucun bordereau n’a été trouvé avec le numéro {bsd_id_searched}"
+            next_cursors_str = ""
+            prev_cursors_str = ""
 
         return self.render_to_response(
             self.get_context_data(
@@ -347,7 +349,7 @@ class BsdPdfBundle(FullyLoggedMixin, TemplateView):
         # 3. Association des critères de recherche aux attributs du modèle PdfBundle
         is_grouping = request.POST.get("is_grouping") == "true"
         parent_readable_id = request.POST.get("parent_readable_id")
-        
+
         bundle = PdfBundle.objects.create(
             created_by=request.user,
             search_params={
