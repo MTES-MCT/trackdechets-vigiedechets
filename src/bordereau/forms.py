@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.forms import (
     CharField,
     DateField,
@@ -8,9 +9,12 @@ from django.forms import (
     TextInput,
     ValidationError,
 )
+from sqlalchemy.sql import text
 
 from registry.constants import RegistryV2WasteCode
+from sheets.data_extraction import get_wh_sqlachemy_engine
 from sheets.forms import TypedDateInput
+from sheets.queries import sql_company_query_exists_str
 
 
 class BsdSearchForm(Form):
@@ -80,6 +84,24 @@ class BsdSearchForm(Form):
 
     # Toggle caché
     search_by_company = CharField(required=False, widget=HiddenInput())
+
+    def clean_siret(self):
+        siret = self.cleaned_data["siret"]
+
+        if not siret:
+            return siret
+        siret = "".join(siret.split())  # strip all whitespace
+
+        prepared_query = text(sql_company_query_exists_str)
+
+        if not settings.SKIP_ROAD_CONTROL_SIRET_CHECK:
+            wh_engine = get_wh_sqlachemy_engine()
+            with wh_engine.connect() as con:
+                companies = con.execute(prepared_query, {"siret": siret}).all()
+
+            if not companies:
+                raise ValidationError("Établissement non inscrit sur Trackdéchets.")
+        return siret
 
     def clean(self):
         cleaned_data = super().clean()
