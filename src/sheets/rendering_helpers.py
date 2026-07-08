@@ -12,6 +12,8 @@ from django.utils import timezone
 from weasyprint import CSS, HTML
 from weasyprint.text.fonts import FontConfiguration
 
+from config.template_settings import get_template_runtime_settings
+
 from .constants import PLOTLY_GRAPHS_TO_RENDER_IN_PDF
 from .data_processing import SheetProcessor
 from .models import ComputedInspectionData
@@ -105,6 +107,8 @@ def render_pdf_sheet_fn(computed_pk: str):
         "eo_quantities_graph": sheet.eco_organisme_quantities_graph,
         "skip_css": True,
     }
+
+    ctx.update(get_template_runtime_settings())
     content = render_to_string("sheets/sheetpdf.html", ctx)
     font_config = FontConfiguration()
     html = HTML(string=content, base_url=settings.BASE_URL)
