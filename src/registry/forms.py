@@ -237,6 +237,7 @@ class RegistryV2PrepareForm(forms.ModelForm):
             export.siret = self.cleaned_data.get("siret")
             export.created_by = self.created_by
             export.created_by_email = self.created_by.email
+            export.end_date = export.end_date.replace(hour=23, minute=59, second=59)
             if commit:
                 export.save()
             return export
