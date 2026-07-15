@@ -176,7 +176,7 @@
     _paq.push(["trackFaqPageView"]);
     _paq.push(["enableLinkTracking"]);
     (function() {
-      var u = "https://stats.beta.gouv.fr/";
+      var u = {{ MATOMO_URL }};
       _paq.push(["setTrackerUrl", u + "matomo.php"]);
       _paq.push(["setSiteId", {{ MATOMO_SITE_ID }}]);
       var d = document, g = d.createElement("script"), s = d.getElementsByTagName("script")[0];
