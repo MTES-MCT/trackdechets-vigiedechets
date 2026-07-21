@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
-    "axios": "^1.16.1",
+    "axios": "^1.18.0",
     "classnames": "^2.5.1",
     "maplibre-gl": "^5.24.0",
     "react": "^19.2.6",
