@@ -116,6 +116,10 @@ DATABASES = {
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 REDIS_URL = env.str("REDIS_URL", "redis://localhost:6379/0")
+
+# For local development, you can disable the SSH tunnel by setting
+# USE_SSH_TUNNEL=false in your .env file.
+USE_SSH_TUNNEL = env.bool("USE_SSH_TUNNEL", default=True)
 DWH_USERNAME = env.str("DWH_USERNAME")
 DWH_PASSWORD = env.str("DWH_PASSWORD")
 DWH_PORT = env.str("DWH_PORT")

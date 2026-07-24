@@ -9,7 +9,6 @@ from sqlalchemy.sql import text
 from sheets.datawarehouse import get_wh_sqlachemy_engine
 from sheets.forms import TypedDateInput
 from sheets.queries import sql_company_query_exists_str, sql_get_linked_companies_data_from_siren
-from sheets.ssh import ssh_tunnel
 
 from .constants import RegistryV2IdentifierType
 from .models import RegistryV2Export, RegistryV2ExportSiren, RegistryV2ExportSiret
@@ -174,23 +173,23 @@ class RegistryV2PrepareForm(forms.ModelForm):
         """Check if SIRET exists in ClickHouse"""
         prepared_query = text(sql_company_query_exists_str)
 
-        with ssh_tunnel(settings):
-            wh_engine = get_wh_sqlachemy_engine()
-            with wh_engine.connect() as con:
-                companies = con.execute(prepared_query, {"siret": siret}).all()
-            return bool(companies)
+        wh_engine = get_wh_sqlachemy_engine()
+        with wh_engine.connect() as con:
+            companies = con.execute(prepared_query, {"siret": siret}).all()
+        if not companies:
+            raise ValidationError("Établissement non inscrit sur Trackdéchets.")
+        return bool(companies)
 
     def _get_sirets_for_siren(self, siren):
         """Get all SIRETs for a SIREN from ClickHouse"""
         prepared_query = text(sql_get_linked_companies_data_from_siren)
 
-        with ssh_tunnel(settings):
-            wh_engine = get_wh_sqlachemy_engine()
-            with wh_engine.connect() as con:
-                # Use any SIRET starting with this SIREN as parameter
-                # (the query uses substring comparison)
-                results = con.execute(prepared_query, {"siren": siren}).all()
-                return [row[0] for row in results]  # Extract SIRETs
+        wh_engine = get_wh_sqlachemy_engine()
+        with wh_engine.connect() as con:
+            # Use any SIRET starting with this SIREN as parameter
+            # (the query uses substring comparison)
+            results = con.execute(prepared_query, {"siren": siren}).all()
+            return [row[0] for row in results]  # Extract SIRETs
 
     def save(self, commit=True):
         identifier_type = self.cleaned_data.get("identifier_type")

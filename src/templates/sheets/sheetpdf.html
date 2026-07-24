@@ -58,8 +58,8 @@
                     <p class="pdf-text">Les données présentes dans cette fiche proviennent de différentes sources :</p>
                     <ul class="pdf-text">
                         <li>Trackdéchets (mise à jour chaque nuit) ;</li>
-                        <li>l'outil GUN (dernière mise à jour : Février 2025) ;</li>
-                        <li>GISTRID (dernière mise à jour : Février 2025) ;</li>
+                        <li>l'outil GUN (dernière mise à jour : {{ GUN_DATA_UPDATE_DATE_STRING }}) ;</li>
+                        <li>GISTRID (dernière mise à jour : {{ GISTRID_DATA_UPDATE_DATE_STRING }}) ;</li>
                     </ul>
                 </div>
             </div>
@@ -375,6 +375,7 @@
             {# end on site #}
             {# waste origin per waste type #}
             <h2 class="section__title">Origine des déchets par type de déchet - Top 10 départements</h2>
+            <p>L'origine des déchets correspond à la provenance du déchet, le producteur initial ou l'entreposage provisoire si il existe</p>
             <div class="row">
                 {% if bsdd_waste_origin_graph %}
                     <div class="cell cell--bordered cell--half">
