@@ -104,6 +104,8 @@ def render_pdf_sheet_fn(computed_pk: str):
         "eo_bordereaux_graph": sheet.eco_organisme_bordereaux_graph,
         "eo_quantities_graph": sheet.eco_organisme_quantities_graph,
         "skip_css": True,
+        "GUN_DATA_UPDATE_DATE_STRING": settings.GUN_DATA_UPDATE_DATE_STRING,
+        "GISTRID_DATA_UPDATE_DATE_STRING": settings.GISTRID_DATA_UPDATE_DATE_STRING,
     }
     content = render_to_string("sheets/sheetpdf.html", ctx)
     font_config = FontConfiguration()
@@ -144,9 +146,7 @@ def render_pdf_fn(computed_pk: str, render_indiv_graph_api_fn):
         return
     computed.pdf_rendering_start = timezone.now()
     computed.save()
-    graph_rendering = group(
-        (render_indiv_graph_api_fn.s(computed_pk, name) for name in PLOTLY_GRAPHS_TO_RENDER_IN_PDF)
-    )
+    graph_rendering = group(render_indiv_graph_api_fn.s(computed_pk, name) for name in PLOTLY_GRAPHS_TO_RENDER_IN_PDF)
 
     result = graph_rendering.delay()
 
