@@ -8,4 +8,5 @@ def settings_processor(request):
         "GISTRID_DATA_UPDATE_DATE_STRING": settings.GISTRID_DATA_UPDATE_DATE_STRING,
         "RNDTS_DATA_UPDATE_DATE_STRING": settings.RNDTS_DATA_UPDATE_DATE_STRING,
         "MATOMO_SITE_ID": settings.MATOMO_SITE_ID,
+        "MATOMO_URL": settings.MATOMO_URL,
     }
