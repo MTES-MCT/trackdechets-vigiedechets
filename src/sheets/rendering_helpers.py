@@ -12,8 +12,6 @@ from django.utils import timezone
 from weasyprint import CSS, HTML
 from weasyprint.text.fonts import FontConfiguration
 
-from config.template_settings import get_template_runtime_settings
-
 from .constants import PLOTLY_GRAPHS_TO_RENDER_IN_PDF
 from .data_processing import SheetProcessor
 from .models import ComputedInspectionData
@@ -106,9 +104,9 @@ def render_pdf_sheet_fn(computed_pk: str):
         "eo_bordereaux_graph": sheet.eco_organisme_bordereaux_graph,
         "eo_quantities_graph": sheet.eco_organisme_quantities_graph,
         "skip_css": True,
+        "GUN_DATA_UPDATE_DATE_STRING": settings.GUN_DATA_UPDATE_DATE_STRING,
+        "GISTRID_DATA_UPDATE_DATE_STRING": settings.GISTRID_DATA_UPDATE_DATE_STRING,
     }
-
-    ctx.update(get_template_runtime_settings())
     content = render_to_string("sheets/sheetpdf.html", ctx)
     font_config = FontConfiguration()
     html = HTML(string=content, base_url=settings.BASE_URL)
@@ -148,9 +146,7 @@ def render_pdf_fn(computed_pk: str, render_indiv_graph_api_fn):
         return
     computed.pdf_rendering_start = timezone.now()
     computed.save()
-    graph_rendering = group(
-        (render_indiv_graph_api_fn.s(computed_pk, name) for name in PLOTLY_GRAPHS_TO_RENDER_IN_PDF)
-    )
+    graph_rendering = group(render_indiv_graph_api_fn.s(computed_pk, name) for name in PLOTLY_GRAPHS_TO_RENDER_IN_PDF)
 
     result = graph_rendering.delay()
 

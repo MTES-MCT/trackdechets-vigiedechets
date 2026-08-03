@@ -1,12 +1,12 @@
-from .template_settings import get_template_runtime_settings
+from django.conf import settings
 
 
 def settings_processor(request):
-    # Keep existing keys + merge shared runtime settings
-    ctx = {
-        "GUN_DATA_UPDATE_DATE_STRING": get_template_runtime_settings().get("GUN_DATA_UPDATE_DATE_STRING", ""),
-        "GISTRID_DATA_UPDATE_DATE_STRING": get_template_runtime_settings().get("GISTRID_DATA_UPDATE_DATE_STRING", ""),
-        "RNDTS_DATA_UPDATE_DATE_STRING": get_template_runtime_settings().get("RNDTS_DATA_UPDATE_DATE_STRING", ""),
-        "MATOMO_SITE_ID": get_template_runtime_settings().get("MATOMO_SITE_ID", ""),
+    # return the value you want as a dictionnary. you may add multiple values in there.
+    return {
+        "GUN_DATA_UPDATE_DATE_STRING": settings.GUN_DATA_UPDATE_DATE_STRING,
+        "GISTRID_DATA_UPDATE_DATE_STRING": settings.GISTRID_DATA_UPDATE_DATE_STRING,
+        "RNDTS_DATA_UPDATE_DATE_STRING": settings.RNDTS_DATA_UPDATE_DATE_STRING,
+        "MATOMO_SITE_ID": settings.MATOMO_SITE_ID,
+        "MATOMO_URL": settings.MATOMO_URL,
     }
-    return ctx
