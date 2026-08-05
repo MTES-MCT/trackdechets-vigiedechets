@@ -62,6 +62,7 @@ LOCAL_APPS = [
     "oidc",
     "content",
     "import_export",
+    "bordereau",
     "roadcontrol",
     "sheets",
     "maps",
@@ -353,7 +354,7 @@ STORAGES = {
     },
 }
 
-SKIP_ROAD_CONTROL_SIRET_CHECK = False
+SKIP_ROAD_CONTROL_SIRET_CHECK = env.bool("SKIP_ROAD_CONTROL_SIRET_CHECK", default=False)
 
 GUN_DATA_UPDATE_DATE_STRING = env("GUN_DATA_UPDATE_DATE_STRING")
 GISTRID_DATA_UPDATE_DATE_STRING = env("GISTRID_DATA_UPDATE_DATE_STRING")

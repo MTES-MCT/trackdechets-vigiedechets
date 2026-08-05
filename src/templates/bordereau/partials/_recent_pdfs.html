@@ -1,0 +1,84 @@
+{% if recent_downloads %}
+<h3 class="fr-h6 fr-mb-2w">Derniers téléchargements</h3>
+
+<div class="recent-downloads-list">
+    {% for download in recent_downloads %}
+    <div class="fr-grid-row fr-grid-row--middle fr-p-2v fr-mb-2v"
+        style="border: 1px solid var(--border-default-grey, #e5e5e5); border-radius: 4px; background-color: var(--background-default-grey, #fff);"
+        data-test-id="{{ download.pk }}">
+
+        <div class="fr-col">
+            <p class="fr-text--sm fr-text--bold fr-mb-1v">
+                {% if download.pdf_file %}
+                <span class="fr-icon-file-pdf-line fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
+                {{ download.bsd_id }}
+                {% else %}
+                <span class="fr-icon-folder-2-line fr-icon--sm fr-mr-1v" aria-hidden="true"></span>
+                {{ download.verbose_type }} ({{ download.params|length }} bsd)
+                {% endif %}
+            </p>
+            <p class="fr-text--xs fr-text-mention--grey fr-mb-1v">
+                {% if download.pdf_file %}
+                    Bordereau individuel
+                {% else %}
+                    {% with s=download.search_params %}
+                        {% if s %}
+                            {% spaceless %}
+                            <span class="criteria-list">
+                                {% if s.bsd_id and s.bsd_id != "Tous" %}<span>N° bordereau : {{ s.bsd_id|truncatechars:35 }}</span>{% endif %}
+                                {% if s.siret and s.siret != "Tous" %}<span>SIRET : {{ s.siret }}</span>{% endif %}
+                                {% if s.code_dechet and s.code_dechet != "Tous" %}<span>Code(s) déchet : {{ s.code_dechet|truncatechars:35 }}</span>{% endif %}
+                                {% if s.code_aiot and s.code_aiot != "Tous" %}<span>Code(s) AIOT : {{ s.code_aiot|truncatechars:35 }}</span>{% endif %}
+                                {% if s.dates_reception and s.dates_reception != "Tous" and s.dates_reception != "Toutes dates" and s.dates_reception != "-" and s.dates_reception != "None-None" %}<span>Dates de réception : {{ s.dates_reception }}</span>{% endif %}
+                                {% if s.dates_expedition and s.dates_expedition != "Tous" and s.dates_expedition != "Toutes dates" and s.dates_expedition != "-" and s.dates_expedition != "None-None" %}<span>Dates d'expédition : {{ s.dates_expedition }}</span>{% endif %}
+                            </span>
+                            {% endspaceless %}
+                            {% if not s.bsd_id or s.bsd_id == "Tous" %}
+                                {% if not s.siret or s.siret == "Tous" %}
+                                    {% if not s.code_dechet or s.code_dechet == "Tous" %}
+                                        {% if not s.code_aiot or s.code_aiot == "Tous" %}
+                                            {% if not s.dates_reception or s.dates_reception == "Tous" or s.dates_reception == "Toutes dates" or s.dates_reception == "-" or s.dates_reception == "None-None" %}
+                                                {% if not s.dates_expedition or s.dates_expedition == "Tous" or s.dates_expedition == "Toutes dates" or s.dates_expedition == "-" or s.dates_expedition == "None-None" %}
+                                                    Tous les bordereaux
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            Critères multiples
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </p>
+            <p class="fr-text--xs fr-text-mention--grey fr-mb-0">
+                {{ download.created_at|date:"SHORT_DATETIME_FORMAT" }}
+            </p>
+        </div>
+
+        <div class="fr-col-auto fr-ml-2w">
+            {% if download.pdf_file %}
+            <a href="{{ download.pdf_file.url }}" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line"
+                target="_blank" title="Télécharger le PDF"></a>
+            {% elif download.zip_file %}
+            <a href="{{ download.zip_file.url }}" class="fr-btn fr-btn--secondary fr-btn--sm fr-icon-download-line"
+                target="_blank" title="Télécharger l'archive ZIP"></a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="fr-alert fr-alert--info fr-alert--sm fr-mt-2w">
+    <p>Aucun téléchargement récent.</p>
+</div>
+{% endif %}
+
+<style>
+.criteria-list span:not(:last-child)::after {
+    content: " - ";
+    color: var(--text-mention-grey);
+}
+</style>

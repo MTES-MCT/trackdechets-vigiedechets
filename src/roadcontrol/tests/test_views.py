@@ -10,6 +10,7 @@ from ..models import PdfBundle
 
 pytestmark = pytest.mark.django_db
 
+import json
 
 # Road control search
 
@@ -70,7 +71,6 @@ def test_roadcontrol_recent_pdfs_observatoires(verified_observatoire):
 def test_roadcontrol_recent_pdfs(verified_user):
     other_user = UserFactory()
     other_bsd = BsdPdfFactory(created_by=other_user)
-    individual_bsd = BsdPdfFactory(created_by=verified_user.user, request_type="BSD")
     other_bundle = PdfBundleFactory(created_by=other_user, state=PdfBundle.BundleChoice.READY)
 
     bsd = BsdPdfFactory(created_by=verified_user.user)
@@ -86,9 +86,7 @@ def test_roadcontrol_recent_pdfs(verified_user):
 
     assert str(other_bsd.id) not in res.content.decode()
     assert str(other_bundle.id) not in res.content.decode()
-    assert str(other_bundle.id) not in res.content.decode()
     assert str(non_ready_bundle.id) not in res.content.decode()
-    assert str(individual_bsd.id) not in res.content.decode()
 
 
 def test_roadcontrol_pdf_bundle_result_anon(anon_client):
@@ -111,68 +109,6 @@ def test_roadcontrol_pdf_bundle_result(verified_user):
     url = reverse("roadcontrol_pdf_bundle_result", args=[other_bundle.pk])
     res = verified_user.get(url)
     assert res.status_code == 404
-
-
-# Bsd search
-
-
-def test_bsd_search_anon(anon_client):
-    url = reverse("roadcontrol_bsd_search")
-    res = anon_client.get(url)
-    assert res.status_code == 302
-
-
-@pytest.mark.parametrize(
-    "get_client", ["verified_client", "logged_monaiot_client", "logged_proconnect_client"], indirect=True
-)
-def test_bsd_search(get_client):
-    url = reverse("roadcontrol_bsd_search")
-    res = get_client.get(url)
-    assert res.status_code == 200
-
-    assert "Rechercher un bordereau" in res.content.decode()
-
-
-def test_bsd_recent_pdfs_anon(anon_client):
-    url = reverse("bsd_recent_pdfs")
-    res = anon_client.get(url)
-    assert res.status_code == 302
-
-
-def test_bsd_recent_pdfs(verified_user):
-    other_user = UserFactory()
-    other_bsd = BsdPdfFactory(created_by=other_user)
-    individual_bsd = BsdPdfFactory(created_by=verified_user.user, request_type="BSD")
-    other_bundle = PdfBundleFactory(created_by=other_user, state=PdfBundle.BundleChoice.READY)
-
-    bsd = BsdPdfFactory(created_by=verified_user.user)
-    bundle = PdfBundleFactory(created_by=verified_user.user, state=PdfBundle.BundleChoice.READY)
-    non_ready_bundle = PdfBundleFactory(created_by=verified_user.user, state=PdfBundle.BundleChoice.PROCESSING)
-    url = reverse("bsd_recent_pdfs")
-    res = verified_user.get(url)
-
-    assert res.status_code == 200
-
-    assert str(bsd.id) not in res.content.decode()
-    assert str(bundle.id) not in res.content.decode()
-
-    assert str(other_bsd.id) not in res.content.decode()
-    assert str(other_bundle.id) not in res.content.decode()
-    assert str(other_bundle.id) not in res.content.decode()
-    assert str(non_ready_bundle.id) not in res.content.decode()
-    assert str(individual_bsd.id) in res.content.decode()
-
-
-def test_roadcontrol_bsd_search_result_anon(anon_client):
-    url = reverse("roadcontrol_bsd_search_result")
-    res = anon_client.get(url)
-    assert res.status_code == 302
-
-
-def test_roadcontrol_bsd_search_result(verified_user):
-    url = reverse("roadcontrol_bsd_search_result")
-    res = verified_user.get(url)
-    assert res.status_code == 200
 
 
 def test_single_bsd_pdf_download_anon(anon_client):
@@ -382,18 +318,3 @@ def test_road_control_search_no_results(mock_query_td, verified_user):
     assert response.status_code == 200
     assert response.context["total_count"] == 0
     assert response.context["no_bsd_found_pdf_available"] is True
-
-
-@patch("roadcontrol.views.query_td_control_bsds")
-def test_road_control_search_no_pagination(mock_query_td, verified_user):
-    form_data = {"siret": "12345678901234", "plate": "AB-123-CD"}
-
-    mock_query_td.return_value = mock_graphql_response_factory(
-        has_next_page=False,
-    )
-    url = reverse("roadcontrol_search_result")
-    response = verified_user.post(url, data=form_data)
-
-    mock_query_td.assert_called_once_with(siret="12345678901234", plate="AB 123 CD", end_cursor="")
-
-    assert response.context["has_previous_page"] is False

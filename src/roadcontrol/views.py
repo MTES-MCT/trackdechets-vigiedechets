@@ -14,7 +14,7 @@ from config.celery_app import app
 
 from .converters import BsdsToBsdsDisplay
 from .exceptions import FormDownloadException
-from .forms import BsdSearchForm, RoadControlSearchForm
+from .forms import RoadControlSearchForm
 from .helpers import get_company_data
 from .models import BsdPdf, PdfBundle
 from .rendering_helpers import render_pdf
@@ -86,7 +86,6 @@ class RoadControlSearchResult(FullyLoggedMixin, FormView):
                 has_next_page=has_next_page,
                 has_previous_page=has_previous_page,
                 bundle_download_available=True,
-                request_type=BsdPdf.RequestTypeChoice.ROAD_CONTROL,
             )
         )
 
@@ -164,7 +163,6 @@ class SingleBsdPdfDownload(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
         bsd_id = request.POST.get("bsd_id")
         bsd_type = request.POST.get("bsd_type")
         bsd_readable_id = request.POST.get("bsd_readable_id", None) or bsd_id
-        request_type = request.POST.get("request_type", BsdPdf.RequestTypeChoice.ROAD_CONTROL)
 
         search_params = self.get_search_params(request)
         siret = search_params["siret"]
@@ -187,7 +185,6 @@ class SingleBsdPdfDownload(FullyLoggedMixin, BsdRetrievingMixin, TemplateView):
             **company_data,
             **bsd_data,
             created_by=request.user,
-            request_type=request_type,
         )
 
         res = self.render_to_response(context={"bsd_pdf": bsd_pdf})
@@ -310,85 +307,13 @@ class RoadControlRecentPdfs(FullyLoggedMixin, TemplateView):
 
     def get_recent_downloads(self):
         user = self.request.user
+
         bundles = PdfBundle.objects.ready().filter(created_by=user)[:5]
-        pdfs = BsdPdf.objects.road_control().filter(bundle=None, created_by=user)[:5]
+        pdfs = BsdPdf.objects.filter(bundle=None, created_by=user)[:5]
 
         return sorted(list(bundles) + list(pdfs), key=lambda i: getattr(i, "created_at"), reverse=True)[:5]
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
             **kwargs, recent_downloads=self.get_recent_downloads(), download_column_name="N° de bordereau/dossier"
-        )
-
-
-class BsdSearch(FullyLoggedMixin, TemplateView):
-    template_name = "roadcontrol/bsd_search.html"
-    allowed_user_categories = PERMS_BSD_SEARCH
-
-    def get_context_data(self, **kwargs):
-        form = BsdSearchForm()
-        return super().get_context_data(**kwargs, form=form)
-
-
-class BsdSearchResult(FullyLoggedMixin, FormView):
-    form_class = BsdSearchForm
-    success_url = ""
-    template_name = "roadcontrol/partials/search_result.html"
-    allowed_user_categories = PERMS_BSD_SEARCH
-
-    def form_valid(self, form):
-        bsd_id = form.cleaned_data["bsd_id"]
-
-        query_name = "controlBsds"
-        resp = query_td_control_bsds(bsd_id=bsd_id)
-        nodes = []
-        total_count = 0
-        start_cursor = None
-        end_cursor = None
-        has_next_page = False
-        has_previous_page = False
-        if resp:
-            bsds = resp["data"][query_name]
-            total_count = bsds["totalCount"]
-            page_info = bsds["pageInfo"]
-            start_cursor = page_info["startCursor"]
-            end_cursor = page_info["endCursor"]
-
-            edges = bsds["edges"]
-
-            nodes = [edge["node"] for edge in edges]
-
-        converter = BsdsToBsdsDisplay(nodes)
-        converter.convert()
-
-        bsds_ids = [{"bsd_id": bsd["id"], "readable_id": bsd["readable_id"]} for bsd in converter.bsds_display]
-
-        return self.render_to_response(
-            self.get_context_data(
-                form=form,
-                bsds=converter.bsds_display,
-                bsds_ids=bsds_ids,
-                search_params={"bsd_id": bsd_id},
-                total_count=total_count,
-                start_cursor=start_cursor,
-                end_cursor=end_cursor,
-                has_next_page=has_next_page,
-                has_previous_page=has_previous_page,
-                bundle_download_available=False,
-                request_type=BsdPdf.RequestTypeChoice.BSD,
-            )
-        )
-
-
-class BsdRecentPdfs(FullyLoggedMixin, TemplateView):
-    template_name = "roadcontrol/partials/_recent_pdfs.html"
-    allowed_user_categories = PERMS_BSD_SEARCH
-
-    def get_recent_downloads(self):
-        user = self.request.user
-        return BsdPdf.objects.bsd().filter(created_by=user)[:5]
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(
-            **kwargs, recent_downloads=self.get_recent_downloads(), download_column_name="N° de bordereau"
         )

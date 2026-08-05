@@ -1,0 +1,11 @@
+<p>
+    <a class="fr-btn fr-btn--sm"
+       target="_blank"
+       href="{{ bsd_pdf.pdf_file.url }}"
+       id="pdf_link_{{ bsd_pdf.id }}">PDF</a>
+</p>
+<script>
+    (function () {
+        document.getElementById('pdf_link_{{ bsd_pdf.id }}').click();
+    })();
+</script>

@@ -1,0 +1,80 @@
+{% extends "base_pdf.html" %}
+{% load static %}
+
+{% block main %}
+{% block style %}
+{# Tes styles personnalisés si nécessaire #}
+{% endblock style %}
+
+<div class="header">
+    <img src="{% static " img/mtes.png" %}" style="height: 2.5cm;" />
+    <img src="{% static " img/trackdechets.png" %}" style="height: 2cm;" />
+    <div class="header__text">
+        <h1 class="header__title">Recherche de bordereaux</h1>
+        <p>Édité le {{ bundle.created_at|date:"d/m/Y à H:i" }}</p>
+    </div>
+</div>
+
+{# 📝 CADRE DES CRITÈRES DE RECHERCHE #}
+<div class="row">
+    <div class="vehicle-info">
+        <h3 class="vehicle-info__title">Critères de recherche appliqués</h3>
+        <p class="vehicle-info__row">
+            <span class="vehicle-info__label">N° SIRET :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.siret }}</span>
+        </p>
+        <p class="fr-text--sm vehicle-info__row">
+            <span class="vehicle-info__label">N° de bordereau :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.bsd_id }}</span>
+        </p>
+        <p class="vehicle-info__row">
+            <span class="vehicle-info__label">Codes Déchets :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.code_dechet }}</span>
+        </p>
+        <p class="vehicle-info__row">
+            <span class="vehicle-info__label">Code MonAIOT :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.code_aiot }}</span>
+        </p>
+        <p class="vehicle-info__row">
+            <span class="vehicle-info__label">Dates de réception :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.dates_reception }}</span>
+        </p>
+        <p class="vehicle-info__row">
+            <span class="vehicle-info__label">Dates d'expédition :</span>
+            <span class="vehicle-info__value">{{ bundle.search_params.dates_expedition }}</span>
+        </p>
+    </div>
+</div>
+
+{# 📊 RÉSUMÉ DE TOUS LES BORDEREAUX COMPILÉS #}
+<div class="row" style="margin-top: 1cm;">
+    <h3>Résumé des {{ bundle.pdfs.count }} bordereau{{ bundle.pdfs.count|pluralize:"x" }} téléchargé{{
+        bundle.pdfs.count|pluralize:"s" }}</h3>
+    <table class="pdf-table" style="width: 100%; border-collapse: collapse; margin-top: 0.5cm;">
+        <thead>
+            <tr style="background-color: #f6f6f6; border-bottom: 2px solid #ddd;">
+                <th style="padding: 0.5rem; text-align: left;">N° de bordereau</th>
+                <th style="padding: 0.5rem; text-align: left;">Conditionnement</th>
+                <th style="padding: 0.5rem; text-align: left;">Déchet</th>
+                <th style="padding: 0.5rem; text-align: left;">Poids</th>
+                <th style="padding: 0.5rem; text-align: left;">Code ADR</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pdf in bundle.pdfs.all %}
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 0.5rem; font-weight: bold;">{{ pdf.bsd_id }}</td>
+                <td style="padding: 0.5rem;">{{ pdf.packagings|default:"—" }}</td>
+                <td style="padding: 0.5rem;">{{ pdf.waste_code }}</td>
+                <td style="padding: 0.5rem;">{{ pdf.weight }} kg</td>
+                <td style="padding: 0.5rem;">{{ pdf.adr_code|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block content %}
+{# Conservé si d'autres extensions en ont besoin #}
+{% endblock content %}
+{% endblock main %}

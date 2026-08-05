@@ -26,26 +26,13 @@ class PdfBundleManager(models.Manager.from_queryset(PdfBundleQuerySet)):
         self.filter(pk=pk).update(state="READY")
 
 
-class Base(models.Model):
-    company_siret = models.CharField(_("Company Siret"), max_length=20, blank=True)
-    company_name = models.CharField(_("Company Name"), max_length=255, blank=True)
-    company_address = models.CharField(_("Company Address"), max_length=512, blank=True)
-    company_contact = models.CharField(_("Company Contact"), max_length=255, blank=True)
-    company_email = models.EmailField(_("Company Email"), max_length=255, blank=True)
-    company_phone = models.CharField(_("Company Phone"), max_length=20, blank=True)
-    transporter_plate = models.CharField(_("Transporter Plate"), max_length=20, blank=True)
-
-    class Meta:
-        abstract = True
-
-
 def bundle_path(instance, _):
     now = timezone.now()
-    transporter_plate = "".join(instance.transporter_plate.split())
-    return f"bundles/{now.year}/{now.month}/{now.day}/{now.year}{now.month}{now.day}_{now.hour}{now.minute}_{instance.company_siret}_{transporter_plate}.zip"
+    siret = instance.search_params.get("siret", "Tous") if instance.search_params else "Tous"
+    return f"bordereaux_bundles/{now.year}/{now.month}/{now.day}/{now.year}{now.month}{now.day}_{now.hour}{now.minute}_{siret}.zip"
 
 
-class PdfBundle(Base):
+class PdfBundle(models.Model):
     class BundleChoice(models.TextChoices):
         INITIAL = "INITIAL", _("Initial")
         PROCESSING = "PROCESSING", _("Processing")
@@ -69,7 +56,7 @@ class PdfBundle(Base):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="roadcontrol_pdfbundles",
+        related_name="bordereau_pdfbundles",
     )
     zip_file = models.FileField(
         _("Zip File"), upload_to=bundle_path, blank=True, max_length=512, storage=storages["private_s3"]
@@ -90,36 +77,33 @@ class PdfBundle(Base):
         return "Dossier"
 
     def __str__(self):
-        return f"Archive {self.company_siret} {self.created_at.strftime('%d %M %Y')}"
+        siret = self.search_params.get("siret", "Tous") if self.search_params else "Tous"
+        return f"Archive {siret} {self.created_at.strftime('%d %M %Y')}"
 
 
 def bsd_path(instance, _):
     now = timezone.now()
-    return f"bsds/{now.year}/{now.month}/{now.day}/bsd-{instance.id}.pdf"
+    return f"bordereaux_bsds/{now.year}/{now.month}/{now.day}/bsd-{instance.id}.pdf"
 
 
-# class BsdPdfManager(models.Manager): removed as no longer needed
-
-
-class BsdPdf(Base):
+class BsdPdf(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bsd_id = models.CharField(_("Bsd Id "), max_length=30)
     packagings = models.CharField(_("Packagings"), max_length=255, blank=True)
     waste_code = models.CharField(_("Waste Code"), max_length=128, blank=True)
-    weight = models.DecimalField(_("Weight"), max_digits=12, decimal_places=2, null=True, blank=True)
+    weight = models.CharField(_("Weight"), max_length=30, blank=True, null=True)
     adr_code = models.CharField(_("Adr Code"), max_length=255, blank=True)
     created_at = models.DateTimeField(_("Created at"), default=timezone.now)
     pdf_file = models.FileField(
         _("Pdf"), upload_to=bsd_path, blank=True, max_length=512, storage=storages["private_s3"]
     )
-
     created_by = models.ForeignKey(
         User,
         verbose_name=_("Created by"),
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="roadcontrol_bsdpdfs",
+        related_name="bordereau_bsdpdfs",
     )
     bundle = models.ForeignKey(
         PdfBundle, verbose_name=_("Bundle"), blank=True, null=True, on_delete=models.CASCADE, related_name="pdfs"

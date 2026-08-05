@@ -1,0 +1,27 @@
+{% if state != "done" %}
+    <div class="fr-grid-row fr-grid-row--center fr-mt-4w"
+         hx-get="{% url 'bordereau_pdf_bundle_processing_fragment' task_id bundle_pk %}"
+         hx-trigger="every 500ms"
+         hx-swap="outerHTML">
+         {% include "spinner.html" with message=False custom_message=custom_message %}
+    </div>
+{% endif %}
+
+{% if state == "done" %}
+    {% if not errors %}
+        <div class="fr-grid-row fr-grid-row--center fr-mt-4w">
+            <p class="fr-text--lead">Génération effectuée, redirection en cours…</p>
+        </div>
+        <script>
+            window.setTimeout(function () {
+                window.location.href = "{% url 'bordereau_pdf_bundle_result' bundle_pk %}";
+            }, 1000);
+        </script>
+    {% else %}
+        <div class="fr-alert fr-alert--error fr-mt-4w">
+            <h3 class="fr-alert__title">💥 Une erreur est survenue</h3>
+            <p>Impossible de générer le dossier de bordereaux.</p>
+            <p><a class="fr-btn fr-btn--secondary" href="{% url 'bordereau_search' %}">Retourner à la recherche</a></p>
+        </div>
+    {% endif %}
+{% endif %}

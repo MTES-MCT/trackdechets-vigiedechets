@@ -1,0 +1,223 @@
+{% load partials static bordereau_tags %}
+
+{% if bsds %}
+    <div class="fr-grid-row fr-grid-row--middle fr-mt-3w fr-mb-2w">
+    
+    {# Colonne de gauche (prend tout l'espace disponible) #}
+    <div class="fr-col">
+        <p class="fr-mb-0">
+            <strong>{{ total_count }} bordereau{% if total_count > 1 %}x{% endif %} de déchet{% if total_count > 1 %}s{% endif %} trouvé{% if total_count > 1 %}s{% endif %}</strong>
+        </p>
+    </div>
+
+    {# Colonne de droite (s'adapte à la taille de son contenu) #}
+    {% if bundle_download_available %}
+        <div class="fr-col-auto">
+            {% if total_count <= 100 %}
+                <form action="{% url 'bordereau_pdf_bundle' %}" method="post" class="fr-mb-0">
+                    {% csrf_token %}
+                    {# On envoie les critères de recherche au back-end pour refaire une requête globale #}
+                    <input type="hidden" name="siret" value="{{ search_params.siret|default_if_none:'' }}" />
+                    <input type="hidden" name="bsd_id" value="{{ search_params.bsd_id|default_if_none:'' }}" />
+                    <input type="hidden" name="search_by_company" value="{{ search_params.search_by_company|default_if_none:'' }}" />
+                    
+                    {% for code in search_params.code_dechet %}
+                        <input type="hidden" name="code_dechet" value="{{ code }}" />
+                    {% endfor %}
+                    
+                    {% for code in search_params.code_aiot %}
+                        <input type="hidden" name="code_aiot" value="{{ code }}" />
+                    {% endfor %}
+                    
+                    <input type="hidden" name="start_date_rep" value="{{ search_params.start_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                    <input type="hidden" name="end_date_rep" value="{{ search_params.end_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                    <input type="hidden" name="start_date_exp" value="{{ search_params.start_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                    <input type="hidden" name="end_date_exp" value="{{ search_params.end_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                    <button class="fr-btn fr-btn--secondary fr-btn--icon-right fr-icon-file-text-line">
+                        Télécharger tous les pdf
+                    </button>
+                </form>
+            {% else %}
+                <div class="fr-text--sm fr-text-default--warning fr-mb-0">
+                    <strong>Export de dossier indisponible - trop de résultats</strong>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    </div>
+
+    <table id="bsd-table" class="bsd-table">
+        <thead>
+            <tr>
+                <th>Reçu le</th>
+                <th>Expédié le</th>
+                <th>N° de bordereau</th>
+                <th>Code AIOT</th>
+                <th>Intermédiaire</th>
+                <th>Destination</th>
+                <th>Code déchet</th>
+                <th>Tonnage</th>
+                <th class="fr-grid-row--center">PDF</th>
+                <th class="fr-grid-row--center">Export du dossier</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bsd in bsds %}
+                {% include "bordereau/partials/_bsd_card_search.html" with bsd=bsd search_params=search_params request_type=request_type %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {# Macro pour les inputs cachés communs à tous les formulaires de pagination #}
+    {% with sm=search_params %}
+
+    {# Pagination DSFR : RECHERCHE DE BORDEREAUX CLASSIQUE #}
+    <nav role="navigation" class="fr-pagination fr-mt-4w" aria-label="Pagination">
+        <ul class="fr-pagination__list" style="justify-content: center;">
+
+            {# Page précédente #}
+            <li>
+                {% if has_previous_page %}
+                    <form hx-post="{% url 'bordereau_search_result' %}"
+                          hx-target="#id_search_results"
+                          style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="siret" value="{{ sm.siret|default_if_none:'' }}" />
+                        <input type="hidden" name="bsd_id" value="{{ sm.bsd_id|default_if_none:'' }}" />
+                        
+                        {# Gestion des choix multiples (listes Python) #}
+                        {% for code in sm.code_dechet %}
+                            <input type="hidden" name="code_dechet" value="{{ code }}" />
+                        {% endfor %}
+                        
+                        {% for code in sm.code_aiot %}
+                            <input type="hidden" name="code_aiot" value="{{ code }}" />
+                        {% endfor %}
+                        
+                        {# Gestion des dates et objets Python vides #}
+                        <input type="hidden" name="start_date_rep" value="{{ sm.start_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="end_date_rep" value="{{ sm.end_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="start_date_exp" value="{{ sm.start_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="end_date_exp" value="{{ sm.end_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="search_mode" value="{{ sm.search_mode|default_if_none:'' }}" />
+                        <input type="hidden" name="search_by_company" value="{{ sm.search_by_company|default_if_none:'' }}" />
+                        
+                        <input type="hidden" name="page_size" value="20" />
+                        <input type="hidden" name="current_page" value="{{ prev_page }}" />
+                        <input type="hidden" name="cursors_history" value="{{ prev_cursors_str }}" />
+                        
+                        <button type="submit" class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--label">
+                            Précédent
+                        </button>
+                    </form>
+                {% else %}
+                    <a class="fr-pagination__link fr-pagination__link--prev fr-pagination__link--label" aria-disabled="true" role="link">
+                        Précédent
+                    </a>
+                {% endif %}
+            </li>
+
+            {# Numéros de pages #}
+            {% for p in total_pages|to_range %}
+                {% if p == current_page %}
+                    <li>
+                        <a class="fr-pagination__link" aria-current="page" title="Page {{ p }}">{{ p }}</a>
+                    </li>
+                {% elif p == 1 or p == total_pages or p >= current_page|add:"-2" and p <= current_page|add:"2" %}
+                    <li>
+                        <a class="fr-pagination__link" title="Page {{ p }}" style="cursor: default;">{{ p }}</a>
+                    </li>
+                {% elif p == current_page|add:"-3" or p == current_page|add:"3" %}
+                    <li>
+                        <a class="fr-pagination__link" aria-hidden="true" style="cursor: default;">…</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {# Page suivante #}
+            <li>
+                {% if has_next_page %}
+                    <form hx-post="{% url 'bordereau_search_result' %}"
+                          hx-target="#id_search_results"
+                          style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="siret" value="{{ sm.siret|default_if_none:'' }}" />
+                        <input type="hidden" name="bsd_id" value="{{ sm.bsd_id|default_if_none:'' }}" />
+                        
+                        {# Gestion des choix multiples (listes Python) #}
+                        {% for code in sm.code_dechet %}
+                            <input type="hidden" name="code_dechet" value="{{ code }}" />
+                        {% endfor %}
+                        
+                        {% for code in sm.code_aiot %}
+                            <input type="hidden" name="code_aiot" value="{{ code }}" />
+                        {% endfor %}
+                        
+                        {# Gestion des dates et objets Python vides #}
+                        <input type="hidden" name="start_date_rep" value="{{ sm.start_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="end_date_rep" value="{{ sm.end_date_rep|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="start_date_exp" value="{{ sm.start_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="end_date_exp" value="{{ sm.end_date_exp|date:'Y-m-d'|default_if_none:'' }}" />
+                        <input type="hidden" name="search_mode" value="{{ sm.search_mode|default_if_none:'' }}" />
+                        <input type="hidden" name="search_by_company" value="{{ sm.search_by_company|default_if_none:'' }}" />
+                        
+                        <input type="hidden" name="page_size" value="20" />
+                        <input type="hidden" name="current_page" value="{{ next_page }}" />
+                        <input type="hidden" name="cursors_history" value="{{ next_cursors_str }}" />
+                        
+                        <button type="submit" class="fr-pagination__link fr-pagination__link--next fr-pagination__link--label">
+                            Suivant
+                        </button>
+                    </form>
+                {% else %}
+                    <a class="fr-pagination__link fr-pagination__link--next fr-pagination__link--label" aria-disabled="true" role="link">
+                        Suivant
+                    </a>
+                {% endif %}
+            </li>
+
+        </ul>
+    </nav>
+
+    {% endwith %}
+
+{% else %}
+    <div id="no-results-alert" class="fr-alert fr-alert--warning fr-mt-4w fr-mb-4w">
+        <h3 class="fr-alert__title">Aucun bordereau ne correspond aux critères saisis</h3>
+        <p>{{ form.non_field_errors }}</p>
+        {% for field in form %}
+            {% if field.errors %}
+                <ul>
+                    {% for error in field.errors %}
+                        <li>{{ field.label_tag }} <strong>{{ error|escape }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
+<style>
+.bsd-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #dddddd;
+}
+.bsd-table thead {
+    background: #f6f6f6;
+    border-bottom: 1px solid #dddddd;
+}
+.bsd-table th {
+    padding: 0.5rem 0.25rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #3a3a3a;
+}
+.bsd-table tbody tr:hover {
+    background: #f5f5fe;
+}
+</style>

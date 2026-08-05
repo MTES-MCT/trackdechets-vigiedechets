@@ -1,8 +1,18 @@
 from django.conf import settings
-from django.forms import CharField, Form, HiddenInput, ValidationError
+from django.forms import (
+    CharField,
+    DateField,
+    Form,
+    HiddenInput,
+    MultipleChoiceField,
+    SelectMultiple,
+    TextInput,
+    ValidationError,
+)
 from sqlalchemy.sql import text
 
 from sheets.data_extraction import get_wh_sqlachemy_engine
+from sheets.forms import TypedDateInput
 from sheets.queries import sql_company_query_exists_str
 
 
@@ -59,12 +69,3 @@ class RoadControlSearchForm(Form):
             self.add_error(
                 "plate", "L'immatriculation doit être renseignée en entier si vous ne précisez pas le siret"
             )
-
-
-class BsdSearchForm(Form):
-    bsd_id = CharField(
-        label="Numéro de bordereau",
-        min_length=18,
-        max_length=22,
-        required=True,
-    )

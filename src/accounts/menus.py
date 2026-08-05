@@ -67,7 +67,7 @@ Menu.add_item("main", PermsItem("Contrôle routier", reverse("roadcontrol"), all
 
 Menu.add_item(
     "main",
-    PermsItem("Bordereau", reverse("roadcontrol_bsd_search"), allowed_categories=PERMS_BSD_SEARCH),
+    PermsItem("Bordereau", reverse("bordereau_search"), allowed_categories=PERMS_BSD_SEARCH),
 )
 
 Menu.add_item(
