@@ -1,3 +1,5 @@
+import socket
+
 from .base import *  # noqa
 
 SECRET_KEY = "xyzabcdefghu"
@@ -10,9 +12,9 @@ INSTALLED_APPS += [  # noqa F405
 
 ALLOWED_HOSTS = ["*"]
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+# Configure internal IPs for debug toolbar to work with Docker environment
+hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1"]
 
 MIDDLEWARE = (
     MIDDLEWARE[:1]  # noqa
@@ -38,7 +40,7 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "INFO",
+        "level": "DEBUG",
     },
     "loggers": {
         "mozilla_django_oidc": {"handlers": ["console"], "level": "DEBUG"},

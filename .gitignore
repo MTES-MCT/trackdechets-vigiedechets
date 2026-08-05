@@ -150,3 +150,6 @@ dist-ssr
 temp_data
 celerytest_*
 .cursor
+
+# pnpm directory
+.pnpm-store
